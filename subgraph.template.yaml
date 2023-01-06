@@ -26,6 +26,29 @@ dataSources:
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,address,uint256)
           handler: handlePoolCreated
+  - kind: ethereum/contract
+    name: PositionManager
+    network: {{network}} 
+    source:
+      abi: PositionManager
+      address: '{{PositionManager}}'
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/PositionManager.ts
+      entities:
+        - Pool
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+        - name: GammaPool
+          file: ./abis/GammaPool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
 templates:
   - kind: ethereum/contract
     name: GammaPool
@@ -39,6 +62,8 @@ templates:
       file: ./src/mappings/GammaPool.ts
       entities:
         - PoolData
+        - Loan
+        - LoanData
       abis:
         - name: GammaPool
           file: ./abis/GammaPool.json

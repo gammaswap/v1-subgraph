@@ -1,8 +1,7 @@
-import { PoolUpdated } from '../../generated/GammaPoolFactory/GammaPool'
-import { PoolData as PoolDataSchema } from '../../generated/schema'
+import { LoanCreated, LoanUpdated, PoolUpdated } from '../../generated/GammaPoolFactory/GammaPool'
+import { PoolData as PoolDataSchema, Loan as LoanSchema, LoanData as LoanDataSchema, User as UserSchema } from '../../generated/schema'
 import { GammaPool } from '../../generated/templates/GammaPool/GammaPool'
-import { BigDecimal } from '@graphprotocol/graph-ts'
-
+import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 
 export function handlePoolUpdated(event: PoolUpdated): void {
   let poolData = new PoolDataSchema(event.transaction.hash.toHex())
@@ -25,4 +24,51 @@ export function handlePoolUpdated(event: PoolUpdated): void {
   poolData.lastBlockNumber = event.params.lastBlockNumber
 
   poolData.save()
+}
+
+export function handleLoanCreated(event: LoanCreated): void {
+  let loan = new LoanSchema(event.params.tokenId.toHexString())
+
+  // Update/Create user
+  let user = UserSchema.load(event.params.caller.toString())
+
+  if (!user) {
+    user = new UserSchema(event.params.caller.toString())
+  }
+
+  user.loans.push(event.params.tokenId)
+
+  // Initialize Loan
+  let initNumber: BigInt = new BigInt(0)
+  loan.poolId = event.address
+  loan.tokensHeld = [initNumber]
+  loan.heldLiquidity = initNumber
+  loan.liquidity = initNumber
+  loan.lpTokens = initNumber
+  loan.rateIndex = initNumber
+  loan.blockNumber = event.block.number
+  user.save()
+  loan.save()
+}
+
+export function handleLoanUpdated(event: LoanUpdated): void {
+  let loan = LoanSchema.load(event.params.tokenId.toHexString())
+  if (loan) {
+    loan.tokensHeld = event.params.tokensHeld
+    loan.heldLiquidity = event.params.heldLiquidity
+    loan.liquidity = event.params.liquidity
+    loan.lpTokens = event.params.lpTokens
+    loan.rateIndex = event.params.rateIndex
+    loan.save()
+  }
+
+  let updatedLoan = new LoanDataSchema(event.transaction.hash.toHexString())
+  updatedLoan.poolId = event.address
+  updatedLoan.tokensHeld = event.params.tokensHeld
+  updatedLoan.heldLiquidity = event.params.heldLiquidity
+  updatedLoan.liquidity = event.params.liquidity
+  updatedLoan.lpTokens = event.params.lpTokens
+  updatedLoan.rateIndex = event.params.rateIndex
+  updatedLoan.blockNumber = event.block.number
+  updatedLoan.save()
 }
