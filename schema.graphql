@@ -1,0 +1,8 @@
+type OverBalance @entity {
+  id: ID! # account address
+  wethBalance: BigInt!
+  usdcBalance: BigInt!
+  arbBalance: BigInt!
+  dpxBalance: BigInt!
+  jonesBalance: BigInt!
+}

@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+
+build
+src/types
+
+subgraph.*.yaml
+!subgraph.template.yaml

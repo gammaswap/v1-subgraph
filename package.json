@@ -1,0 +1,20 @@
+{
+  "name": "gammaswap-subgraph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "mustache networks/arbitrum-goerli.json subgraph.template.yaml subgraph.arbitrum-goerli.yaml",
+    "codegen": "graph codegen subgraph.arbitrum-goerli.yaml --output-dir src/types/",
+    "build": "graph build subgraph.arbitrum-goerli.yaml",
+    "deploy": "graph deploy --product hosted-service kalesberg/gammaswap-trading-competition subgraph.arbitrum-goerli.yaml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.49.0",
+    "@graphprotocol/graph-ts": "^0.30.0",
+    "mustache": "^4.2.0"
+  }
+}

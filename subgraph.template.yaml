@@ -1,0 +1,104 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - name: WethBalance
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{WETH}}"
+      abi: Token
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/transfer.ts
+      entities:
+        - OverBalance
+      abis:
+        - name: Token
+          file: ./abis/erc20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+  - name: UsdcBalance
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{USDC}}"
+      abi: Token
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/transfer.ts
+      entities:
+        - OverBalance
+      abis:
+        - name: Token
+          file: ./abis/erc20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+  - name: ArbitrumBalance
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{ARB}}"
+      abi: Token
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/transfer.ts
+      entities:
+        - OverBalance
+      abis:
+        - name: Token
+          file: ./abis/erc20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+  - name: DopexBalance
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{DPX}}"
+      abi: Token
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/transfer.ts
+      entities:
+        - OverBalance
+      abis:
+        - name: Token
+          file: ./abis/erc20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+  - name: JonesBalance
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{JONES}}"
+      abi: Token
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/transfer.ts
+      entities:
+        - OverBalance
+      abis:
+        - name: Token
+          file: ./abis/erc20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
