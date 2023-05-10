@@ -25,14 +25,14 @@ const tokenAddresses = [
 export function handleTransfer(event: Transfer): void {
   const tokenContractAddress = event.address.toHexString().toLowerCase();
   const sender = event.params.from.toHexString().toLowerCase();
+  const receiver = event.params.to.toHexString().toLowerCase();
   
-  if (whitelistedAddresses.includes(sender)) return;
+  if (whitelistedAddresses.includes(sender) || whitelistedAddresses.includes(receiver)) return;
   
-  const id = event.params.to.toHexString();
-  let overBalance = OverBalance.load(id);
+  let overBalance = OverBalance.load(receiver);
 
   if (!overBalance) {
-    overBalance = new OverBalance(id);
+    overBalance = new OverBalance(receiver);
     overBalance.wethBalance = BigInt.fromI32(0);
     overBalance.usdcBalance = BigInt.fromI32(0);
     overBalance.arbBalance = BigInt.fromI32(0);
