@@ -1,0 +1,16 @@
+type OverBalance @entity {
+  id: ID! # account address
+  wethBalance: BigInt!
+  usdcBalance: BigInt!
+  arbBalance: BigInt!
+  dpxBalance: BigInt!
+  jonesBalance: BigInt!
+}
+
+type LpTransfer @entity {
+  id: ID! # account address
+  wetharb: BigInt!
+  jonesweth: BigInt!
+  wethdpx: BigInt!
+  usdcweth: BigInt!
+}
