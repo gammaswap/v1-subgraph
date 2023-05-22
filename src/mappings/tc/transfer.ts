@@ -1,6 +1,6 @@
-import { BigInt, log } from '@graphprotocol/graph-ts';
-import { OverBalance } from '../types/schema';
-import { Transfer } from '../types/WethBalance/Token';
+import { BigInt } from '@graphprotocol/graph-ts';
+import { OverBalance } from '../../types/tc/schema';
+import { Transfer } from '../../types/tc/WethBalance/Token';
 
 const whitelistedAddresses = [
   '0x0000000000000000000000000000000000000000', // mint
@@ -19,13 +19,13 @@ const tokenAddresses = [
   '0x52a07d9f773b7bffbc5e9aab13eeed4629ed31f3', // USDC
   '0xc0559132cd7c7503bc393ca9f5e2140f9732f9d6', // ARB
   '0xfa2f8e6b5cbff47b0f8f9d14c7f23b1c2189dff4', // DPX
-  '0x302c1258b376660dff4eacb81d619d3a9b593988'  // JONES
+  '0x302c1258b376660dff4eacb81d619d3a9b593988', // JONES
 ]
 
 export function handleTransfer(event: Transfer): void {
-  const tokenContractAddress = event.address.toHexString().toLowerCase();
-  const sender = event.params.from.toHexString().toLowerCase();
-  const receiver = event.params.to.toHexString().toLowerCase();
+  const tokenContractAddress = event.address.toHexString();
+  const sender = event.params.from.toHexString();
+  const receiver = event.params.to.toHexString();
   
   if (whitelistedAddresses.includes(sender) || whitelistedAddresses.includes(receiver)) return;
   
