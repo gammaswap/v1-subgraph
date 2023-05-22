@@ -20,10 +20,6 @@ const tokenAddresses = [
   '0xc0559132cd7c7503bc393ca9f5e2140f9732f9d6', // ARB
   '0xfa2f8e6b5cbff47b0f8f9d14c7f23b1c2189dff4', // DPX
   '0x302c1258b376660dff4eacb81d619d3a9b593988', // JONES
-  '0x823beef029cd4adaca473e0d5903f26f3d2ff78c', // WETH_ARB
-  '0x536ac895a00b6e44c8b57bdc00ee60a5a036def1', // JONES_WETH
-  '0xb93d8c46760ba1286df27f922f0649f1c041487c', // WETH_DPX
-  '0x88a58f96ab69797662b51da1975d40007831b2d1'  // USDC_WETH
 ]
 
 export function handleTransfer(event: Transfer): void {

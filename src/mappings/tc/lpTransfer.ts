@@ -18,27 +18,28 @@ export function handleTransfer(event: Transfer): void {
   const sender = event.params.from.toHexString();
   const receiver = event.params.to.toHexString();
   
-  if (whitelistedAddresses.includes(sender)) return;
+  if (whitelistedAddresses.includes(sender)) {
+    let lpTransfer = LpTransfer.load(receiver);
   
-  let lpTransfer = LpTransfer.load(receiver);
-
-  if (!lpTransfer) {
-    lpTransfer = new LpTransfer(receiver);
-    lpTransfer.wetharb = BigInt.fromI32(0);
-    lpTransfer.jonesweth = BigInt.fromI32(0);
-    lpTransfer.wethdpx = BigInt.fromI32(0);
-    lpTransfer.usdcweth = BigInt.fromI32(0);
+    if (!lpTransfer) {
+      lpTransfer = new LpTransfer(receiver);
+      lpTransfer.wetharb = BigInt.fromI32(0);
+      lpTransfer.jonesweth = BigInt.fromI32(0);
+      lpTransfer.wethdpx = BigInt.fromI32(0);
+      lpTransfer.usdcweth = BigInt.fromI32(0);
+    }
+  
+    if (tokenContractAddress == tokenAddresses[0]) {
+      lpTransfer.wetharb = lpTransfer.wetharb.plus(event.params.value);
+    } else if (tokenContractAddress == tokenAddresses[1]) {
+      lpTransfer.jonesweth = lpTransfer.jonesweth.plus(event.params.value);
+    } else if (tokenContractAddress == tokenAddresses[2]) {
+      lpTransfer.wethdpx = lpTransfer.wethdpx.plus(event.params.value);
+    } else if (tokenContractAddress == tokenAddresses[3]) {
+      lpTransfer.usdcweth = lpTransfer.usdcweth.plus(event.params.value);
+    }
+  
+    lpTransfer.save();
   }
-
-  if (tokenContractAddress == tokenAddresses[0]) {
-    lpTransfer.wetharb = lpTransfer.wetharb.plus(event.params.value);
-  } else if (tokenContractAddress == tokenAddresses[1]) {
-    lpTransfer.jonesweth = lpTransfer.jonesweth.plus(event.params.value);
-  } else if (tokenContractAddress == tokenAddresses[2]) {
-    lpTransfer.wethdpx = lpTransfer.wethdpx.plus(event.params.value);
-  } else if (tokenContractAddress == tokenAddresses[3]) {
-    lpTransfer.usdcweth = lpTransfer.usdcweth.plus(event.params.value);
-  }
-
-  lpTransfer.save();
+  
 }
