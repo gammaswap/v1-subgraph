@@ -1,8 +1,105 @@
-type OverBalance @entity {
-  id: ID! # account address
-  wethBalance: BigInt!
-  usdcBalance: BigInt!
-  arbBalance: BigInt!
-  dpxBalance: BigInt!
-  jonesBalance: BigInt!
+enum LoanStatus {
+  OPEN
+  CLOSED
+  LIQUIDATED_PARTIAL
+  LIQUIDATED_FULL
+}
+
+type GammaPool @entity {
+  id: ID!         # {PoolAddress}
+  address: Bytes!
+  cfmm: Bytes!
+  protocolId: BigInt!
+  token0: Bytes!
+  token0Symbol: String!
+  token0Decimals: BigInt!
+  token1: Bytes!
+  token1Symbol: String!
+  token1Decimals: BigInt!
+
+  lpBalance: BigDecimal!
+  lpBorrowedBalance: BigDecimal!
+  lpBorrowedBalancePlusInterest: BigDecimal!
+  lpInvariant: BigDecimal!
+  lpBorrowedInvariant: BigDecimal!
+
+  accFeeIndex: BigDecimal!
+  lastCfmmFeeIndex: BigDecimal!
+  lastCfmmInvariant: BigDecimal!
+  lastCfmmTotalSupply: BigDecimal!
+  lastFeeIndex: BigDecimal!
+  lastPrice: BigDecimal!
+
+  totalSupply: BigDecimal!
+  token0Balance: BigDecimal!
+  token1Balance: BigDecimal!
+  reserve0Balance: BigDecimal!
+  reserve1Balance: BigDecimal!
+  borrowRate: BigDecimal!
+  supplyRate: BigDecimal!
+  utilizationRate: BigDecimal!
+  ltvThreshold: BigDecimal!
+  liquidationFee: BigDecimal!
+
+  block: BigInt!
+  timestamp: BigInt!
+
+  loans: [Loan!] @derivedFrom(field: "pool")
+  liquidations: [Liquidation!] @derivedFrom(field: "pool")
+}
+
+type Loan @entity {
+  id: ID!           # {PoolAddress}:{tokenId}
+  tokenId: BigInt!
+  pool: GammaPool!
+  account: Account!
+
+  # TODO
+  # creation loan event: PositionManager or other contract or EOA, determine actual owner of the loan
+
+  rateIndex: BigDecimal!
+  initLiquidity: BigDecimal!
+  liquidity: BigDecimal!
+  lpTokens: BigDecimal!
+  token0Held: BigDecimal!
+  token1Held: BigDecimal!
+  price: BigDecimal!
+
+  status: LoanStatus!
+  openedBlock: BigInt!
+  openedTimestamp: BigInt!
+  closedBlock: BigInt
+  closedTimestamp: BigInt
+
+  liquidations: [Liquidation!] @derivedFrom(field: "loan")
+}
+
+type Position @entity {
+  id: ID!           # {PoolAddress}:{account}
+  pool: GammaPool!
+  account: Account!
+
+  gsTokens: BigDecimal!
+  lpTokens: BigDecimal!
+}
+
+type Liquidation @entity {
+  id: ID!           # {PoolAddress}:{tokenId}:{index}
+  pool: GammaPool!
+  loan: Loan!
+  liquidator: Account!
+
+  collateral: BigDecimal!
+  liquidity: BigDecimal!
+  writeDown: BigDecimal!
+
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type Account @entity {
+  id: ID!           # {account}
+  loans: [Loan!] @derivedFrom(field: "account")
+  positions: [Position!] @derivedFrom(field: "account")
+  liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
 }

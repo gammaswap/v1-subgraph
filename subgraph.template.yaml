@@ -2,103 +2,54 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
-  - name: WethBalance
+  - name: GammaFactory
     kind: ethereum/contract
     network: {{network}}
     source:
-      address: "{{WETH}}"
-      abi: Token
+      address: "{{factory}}"
+      abi: Factory
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/transfer.ts
+      file: ./src/mappings/factory.ts
       entities:
-        - OverBalance
+        - GammaPool
       abis:
-        - name: Token
+        - name: ERC20
           file: ./abis/erc20.json
+        - name: Factory
+          file: ./abis/factory.json
       eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-  - name: UsdcBalance
+        - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
+          handler: handlePoolCreate
+templates:
+  - name: GammaPool
     kind: ethereum/contract
     network: {{network}}
     source:
-      address: "{{USDC}}"
-      abi: Token
-      startBlock: {{startBlock}}
+      abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/transfer.ts
+      file: ./src/mappings/pool.ts
       entities:
-        - OverBalance
+        - GammaPool
+        - Loan
+        - Position
+        - Liquidation
+        - Account
       abis:
-        - name: Token
+        - name: ERC20
           file: ./abis/erc20.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-  - name: ArbitrumBalance
-    kind: ethereum/contract
-    network: {{network}}
-    source:
-      address: "{{ARB}}"
-      abi: Token
-      startBlock: {{startBlock}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/mappings/transfer.ts
-      entities:
-        - OverBalance
-      abis:
-        - name: Token
-          file: ./abis/erc20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-  - name: DopexBalance
-    kind: ethereum/contract
-    network: {{network}}
-    source:
-      address: "{{DPX}}"
-      abi: Token
-      startBlock: {{startBlock}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/mappings/transfer.ts
-      entities:
-        - OverBalance
-      abis:
-        - name: Token
-          file: ./abis/erc20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-  - name: JonesBalance
-    kind: ethereum/contract
-    network: {{network}}
-    source:
-      address: "{{JONES}}"
-      abi: Token
-      startBlock: {{startBlock}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/mappings/transfer.ts
-      entities:
-        - OverBalance
-      abis:
-        - name: Token
-          file: ./abis/erc20.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+        - event: PoolUpdated(uint256,uint256,uint48,uint96,uint256,uint128,uint128,uint128[],indexed uint8)
+          handler: handlePoolUpdate
+        - event: LoanCreated(indexed address,uint256)
+          handler: handleLoanCreate
+        - event: LoanUpdated(indexed uint256,uint128[],uint128,uint128,uint256,uint96,indexed uint8)
+          handler: handleLoanUpdate
