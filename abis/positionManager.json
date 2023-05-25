@@ -1,0 +1,1381 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidityBorrowed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "BorrowLiquidity",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "CreateLoan",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "name": "DecreaseCollateral",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "name": "Deposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "name": "DepositNoPull",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "reserves",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "name": "DepositReserve",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "amounts",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokens",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "liquidity",
+        "type": "uint128"
+      },
+      {
+        "indexed": true,
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
+      }
+    ],
+    "name": "ExternalSwap",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "name": "IncreaseCollateral",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "collateral",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "liquidity",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "writeDownAmt",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "Liquidation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "LoanCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "poolId",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidity",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokens",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "initLiquidity",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "cfmmReserves",
+        "type": "uint128[]"
+      }
+    ],
+    "name": "LoanUpdate",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "liquidity",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "initLiquidity",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokens",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint96",
+        "name": "rateIndex",
+        "type": "uint96"
+      },
+      {
+        "indexed": true,
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
+      }
+    ],
+    "name": "LoanUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokenBalance",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokenBorrowed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint48",
+        "name": "lastBlockNumber",
+        "type": "uint48"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint96",
+        "name": "accFeeIndex",
+        "type": "uint96"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokenBorrowedPlusInterest",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "lpInvariant",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128",
+        "name": "borrowedInvariant",
+        "type": "uint128"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "cfmmReserves",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": true,
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
+      }
+    ],
+    "name": "PoolUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "name": "RebalanceCollateral",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "RepayLiquidity",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "name": "Withdraw",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawNoPull",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "reserves",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      }
+    ],
+    "name": "WithdrawReserve",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "WETH",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "withdraw",
+            "type": "uint128[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "minBorrowed",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "minCollateral",
+            "type": "uint128[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.BorrowAndRebalanceParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "borrowAndRebalance",
+    "outputs": [
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidityBorrowed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "minBorrowed",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.BorrowLiquidityParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "borrowLiquidity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidityBorrowed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minAmt",
+        "type": "uint256"
+      }
+    ],
+    "name": "clearToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "protocolId",
+        "type": "uint16"
+      },
+      {
+        "internalType": "address",
+        "name": "cfmm",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "createLoan",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "minBorrowed",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "minCollateral",
+            "type": "uint128[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IPositionManager.CreateLoanBorrowAndRebalanceParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "createLoanBorrowAndRebalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidityBorrowed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "amounts",
+            "type": "uint128[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.RemoveCollateralParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "decreaseCollateral",
+    "outputs": [
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IPositionManager.DepositWithdrawParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "depositNoPull",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amountsDesired",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amountsMin",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.DepositReservesParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "depositReserves",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "reserves",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "shares",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "factory",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.AddCollateralParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "increaseCollateral",
+    "outputs": [
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256[]",
+            "name": "deltas",
+            "type": "int256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "minCollateral",
+            "type": "uint128[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.RebalanceCollateralParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "rebalanceCollateral",
+    "outputs": [
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "refundETH",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "fees",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "collateralId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "minRepaid",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.RepayLiquidityParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "repayLiquidity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "tokens",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "sendTokensCallback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "minAmt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "unwrapWETH",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IPositionManager.DepositWithdrawParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "withdrawNoPull",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amountsMin",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.WithdrawReservesParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "withdrawReserves",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "reserves",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "assets",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

@@ -17,29 +17,29 @@ type GammaPool @entity {
   token1Symbol: String!
   token1Decimals: BigInt!
 
-  lpBalance: BigDecimal!
-  lpBorrowedBalance: BigDecimal!
-  lpBorrowedBalancePlusInterest: BigDecimal!
-  lpInvariant: BigDecimal!
-  lpBorrowedInvariant: BigDecimal!
+  lpBalance: BigInt!
+  lpBorrowedBalance: BigInt!
+  lpBorrowedBalancePlusInterest: BigInt!
+  lpInvariant: BigInt!
+  lpBorrowedInvariant: BigInt!
 
-  accFeeIndex: BigDecimal!
-  lastCfmmFeeIndex: BigDecimal!
-  lastCfmmInvariant: BigDecimal!
-  lastCfmmTotalSupply: BigDecimal!
-  lastFeeIndex: BigDecimal!
-  lastPrice: BigDecimal!
+  accFeeIndex: BigInt!
+  lastCfmmFeeIndex: BigInt!
+  lastCfmmInvariant: BigInt!
+  lastCfmmTotalSupply: BigInt!
+  lastFeeIndex: BigInt!
+  lastPrice: BigInt!
 
-  totalSupply: BigDecimal!
-  token0Balance: BigDecimal!
-  token1Balance: BigDecimal!
-  reserve0Balance: BigDecimal!
-  reserve1Balance: BigDecimal!
-  borrowRate: BigDecimal!
-  supplyRate: BigDecimal!
-  utilizationRate: BigDecimal!
-  ltvThreshold: BigDecimal!
-  liquidationFee: BigDecimal!
+  totalSupply: BigInt!
+  token0Balance: BigInt!
+  token1Balance: BigInt!
+  reserve0Balance: BigInt!
+  reserve1Balance: BigInt!
+  borrowRate: BigInt!
+  supplyRate: BigInt!
+  utilizationRate: BigInt!
+  ltvThreshold: BigInt!
+  liquidationFee: BigInt!
 
   block: BigInt!
   timestamp: BigInt!
@@ -49,21 +49,21 @@ type GammaPool @entity {
 }
 
 type Loan @entity {
-  id: ID!           # {PoolAddress}:{tokenId}
-  tokenId: BigInt!
+  id: ID!           # {PoolAddress}-{tokenId}
+  tokenId: String!
   pool: GammaPool!
   account: Account!
 
   # TODO
   # creation loan event: PositionManager or other contract or EOA, determine actual owner of the loan
 
-  rateIndex: BigDecimal!
-  initLiquidity: BigDecimal!
-  liquidity: BigDecimal!
-  lpTokens: BigDecimal!
-  token0Held: BigDecimal!
-  token1Held: BigDecimal!
-  price: BigDecimal!
+  rateIndex: BigInt!
+  initLiquidity: BigInt!
+  liquidity: BigInt!
+  lpTokens: BigInt!
+  token0Held: BigInt!
+  token1Held: BigInt!
+  price: BigInt!
 
   status: LoanStatus!
   openedBlock: BigInt!
@@ -74,32 +74,30 @@ type Loan @entity {
   liquidations: [Liquidation!] @derivedFrom(field: "loan")
 }
 
-type Position @entity {
-  id: ID!           # {PoolAddress}:{account}
-  pool: GammaPool!
-  account: Account!
-
-  gsTokens: BigDecimal!
-  lpTokens: BigDecimal!
-}
-
 type Liquidation @entity {
-  id: ID!           # {PoolAddress}:{tokenId}:{index}
+  id: ID!           # {PoolAddress}-{tokenId}-{index}
   pool: GammaPool!
   loan: Loan!
   liquidator: Account!
 
-  collateral: BigDecimal!
-  liquidity: BigDecimal!
-  writeDown: BigDecimal!
+  collateral: BigInt!
+  liquidity: BigInt!
+  writeDown: BigInt!
 
   block: BigInt!
   timestamp: BigInt!
 }
 
+type VaultBalance @entity {
+  id: ID!           # {PoolAddress}-{account}
+  pool: GammaPool!
+  account: Account!
+  balance: BigInt!
+}
+
 type Account @entity {
   id: ID!           # {account}
   loans: [Loan!] @derivedFrom(field: "account")
-  positions: [Position!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
+  vaultBalances: [VaultBalance!] @derivedFrom(field: "account")
 }
