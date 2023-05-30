@@ -9,13 +9,9 @@ type GammaPool @entity {
   id: ID!         # {PoolAddress}
   address: Bytes!
   cfmm: Bytes!
-  protocolId: BigInt!
-  token0: Bytes!
-  token0Symbol: String!
-  token0Decimals: BigInt!
-  token1: Bytes!
-  token1Symbol: String!
-  token1Decimals: BigInt!
+  implementationId: BigInt!
+  token0: Token!
+  token1: Token!
 
   lpBalance: BigInt!
   lpBorrowedBalance: BigInt!
@@ -54,15 +50,12 @@ type Loan @entity {
   pool: GammaPool!
   account: Account!
 
-  # TODO
-  # creation loan event: PositionManager or other contract or EOA, determine actual owner of the loan
-
   rateIndex: BigInt!
   initLiquidity: BigInt!
   liquidity: BigInt!
   lpTokens: BigInt!
-  token0Held: BigInt!
-  token1Held: BigInt!
+  collateral0: BigInt!
+  collateral1: BigInt!
   price: BigInt!
 
   status: LoanStatus!
@@ -86,6 +79,13 @@ type Liquidation @entity {
 
   block: BigInt!
   timestamp: BigInt!
+}
+
+type Token @entity {
+  id: ID!           # {address}
+  name: String!
+  symbol: String!
+  decimals: BigInt!
 }
 
 type VaultBalance @entity {

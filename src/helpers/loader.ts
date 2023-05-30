@@ -2,19 +2,19 @@ import { Address, BigInt, Bytes, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { LoanCreated, Liquidation as LiquidationEvent } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, Loan, Liquidation, Account } from '../types/schema';
+import { GammaPool, Loan, Liquidation, Token, Account } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
-  pool.protocolId = BigInt.fromI32(event.params.protocolId);
-  pool.token0 = event.params.tokens[0];
-  pool.token0Symbol = "";
-  pool.token0Decimals = BigInt.fromI32(18);
-  pool.token1 = event.params.tokens[1];
-  pool.token1Symbol = "";
-  pool.token1Decimals = BigInt.fromI32(18);
+  pool.implementationId = BigInt.fromI32(event.params.protocolId);
+
+  const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
+  const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
+  pool.token0 = token0.id;
+  pool.token1 = token1.id;
+
   pool.lpBalance = BigInt.fromI32(0);
   pool.lpBorrowedBalance = BigInt.fromI32(0);
   pool.lpBorrowedBalancePlusInterest = BigInt.fromI32(0);
@@ -55,8 +55,8 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     loan.initLiquidity = BigInt.fromI32(0);
     loan.liquidity = BigInt.fromI32(0);
     loan.lpTokens = BigInt.fromI32(0);
-    loan.token0Held = BigInt.fromI32(0);
-    loan.token1Held = BigInt.fromI32(0);
+    loan.collateral0 = BigInt.fromI32(0);
+    loan.collateral1 = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedBlock = event.block.number;
@@ -83,8 +83,8 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     loan.initLiquidity = BigInt.fromI32(0);
     loan.liquidity = BigInt.fromI32(0);
     loan.lpTokens = BigInt.fromI32(0);
-    loan.token0Held = BigInt.fromI32(0);
-    loan.token1Held = BigInt.fromI32(0);
+    loan.collateral0 = BigInt.fromI32(0);
+    loan.collateral1 = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedBlock = event.block.number;
@@ -124,4 +124,17 @@ export function loadOrCreateAccount(id: string): Account {
   }
 
   return account;
+}
+
+export function loadOrCreateToken(id: string): Token {
+  let token = Token.load(id);
+  if (token == null) {
+    token = new Token(id);
+    token.name = "";
+    token.symbol = "";
+    token.decimals = BigInt.fromI32(0);
+    token.save();
+  }
+
+  return token;
 }
