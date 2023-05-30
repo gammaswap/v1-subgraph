@@ -60,12 +60,12 @@ export function handleLoanCreate(event: LoanCreated): void {
    */
   if (caller == POSITION_MANAGER) return;
 
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toHexString();
+  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   createLoan(loanId, event);
 }
 
 export function handleLoanUpdate(event: LoanUpdated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toHexString();
+  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   const loan = Loan.load(loanId);
 
   if (loan == null) {
@@ -73,7 +73,7 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     return;
   }
 
-  const pool = GammaPool.load(loan.pool)!;
+  // const pool = GammaPool.load(loan.pool)!;
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.loan(event.params.tokenId);
   loan.rateIndex = loanData.rateIndex;
@@ -110,7 +110,7 @@ export function handleLiquidation(event: Liquidation): void {
 
   if (pool) {
     if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
-      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toHexString();
+      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toString();
       const loan = Loan.load(loanId);
       if (loan == null) {
         log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);

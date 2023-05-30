@@ -50,7 +50,7 @@ type GammaPool @entity {
 
 type Loan @entity {
   id: ID!           # {PoolAddress}-{tokenId}
-  tokenId: String!
+  tokenId: BigInt!
   pool: GammaPool!
   account: Account!
 

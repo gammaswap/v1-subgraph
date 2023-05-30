@@ -107,78 +107,100 @@ dataSources:
     network: {{network}}
     source:
       address: "{{WETH_ARB}}"
-      abi: Token
+      abi: Pool
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/tc/lpTransfer.ts
+      file: ./src/mappings/tc/pool.ts
       entities:
         - LpTransfer
       abis:
-        - name: Token
-          file: ./abis/erc20.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleLpTransfer
   - name: JonesWethPool
     kind: ethereum/contract
     network: {{network}}
     source:
       address: "{{JONES_WETH}}"
-      abi: Token
+      abi: Pool
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/tc/lpTransfer.ts
+      file: ./src/mappings/tc/pool.ts
       entities:
         - LpTransfer
       abis:
-        - name: Token
-          file: ./abis/erc20.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleLpTransfer
   - name: WethDpxPool
     kind: ethereum/contract
     network: {{network}}
     source:
       address: "{{WETH_DPX}}"
-      abi: Token
+      abi: Pool
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/tc/lpTransfer.ts
+      file: ./src/mappings/tc/pool.ts
       entities:
         - LpTransfer
       abis:
-        - name: Token
-          file: ./abis/erc20.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleLpTransfer
   - name: UsdcWethPool
     kind: ethereum/contract
     network: {{network}}
     source:
       address: "{{USDC_WETH}}"
-      abi: Token
+      abi: Pool
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/tc/lpTransfer.ts
+      file: ./src/mappings/tc/pool.ts
       entities:
         - LpTransfer
       abis:
-        - name: Token
-          file: ./abis/erc20.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleLpTransfer
+  - name: PositionManager
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{PositionManager}}"
+      abi: PositionManager
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/tc/loan.ts
+      entities:
+        - LoanStatus
+      abis:
+        - name: PositionManager
+          file: ./abis/positionManager.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleLoanTransfer
+        - event: RepayLiquidity(indexed address,uint256,uint256,uint256[])
+          handler: handleLoanRepay

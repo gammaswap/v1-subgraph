@@ -48,7 +48,7 @@ export function createLoan(id: string, event: LoanCreated): Loan {
   const loan = new Loan(id);
   if (pool != null) {
     const account = loadOrCreateAccount(event.params.caller.toHexString()); // Make sure account exists
-    loan.tokenId = event.params.tokenId.toHexString();
+    loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
@@ -72,11 +72,11 @@ export function createLoan(id: string, event: LoanCreated): Loan {
 
 export function createLoanPositionManager(event: CreateLoan): Loan {
   const pool = GammaPool.load(event.params.pool.toHexString()); // Make sure pool exists
-  const id = event.params.pool.toHexString() + '-' + event.params.tokenId.toHexString();
+  const id = event.params.pool.toHexString() + '-' + event.params.tokenId.toString();
   const loan = new Loan(id);
   if (pool != null) {
     const account = loadOrCreateAccount(event.params.owner.toHexString()); // Make sure account exists
-    loan.tokenId = event.params.tokenId.toHexString();
+    loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
@@ -100,7 +100,7 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
 
 export function createLiquidation(id: string, event: LiquidationEvent): Liquidation {
   const liquidation = new Liquidation(id);
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toHexString();
+  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   
   liquidation.pool = event.address.toHexString();
   liquidation.loan = loanId;
