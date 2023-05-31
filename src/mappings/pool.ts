@@ -1,7 +1,7 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, VaultBalance, Account } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount } from '../helpers/loader';
+import { GammaPool, Loan, VaultBalance } from '../types/schema';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -15,12 +15,21 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   }
 
   const tokenMetadata = poolContract.getTokensMetaData();
-  if (pool.token0Symbol == "" || pool.token1Symbol == "") {
-    pool.token0Symbol = tokenMetadata.get_symbols()[0];
-    pool.token0Decimals = BigInt.fromI32(tokenMetadata.get_decimals()[0]);
-    pool.token1Symbol = tokenMetadata.get_symbols()[1];
-    pool.token1Decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
+  const token0 = loadOrCreateToken(pool.token0);
+  const token1 = loadOrCreateToken(pool.token1);
+  if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
+    token0.name = tokenMetadata.get_names()[0];
+    token0.symbol = tokenMetadata.get_symbols()[0];
+    token0.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[0]);
+    token0.save();
   }
+  if (token1.name == "" || token1.symbol == "" || token1.decimals == BigInt.fromI32(0)) {
+    token1.name = tokenMetadata.get_names()[1];
+    token1.symbol = tokenMetadata.get_symbols()[1];
+    token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
+    token1.save();
+  }
+
   const poolData = poolContract.getLatestPoolData();
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
   pool.lpBorrowedBalance = poolData.LP_TOKEN_BORROWED;
@@ -60,12 +69,12 @@ export function handleLoanCreate(event: LoanCreated): void {
    */
   if (caller == POSITION_MANAGER) return;
 
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toHexString();
+  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   createLoan(loanId, event);
 }
 
 export function handleLoanUpdate(event: LoanUpdated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toHexString();
+  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   const loan = Loan.load(loanId);
 
   if (loan == null) {
@@ -73,15 +82,15 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     return;
   }
 
-  const pool = GammaPool.load(loan.pool)!;
+  // const pool = GammaPool.load(loan.pool)!;
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.loan(event.params.tokenId);
   loan.rateIndex = loanData.rateIndex;
   loan.initLiquidity = loanData.initLiquidity;
   loan.liquidity = loanData.liquidity;
   loan.lpTokens = loanData.lpTokens;
-  loan.token0Held = loanData.tokensHeld[0];
-  loan.token1Held = loanData.tokensHeld[1];
+  loan.collateral0 = loanData.tokensHeld[0];
+  loan.collateral1 = loanData.tokensHeld[1];
   loan.price = loanData.px;
   if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
@@ -110,7 +119,7 @@ export function handleLiquidation(event: Liquidation): void {
 
   if (pool) {
     if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
-      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toHexString();
+      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toString();
       const loan = Loan.load(loanId);
       if (loan == null) {
         log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);

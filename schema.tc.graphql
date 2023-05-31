@@ -7,10 +7,27 @@ type OverBalance @entity {
   jonesBalance: BigInt!
 }
 
-type LpTransfer @entity {
+type LpOverBalance @entity {  # Track GS Lp transfer between accounts
   id: ID! # account address
   wetharb: BigInt!
   jonesweth: BigInt!
   wethdpx: BigInt!
   usdcweth: BigInt!
+}
+
+type LpTransfer @entity {   # Only Track Pool Deposits
+  id: ID! # account address
+  wetharb: BigInt!
+  jonesweth: BigInt!
+  wethdpx: BigInt!
+  usdcweth: BigInt!
+}
+
+type LoanStatus @entity {
+  id: ID! # {tokenId}
+  tokenId: BigInt!
+  creator: Bytes!
+  owner: Bytes!
+  pool: Bytes!
+  repaidLiquidity: BigInt!
 }
