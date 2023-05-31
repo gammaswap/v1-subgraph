@@ -26,7 +26,7 @@ export function handleLoanRepay(event: RepayLiquidity): void {
   const tokenId = event.params.tokenId;
   let loan = LoanStatus.load(tokenId.toString());
   if (loan == null) {
-    log.error("LOAN NOT AVAILABLE: {}", [tokenId.toString()]);
+    log.error("LOANSTATUS NOT AVAILABLE: {}", [tokenId.toString()]);
     return;
   }
 
