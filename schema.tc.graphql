@@ -31,3 +31,8 @@ type LoanStatus @entity {
   pool: Bytes!
   repaidLiquidity: BigInt!
 }
+
+type TokenSender @entity {  # To be banned for TC event
+  id: ID! # {address}
+  txhash: Bytes!
+}

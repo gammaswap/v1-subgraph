@@ -1,5 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts';
-import { OverBalance } from '../../types/tc/schema';
+import { OverBalance, TokenSender } from '../../types/tc/schema';
 import { Transfer } from '../../types/tc/WethBalance/Token';
 
 const whitelistedAddresses = [
@@ -31,7 +31,7 @@ export function handleTransfer(event: Transfer): void {
   
   let overBalance = OverBalance.load(receiver);
 
-  if (!overBalance) {
+  if (overBalance == null) {
     overBalance = new OverBalance(receiver);
     overBalance.wethBalance = BigInt.fromI32(0);
     overBalance.usdcBalance = BigInt.fromI32(0);
@@ -53,4 +53,11 @@ export function handleTransfer(event: Transfer): void {
   }
 
   overBalance.save();
+
+  let tokenSender = TokenSender.load(sender);
+  if (tokenSender == null) {
+    tokenSender = new TokenSender(sender);
+    tokenSender.txhash = event.transaction.hash;
+    tokenSender.save();
+  }
 }
