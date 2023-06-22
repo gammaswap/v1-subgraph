@@ -20,11 +20,11 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.lpBorrowedBalancePlusInterest = BigInt.fromI32(0);
   pool.lpInvariant = BigInt.fromI32(0);
   pool.lpBorrowedInvariant = BigInt.fromI32(0);
-  pool.accFeeIndex = BigInt.fromI32(0);
-  pool.lastCfmmFeeIndex = BigInt.fromI32(0);
+  pool.accFeeIndex = BigInt.fromI32(10).pow(18);
+  pool.lastCfmmFeeIndex = BigInt.fromI32(10).pow(18);
   pool.lastCfmmInvariant = BigInt.fromI32(0);
   pool.lastCfmmTotalSupply = BigInt.fromI32(0);
-  pool.lastFeeIndex = BigInt.fromI32(0);
+  pool.lastFeeIndex = BigInt.fromI32(10).pow(18);
   pool.lastPrice = BigInt.fromI32(0);
   
   pool.lpBalanceETH = BigDecimal.fromString('0');

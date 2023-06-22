@@ -70,7 +70,7 @@ export function updatePoolStats(pool: GammaPool): void {
 
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();
-  const sqrtPrice = pool.lastPrice.sqrt().divDecimal(precision1.sqrt().toBigDecimal());
+  const sqrtPrice = pool.lastPrice.times(precision1).sqrt().toBigDecimal();
 
   const lpBalanceToInvariant = pool.lpBalance.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).divDecimal(invariantPrecision);
   pool.lpBalanceInToken0 = BigDecimal.fromString('2').times(lpBalanceToInvariant).div(sqrtPrice);

@@ -40,6 +40,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.lpInvariant = poolData.LP_INVARIANT;
   pool.lpBorrowedInvariant = poolData.BORROWED_INVARIANT;
 
+  const prevAccFeeIndex = pool.accFeeIndex;
   pool.accFeeIndex = poolData.accFeeIndex;
   pool.lastCfmmFeeIndex = poolData.lastCFMMFeeIndex;
   pool.lastCfmmInvariant = poolData.lastCFMMInvariant;
@@ -76,7 +77,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   flashData.totalLiquidity = totalLiquidity;
   flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   let dailyConversionMultiplier = 365 * 24 * 60 / 5;
-  flashData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  let accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  flashData.accFeeIndexGrowth = flashData.accFeeIndexGrowth.plus(accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier))) ;
   flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
   flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
   flashData.save();
@@ -87,7 +89,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   hourlyData.totalLiquidity = totalLiquidity;
   hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   dailyConversionMultiplier = 365 * 24;
-  hourlyData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  hourlyData.accFeeIndexGrowth = hourlyData.accFeeIndexGrowth.plus(accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier)));
   hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
   hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
   hourlyData.save();
@@ -98,7 +100,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   dailyData.totalLiquidity = totalLiquidity;
   dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   dailyConversionMultiplier = 365;
-  dailyData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  dailyData.accFeeIndexGrowth = dailyData.accFeeIndexGrowth.plus(accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier)));
   dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
   dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
   dailyData.save();
