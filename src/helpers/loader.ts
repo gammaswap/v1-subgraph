@@ -1,8 +1,8 @@
-import { Address, BigInt, Bytes, log } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, Bytes, bigDecimal, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
-import { LoanCreated, Liquidation as LiquidationEvent } from '../types/templates/GammaPool/Pool';
+import { LoanCreated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, Loan, Liquidation, Token, Account } from '../types/schema';
+import { GammaPool, Loan, Liquidation, Token, Account, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
@@ -26,6 +26,24 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.lastCfmmTotalSupply = BigInt.fromI32(0);
   pool.lastFeeIndex = BigInt.fromI32(0);
   pool.lastPrice = BigInt.fromI32(0);
+  
+  pool.lpBalanceETH = BigDecimal.fromString('0');
+  pool.lpBalanceUSD = BigDecimal.fromString('0');
+  pool.lpBalanceInToken0 = BigDecimal.fromString('0');
+  pool.lpBalanceInToken1 = BigDecimal.fromString('0');
+  pool.lpBorrowedBalanceETH = BigDecimal.fromString('0');
+  pool.lpBorrowedBalanceUSD = BigDecimal.fromString('0');
+  pool.lpBorrowedBalanceInToken0 = BigDecimal.fromString('0');
+  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('0');
+  pool.lpBorrowedBalancePlusInterestETH = BigDecimal.fromString('0');
+  pool.lpBorrowedBalancePlusInterestUSD = BigDecimal.fromString('0');
+  pool.lpBorrowedBalancePlusInterestInToken0 = BigDecimal.fromString('0');
+  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('0');
+  pool.lastCfmmETH = BigDecimal.fromString('0');
+  pool.lastCfmmUSD = BigDecimal.fromString('0');
+  pool.lastCfmmInToken0 = BigDecimal.fromString('0');
+  pool.lastCfmmInToken1 = BigDecimal.fromString('0');
+
   pool.totalSupply = BigInt.fromI32(0);
   pool.token0Balance = BigInt.fromI32(0);
   pool.token1Balance = BigInt.fromI32(0);
@@ -133,8 +151,79 @@ export function loadOrCreateToken(id: string): Token {
     token.name = "";
     token.symbol = "";
     token.decimals = BigInt.fromI32(0);
+    token.priceETH = BigDecimal.fromString('0');
+    token.priceUSD = BigDecimal.fromString('0');
     token.save();
   }
 
   return token;
+}
+
+export function loadOrCreatePoolFlashData(event: PoolUpdated): PoolFlashData {
+  const tickId = event.block.timestamp.toI32() / 300;   // 5min segment
+  const tickStartTimestamp = tickId * 300;
+  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  let flashData = PoolFlashData.load(id);
+
+  if (flashData == null) {
+    flashData = new PoolFlashData(id);
+    flashData.pool = event.address.toHexString();
+    flashData.timestamp = BigInt.fromI32(0);
+    flashData.utilizationRate = BigInt.fromI32(0);
+    flashData.totalLiquidity = BigInt.fromI32(0);
+    flashData.borrowRate = BigInt.fromI32(0);
+    flashData.accFeeIndexGrowth = BigInt.fromI32(0);
+    flashData.price0 = BigInt.fromI32(0);
+    flashData.price1 = BigInt.fromI32(0);
+    flashData.save();
+  }
+  flashData.timestamp = BigInt.fromI32(tickStartTimestamp);
+
+  return flashData;
+}
+
+export function loadOrCreatePoolHourlyData(event: PoolUpdated): PoolHourlyData {
+  const tickId = event.block.timestamp.toI32() / 3600;   // 1hr segment
+  const tickStartTimestamp = tickId * 3600;
+  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  let hourlyData = PoolHourlyData.load(id);
+
+  if (hourlyData == null) {
+    hourlyData = new PoolHourlyData(id);
+    hourlyData.pool = event.address.toHexString();
+    hourlyData.timestamp = BigInt.fromI32(0);
+    hourlyData.utilizationRate = BigInt.fromI32(0);
+    hourlyData.totalLiquidity = BigInt.fromI32(0);
+    hourlyData.borrowRate = BigInt.fromI32(0);
+    hourlyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    hourlyData.price0 = BigInt.fromI32(0);
+    hourlyData.price1 = BigInt.fromI32(0);
+    hourlyData.save();
+  }
+  hourlyData.timestamp = BigInt.fromI32(tickStartTimestamp);
+
+  return hourlyData;
+}
+
+export function loadOrCreatePoolDailyData(event: PoolUpdated): PoolDailyData {
+  const tickId = event.block.timestamp.toI32() / 86400;   // 24hr segment
+  const tickStartTimestamp = tickId * 86400;
+  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  let dailyData = PoolDailyData.load(id);
+
+  if (dailyData == null) {
+    dailyData = new PoolDailyData(id);
+    dailyData.pool = event.address.toHexString();
+    dailyData.timestamp = BigInt.fromI32(0);
+    dailyData.utilizationRate = BigInt.fromI32(0);
+    dailyData.totalLiquidity = BigInt.fromI32(0);
+    dailyData.borrowRate = BigInt.fromI32(0);
+    dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    dailyData.price0 = BigInt.fromI32(0);
+    dailyData.price1 = BigInt.fromI32(0);
+    dailyData.save();
+  }
+  dailyData.timestamp = BigInt.fromI32(tickStartTimestamp);
+
+  return dailyData;
 }

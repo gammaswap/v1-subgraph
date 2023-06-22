@@ -1,8 +1,9 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, VaultBalance } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken } from '../helpers/loader';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, loadOrCreatePoolFlashData, loadOrCreatePoolHourlyData, loadOrCreatePoolDailyData } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
+import { updatePrices, updatePoolStats } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -29,6 +30,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
+
+  updatePrices(poolAddress);
 
   const poolData = poolContract.getLatestPoolData();
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
@@ -58,7 +61,47 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
+  updatePoolStats(pool);
+
   pool.save();
+
+  // Historical data
+  const flashData = loadOrCreatePoolFlashData(event);
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
+  const ratePrecision = BigInt.fromI32(10).pow(18);
+  flashData.utilizationRate = poolData.utilizationRate;
+  flashData.borrowRate = poolData.borrowRate;
+  const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
+  flashData.totalLiquidity = totalLiquidity;
+  flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  let dailyConversionMultiplier = 365 * 24 * 60 / 5;
+  flashData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  flashData.save();
+
+  const hourlyData = loadOrCreatePoolHourlyData(event);
+  hourlyData.utilizationRate = poolData.utilizationRate;
+  hourlyData.borrowRate = poolData.borrowRate;
+  hourlyData.totalLiquidity = totalLiquidity;
+  hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  dailyConversionMultiplier = 365 * 24;
+  hourlyData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  hourlyData.save();
+
+  const dailyData = loadOrCreatePoolDailyData(event);
+  dailyData.utilizationRate = poolData.utilizationRate;
+  dailyData.borrowRate = poolData.borrowRate;
+  dailyData.totalLiquidity = totalLiquidity;
+  dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  dailyConversionMultiplier = 365;
+  dailyData.accFeeIndexGrowth = poolData.accFeeIndex.times(BigInt.fromI32(dailyConversionMultiplier));
+  dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  dailyData.save();
 }
 
 export function handleLoanCreate(event: LoanCreated): void {
