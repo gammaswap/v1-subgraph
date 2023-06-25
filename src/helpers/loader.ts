@@ -213,7 +213,7 @@ export function createPoolFlashData(event: PoolUpdated): PoolFlashData {
         missingItem.totalLiquidity = lastFlashData.totalLiquidity;
         missingItem.borrowRate = lastFlashData.borrowRate;
         missingItem.accFeeIndex = lastFlashData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = lastFlashData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastFlashData.price0;
         missingItem.price1 = lastFlashData.price1;
         missingItem.save();
@@ -268,7 +268,7 @@ export function createPoolHourlyData(event: PoolUpdated): PoolHourlyData {
         missingItem.totalLiquidity = lastHourlyData.totalLiquidity;
         missingItem.borrowRate = lastHourlyData.borrowRate;
         missingItem.accFeeIndex = lastHourlyData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = lastHourlyData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastHourlyData.price0;
         missingItem.price1 = lastHourlyData.price1;
         missingItem.save();
@@ -323,7 +323,7 @@ export function createPoolDailyData(event: PoolUpdated): PoolDailyData {
         missingItem.totalLiquidity = lastDailyData.totalLiquidity;
         missingItem.borrowRate = lastDailyData.borrowRate;
         missingItem.accFeeIndex = lastDailyData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = lastDailyData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastDailyData.price0;
         missingItem.price1 = lastDailyData.price1;
         missingItem.save();
