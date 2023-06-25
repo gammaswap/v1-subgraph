@@ -127,6 +127,7 @@ interface PoolHistoricalData @entity {
   utilizationRate: BigInt!
   totalLiquidity: BigInt!
   borrowRate: BigInt!
+  accFeeIndex: BigInt!
   accFeeIndexGrowth: BigInt!
   price0: BigInt!
   price1: BigInt!
@@ -139,6 +140,7 @@ type PoolFlashData implements PoolHistoricalData @entity {  # 5mins interval
   utilizationRate: BigInt!
   totalLiquidity: BigInt!
   borrowRate: BigInt!
+  accFeeIndex: BigInt!
   accFeeIndexGrowth: BigInt!
   price0: BigInt!
   price1: BigInt!
@@ -151,6 +153,7 @@ type PoolHourlyData implements PoolHistoricalData @entity {  # 1hr interval
   utilizationRate: BigInt!
   totalLiquidity: BigInt!
   borrowRate: BigInt!
+  accFeeIndex: BigInt!
   accFeeIndexGrowth: BigInt!
   price0: BigInt!
   price1: BigInt!
@@ -163,7 +166,16 @@ type PoolDailyData implements PoolHistoricalData @entity {  # 24hr interval
   utilizationRate: BigInt!
   totalLiquidity: BigInt!
   borrowRate: BigInt!
+  accFeeIndex: BigInt!
   accFeeIndexGrowth: BigInt!
   price0: BigInt!
   price1: BigInt!
+}
+
+type GammaPoolTracer @entity {
+  id: ID!
+  pool: GammaPool!
+  lastFlashData: PoolFlashData
+  lastHourlyData: PoolHourlyData
+  lastDailyData: PoolDailyData
 }

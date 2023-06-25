@@ -1,8 +1,8 @@
-import { Address, BigDecimal, BigInt, Bytes, bigDecimal, log } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { LoanCreated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, Loan, Liquidation, Token, Account, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
@@ -58,7 +58,17 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.timestamp = event.block.timestamp;
 
   pool.save();
+
   return pool;
+}
+
+export function createPoolTracer(id: string): GammaPoolTracer {
+  const poolTracer = new GammaPoolTracer(id);
+  poolTracer.pool = id;
+
+  poolTracer.save();
+
+  return poolTracer;
 }
 
 export function createLoan(id: string, event: LoanCreated): Loan {
@@ -159,42 +169,76 @@ export function loadOrCreateToken(id: string): Token {
   return token;
 }
 
-export function loadOrCreatePoolFlashData(event: PoolUpdated): PoolFlashData {
+export function createPoolFlashData(event: PoolUpdated): PoolFlashData {
+  const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 300;   // 5min segment
   const tickStartTimestamp = tickId * 300;
-  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
   let flashData = PoolFlashData.load(id);
 
   if (flashData == null) {
     flashData = new PoolFlashData(id);
-    flashData.pool = event.address.toHexString();
+    flashData.pool = poolId;
     flashData.timestamp = BigInt.fromI32(0);
     flashData.utilizationRate = BigInt.fromI32(0);
     flashData.totalLiquidity = BigInt.fromI32(0);
     flashData.borrowRate = BigInt.fromI32(0);
+    flashData.accFeeIndex = BigInt.fromI32(0);
     flashData.accFeeIndexGrowth = BigInt.fromI32(0);
     flashData.price0 = BigInt.fromI32(0);
     flashData.price1 = BigInt.fromI32(0);
     flashData.save();
   }
   flashData.timestamp = BigInt.fromI32(tickStartTimestamp);
+  
+  // Pad missing flash data items
+  const poolTracer = GammaPoolTracer.load(poolId);
+  if (poolTracer == null) {
+    log.error("GammaPoolTracer is missing for poolId {}", [poolId]);
+    return flashData;
+  }
+
+  if (poolTracer.lastFlashData != null) {
+    const lastFlashData = PoolFlashData.load(poolTracer.lastFlashData!);
+    if (lastFlashData) {
+      const timeDiff = tickStartTimestamp - lastFlashData.timestamp.toI32();
+      const missingItemsCnt = timeDiff / 300 - 1;
+      for (let i = 1; i <= missingItemsCnt; i ++) {
+        const missingTickId = lastFlashData.timestamp.toI32() / 300 + i;
+        const missingId = poolId.concat('-').concat(missingTickId.toString());
+        const missingItem = new PoolFlashData(missingId);
+        missingItem.pool = poolId;
+        missingItem.timestamp = BigInt.fromI32(missingTickId * 300);
+        missingItem.utilizationRate = lastFlashData.utilizationRate;
+        missingItem.totalLiquidity = lastFlashData.totalLiquidity;
+        missingItem.borrowRate = lastFlashData.borrowRate;
+        missingItem.accFeeIndex = lastFlashData.accFeeIndex;
+        missingItem.accFeeIndexGrowth = lastFlashData.accFeeIndexGrowth;
+        missingItem.price0 = lastFlashData.price0;
+        missingItem.price1 = lastFlashData.price1;
+        missingItem.save();
+      }
+    }
+  }
 
   return flashData;
 }
 
-export function loadOrCreatePoolHourlyData(event: PoolUpdated): PoolHourlyData {
+export function createPoolHourlyData(event: PoolUpdated): PoolHourlyData {
+  const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 3600;   // 1hr segment
   const tickStartTimestamp = tickId * 3600;
-  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
   let hourlyData = PoolHourlyData.load(id);
 
   if (hourlyData == null) {
     hourlyData = new PoolHourlyData(id);
-    hourlyData.pool = event.address.toHexString();
+    hourlyData.pool = poolId;
     hourlyData.timestamp = BigInt.fromI32(0);
     hourlyData.utilizationRate = BigInt.fromI32(0);
     hourlyData.totalLiquidity = BigInt.fromI32(0);
     hourlyData.borrowRate = BigInt.fromI32(0);
+    hourlyData.accFeeIndex = BigInt.fromI32(0);
     hourlyData.accFeeIndexGrowth = BigInt.fromI32(0);
     hourlyData.price0 = BigInt.fromI32(0);
     hourlyData.price1 = BigInt.fromI32(0);
@@ -202,28 +246,90 @@ export function loadOrCreatePoolHourlyData(event: PoolUpdated): PoolHourlyData {
   }
   hourlyData.timestamp = BigInt.fromI32(tickStartTimestamp);
 
+  // Pad missing hourly data items
+  const poolTracer = GammaPoolTracer.load(poolId);
+  if (poolTracer == null) {
+    log.error("GammaPoolTracer is missing for poolId {}", [poolId]);
+    return hourlyData;
+  }
+
+  if (poolTracer.lastHourlyData != null) {
+    const lastHourlyData = PoolHourlyData.load(poolTracer.lastHourlyData!);
+    if (lastHourlyData) {
+      const timeDiff = tickStartTimestamp - lastHourlyData.timestamp.toI32();
+      const missingItemsCnt = timeDiff / 3600 - 1;
+      for (let i = 1; i <= missingItemsCnt; i ++) {
+        const missingTickId = lastHourlyData.timestamp.toI32() / 3600 + i;
+        const missingId = poolId.concat('-').concat(missingTickId.toString());
+        const missingItem = new PoolHourlyData(missingId);
+        missingItem.pool = poolId;
+        missingItem.timestamp = BigInt.fromI32(missingTickId * 3600);
+        missingItem.utilizationRate = lastHourlyData.utilizationRate;
+        missingItem.totalLiquidity = lastHourlyData.totalLiquidity;
+        missingItem.borrowRate = lastHourlyData.borrowRate;
+        missingItem.accFeeIndex = lastHourlyData.accFeeIndex;
+        missingItem.accFeeIndexGrowth = lastHourlyData.accFeeIndexGrowth;
+        missingItem.price0 = lastHourlyData.price0;
+        missingItem.price1 = lastHourlyData.price1;
+        missingItem.save();
+      }
+    }
+  }
+
   return hourlyData;
 }
 
-export function loadOrCreatePoolDailyData(event: PoolUpdated): PoolDailyData {
+export function createPoolDailyData(event: PoolUpdated): PoolDailyData {
+  const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 86400;   // 24hr segment
   const tickStartTimestamp = tickId * 86400;
-  const id = event.address.toHexString().concat('-').concat(BigInt.fromI32(tickId).toString());
+  const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
   let dailyData = PoolDailyData.load(id);
 
   if (dailyData == null) {
     dailyData = new PoolDailyData(id);
-    dailyData.pool = event.address.toHexString();
+    dailyData.pool = poolId;
     dailyData.timestamp = BigInt.fromI32(0);
     dailyData.utilizationRate = BigInt.fromI32(0);
     dailyData.totalLiquidity = BigInt.fromI32(0);
     dailyData.borrowRate = BigInt.fromI32(0);
+    dailyData.accFeeIndex = BigInt.fromI32(0);
     dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
     dailyData.price0 = BigInt.fromI32(0);
     dailyData.price1 = BigInt.fromI32(0);
     dailyData.save();
   }
   dailyData.timestamp = BigInt.fromI32(tickStartTimestamp);
+
+  // Pad missing daily data items
+  const poolTracer = GammaPoolTracer.load(poolId);
+  if (poolTracer == null) {
+    log.error("GammaPoolTracer is missing for poolId {}", [poolId]);
+    return dailyData;
+  }
+
+  if (poolTracer.lastDailyData != null) {
+    const lastDailyData = PoolDailyData.load(poolTracer.lastDailyData!);
+    if (lastDailyData) {
+      const timeDiff = tickStartTimestamp - lastDailyData.timestamp.toI32();
+      const missingItemsCnt = timeDiff / 86400 - 1;
+      for (let i = 1; i <= missingItemsCnt; i ++) {
+        const missingTickId = lastDailyData.timestamp.toI32() / 86400 + i;
+        const missingId = poolId.concat('-').concat(missingTickId.toString());
+        const missingItem = new PoolDailyData(missingId);
+        missingItem.pool = poolId;
+        missingItem.timestamp = BigInt.fromI32(missingTickId * 3600);
+        missingItem.utilizationRate = lastDailyData.utilizationRate;
+        missingItem.totalLiquidity = lastDailyData.totalLiquidity;
+        missingItem.borrowRate = lastDailyData.borrowRate;
+        missingItem.accFeeIndex = lastDailyData.accFeeIndex;
+        missingItem.accFeeIndexGrowth = lastDailyData.accFeeIndexGrowth;
+        missingItem.price0 = lastDailyData.price0;
+        missingItem.price1 = lastDailyData.price1;
+        missingItem.save();
+      }
+    }
+  }
 
   return dailyData;
 }
