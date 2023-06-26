@@ -1,8 +1,9 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, VaultBalance } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken } from '../helpers/loader';
+import { GammaPool, GammaPoolTracer, Loan, VaultBalance, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createPoolFlashData, createPoolHourlyData, createPoolDailyData } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
+import { updatePrices, updatePoolStats } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -29,6 +30,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
+
+  updatePrices(poolAddress);
 
   const poolData = poolContract.getLatestPoolData();
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
@@ -58,7 +61,91 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
+  updatePoolStats(pool);
+
   pool.save();
+
+  // Historical data
+  const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
+
+  const flashData = createPoolFlashData(event);
+  let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
+  if (poolTracer != null && poolTracer.lastFlashData != null) {
+    const lastFlashData = PoolFlashData.load(poolTracer.lastFlashData!);
+    if (lastFlashData) {
+      prevAccFeeIndex = lastFlashData.accFeeIndex;
+    }
+  }
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
+  const ratePrecision = BigInt.fromI32(10).pow(18);
+  flashData.utilizationRate = poolData.utilizationRate;
+  flashData.borrowRate = poolData.borrowRate;
+  const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
+  flashData.totalLiquidity = totalLiquidity;
+  flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  flashData.accFeeIndex = poolData.accFeeIndex;
+  let dailyConversionMultiplier = 365 * 24 * 60 / 5;
+  let accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+  flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  flashData.save();
+
+  if (poolTracer != null && poolTracer.lastFlashData != flashData.id) {
+    poolTracer.lastFlashData = flashData.id;
+    poolTracer.save();
+  }
+
+  const hourlyData = createPoolHourlyData(event);
+  prevAccFeeIndex = BigInt.fromI32(10).pow(18);
+  if (poolTracer != null && poolTracer.lastHourlyData != null) {
+    const lastHourlyData = PoolHourlyData.load(poolTracer.lastHourlyData!);
+    if (lastHourlyData) {
+      prevAccFeeIndex = lastHourlyData.accFeeIndex;
+    }
+  }
+  hourlyData.utilizationRate = poolData.utilizationRate;
+  hourlyData.borrowRate = poolData.borrowRate;
+  hourlyData.totalLiquidity = totalLiquidity;
+  hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  hourlyData.accFeeIndex = poolData.accFeeIndex;
+  dailyConversionMultiplier = 365 * 24;
+  accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+  hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  hourlyData.save();
+
+  if (poolTracer != null && poolTracer.lastHourlyData != hourlyData.id) {
+    poolTracer.lastHourlyData = hourlyData.id;
+    poolTracer.save();
+  }
+
+  const dailyData = createPoolDailyData(event);
+  prevAccFeeIndex = BigInt.fromI32(10).pow(18);
+  if (poolTracer != null && poolTracer.lastDailyData != null) {
+    const lastDailyData = PoolDailyData.load(poolTracer.lastDailyData!);
+    if (lastDailyData) {
+      prevAccFeeIndex = lastDailyData.accFeeIndex;
+    }
+  }
+  dailyData.utilizationRate = poolData.utilizationRate;
+  dailyData.borrowRate = poolData.borrowRate;
+  dailyData.totalLiquidity = totalLiquidity;
+  dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  dailyData.accFeeIndex = poolData.accFeeIndex;
+  dailyConversionMultiplier = 365;
+  accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+  dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  dailyData.save();
+
+  if (poolTracer != null && poolTracer.lastDailyData != dailyData.id) {
+    poolTracer.lastDailyData = dailyData.id;
+    poolTracer.save();
+  }
 }
 
 export function handleLoanCreate(event: LoanCreated): void {
@@ -126,7 +213,7 @@ export function handleLiquidation(event: Liquidation): void {
         return;
       }
       const liquidations = pool.liquidations;
-      const sequence = liquidations ? liquidations.length : 0;
+      const sequence = liquidations ? liquidations.load().length : 0;
       const liquidationId = loanId + '-' + sequence.toString();
       createLiquidation(liquidationId, event);
     } else if (event.params.tokenIds.length > 0) {

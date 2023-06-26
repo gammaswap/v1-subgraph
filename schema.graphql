@@ -18,13 +18,29 @@ type GammaPool @entity {
   lpBorrowedBalancePlusInterest: BigInt!
   lpInvariant: BigInt!
   lpBorrowedInvariant: BigInt!
-
   accFeeIndex: BigInt!
   lastCfmmFeeIndex: BigInt!
   lastCfmmInvariant: BigInt!
   lastCfmmTotalSupply: BigInt!
   lastFeeIndex: BigInt!
   lastPrice: BigInt!
+
+  lpBalanceETH: BigDecimal!
+  lpBalanceUSD: BigDecimal!
+  lpBalanceInToken0: BigDecimal!
+  lpBalanceInToken1: BigDecimal!
+  lpBorrowedBalanceETH: BigDecimal!
+  lpBorrowedBalanceUSD: BigDecimal!
+  lpBorrowedBalanceInToken0: BigDecimal!
+  lpBorrowedBalanceInToken1: BigDecimal!
+  lpBorrowedBalancePlusInterestETH: BigDecimal!
+  lpBorrowedBalancePlusInterestUSD: BigDecimal!
+  lpBorrowedBalancePlusInterestInToken0: BigDecimal!
+  lpBorrowedBalancePlusInterestInToken1: BigDecimal!
+  lastCfmmETH: BigDecimal!
+  lastCfmmUSD: BigDecimal!
+  lastCfmmInToken0: BigDecimal!
+  lastCfmmInToken1: BigDecimal!
 
   totalSupply: BigInt!
   token0Balance: BigInt!
@@ -86,6 +102,8 @@ type Token @entity {
   name: String!
   symbol: String!
   decimals: BigInt!
+  priceETH: BigDecimal!
+  priceUSD: BigDecimal!
 }
 
 type VaultBalance @entity {
@@ -100,4 +118,64 @@ type Account @entity {
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   vaultBalances: [VaultBalance!] @derivedFrom(field: "account")
+}
+
+interface PoolHistoricalData @entity {
+  id: ID!
+  pool: GammaPool!
+  timestamp: BigInt!
+  utilizationRate: BigInt!
+  totalLiquidity: BigInt!
+  borrowRate: BigInt!
+  accFeeIndex: BigInt!
+  accFeeIndexGrowth: BigInt!
+  price0: BigInt!
+  price1: BigInt!
+}
+
+type PoolFlashData implements PoolHistoricalData @entity {  # 5mins interval
+  id: ID!
+  pool: GammaPool!
+  timestamp: BigInt!
+  utilizationRate: BigInt!
+  totalLiquidity: BigInt!
+  borrowRate: BigInt!
+  accFeeIndex: BigInt!
+  accFeeIndexGrowth: BigInt!
+  price0: BigInt!
+  price1: BigInt!
+}
+
+type PoolHourlyData implements PoolHistoricalData @entity {  # 1hr interval
+  id: ID!
+  pool: GammaPool!
+  timestamp: BigInt!
+  utilizationRate: BigInt!
+  totalLiquidity: BigInt!
+  borrowRate: BigInt!
+  accFeeIndex: BigInt!
+  accFeeIndexGrowth: BigInt!
+  price0: BigInt!
+  price1: BigInt!
+}
+
+type PoolDailyData implements PoolHistoricalData @entity {  # 24hr interval
+  id: ID!
+  pool: GammaPool!
+  timestamp: BigInt!
+  utilizationRate: BigInt!
+  totalLiquidity: BigInt!
+  borrowRate: BigInt!
+  accFeeIndex: BigInt!
+  accFeeIndexGrowth: BigInt!
+  price0: BigInt!
+  price1: BigInt!
+}
+
+type GammaPoolTracer @entity {
+  id: ID!
+  pool: GammaPool!
+  lastFlashData: PoolFlashData
+  lastHourlyData: PoolHourlyData
+  lastDailyData: PoolDailyData
 }
