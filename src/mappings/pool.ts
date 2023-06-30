@@ -176,6 +176,13 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   loan.initLiquidity = loanData.initLiquidity;
   loan.liquidity = loanData.liquidity;
   loan.lpTokens = loanData.lpTokens;
+  if (
+    loan.depositedCollateral0 == BigInt.fromI32(0) && loan.depositedCollateral1 == BigInt.fromI32(0) &&
+    loan.collateral0 == BigInt.fromI32(0) && loan.collateral0 == BigInt.fromI32(0)
+  ) { // Initial deposit only
+    loan.depositedCollateral0 = loanData.tokensHeld[0];
+    loan.depositedCollateral1 = loanData.tokensHeld[1];
+  }
   loan.collateral0 = loanData.tokensHeld[0];
   loan.collateral1 = loanData.tokensHeld[1];
   loan.price = loanData.px;

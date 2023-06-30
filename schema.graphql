@@ -70,6 +70,8 @@ type Loan @entity {
   initLiquidity: BigInt!
   liquidity: BigInt!
   lpTokens: BigInt!
+  depositedCollateral0: BigInt!
+  depositedCollateral1: BigInt!
   collateral0: BigInt!
   collateral1: BigInt!
   price: BigInt!

@@ -83,6 +83,8 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     loan.initLiquidity = BigInt.fromI32(0);
     loan.liquidity = BigInt.fromI32(0);
     loan.lpTokens = BigInt.fromI32(0);
+    loan.depositedCollateral0 = BigInt.fromI32(0);
+    loan.depositedCollateral1 = BigInt.fromI32(0);
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
@@ -111,6 +113,8 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     loan.initLiquidity = BigInt.fromI32(0);
     loan.liquidity = BigInt.fromI32(0);
     loan.lpTokens = BigInt.fromI32(0);
+    loan.depositedCollateral0 = BigInt.fromI32(0);
+    loan.depositedCollateral1 = BigInt.fromI32(0);
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
