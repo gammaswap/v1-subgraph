@@ -10,46 +10,70 @@ type GammaPool @entity {
   Primary pool attributes
   Initialized once at the time of creation from GammaPoolPoolFactory contract
   """
-  id: ID!                       # {PoolAddress}
-  address: Bytes!               # {PoolAddress}
-  cfmm: Bytes!                  # CFMM address
-  implementationId: BigInt!     # GammaPool template id
-  token0: Token!                # Underlying token0 address
-  token1: Token!                # Underlying token1 address
+  # {PoolAddress}
+  id: ID!
+  # {PoolAddress}
+  address: Bytes!
+  # CFMM address
+  cfmm: Bytes!
+  # GammaPool template id
+  implementationId: BigInt!
+  # Underlying token0 address
+  token0: Token!
+  # Underlying token1 address
+  token1: Token!
 
   """
   Raw pool storage variables
   All these values get updated with user txns
   """
-  lpBalance: BigInt!            # CFMM's LP tokens deposited in GammaPool by LPs
-  lpBorrowedBalance: BigInt!    # CFMM's LP tokens that have been borrowed by liquidity borrowers excluding accrued interest (principal)
-  lpBorrowedBalancePlusInterest: BigInt!  # CFMM's LP tokens that have been borrowed by liquidity borrowers including accrued interest
-  lpInvariant: BigInt!          # CFMM's liquidity invariant held in GammaPool as LP tokens, maps to {lpBalance}
-  lpBorrowedInvariant: BigInt!  # CFMM's liquidity invariant that has been borrowed including accrued interest, maps to {lpBorrowedBalancePlusInterest}
-  accFeeIndex: BigInt!          # GammaPool's ever increasing interest rate index, tracks interest accrued through CFMM and liquidity loans, max 7.9% trillion
-  lastCfmmFeeIndex: BigInt!     # percent accrual in CFMM invariant since last update
-  lastCfmmInvariant: BigInt!    # Total liquidity invariant amount in CFMM (from GammaPool and others)
-  lastCfmmTotalSupply: BigInt!  # Total LP token supply from CFMM (belonging to GammaPool and others)
-  lastFeeIndex: BigInt!         # GammaPool's total interest rate(CFMM rate plus Borrow rate) since last update
-  lastPrice: BigInt!            # Current price at CFMM
+  # CFMM's LP tokens deposited in GammaPool by LPs
+  lpBalance: BigInt!
+  # CFMM's LP tokens that have been borrowed by liquidity borrowers excluding accrued interest (principal)
+  lpBorrowedBalance: BigInt!
+  # CFMM's LP tokens that have been borrowed by liquidity borrowers including accrued interest
+  lpBorrowedBalancePlusInterest: BigInt!
+  # CFMM's liquidity invariant held in GammaPool as LP tokens, maps to {lpBalance}
+  lpInvariant: BigInt!
+  # CFMM's liquidity invariant that has been borrowed including accrued interest, maps to {lpBorrowedBalancePlusInterest}
+  lpBorrowedInvariant: BigInt!
+  # GammaPool's ever increasing interest rate index, tracks interest accrued through CFMM and liquidity loans, max 7.9% trillion
+  accFeeIndex: BigInt!
+  # percent accrual in CFMM invariant since last update
+  lastCfmmFeeIndex: BigInt!
+  # Total liquidity invariant amount in CFMM (from GammaPool and others)
+  lastCfmmInvariant: BigInt!
+  # Total LP token supply from CFMM (belonging to GammaPool and others)
+  lastCfmmTotalSupply: BigInt!
+  # GammaPool's total interest rate(CFMM rate plus Borrow rate) since last update
+  lastFeeIndex: BigInt!
+  # Current price at CFMM
+  lastPrice: BigInt!
 
   """
   Derived values from the very section above
   Mostly ETH/USD value equivalents for 3rd party apps
   """
-  lpBalanceETH: BigDecimal!               # GammaPool tvl as ETH value, maps to {lpBalance}
-  lpBalanceUSD: BigDecimal!               # GammaPool tvl as USD value, maps to {lpBalance}
-  lpBalanceInToken0: BigDecimal!          # GammaPool tvl as priced with token0, maps to {lpBalance}
-  lpBalanceInToken1: BigDecimal!          # GammaPool tvl as priced with token1, maps to {lpBalance}
-  lpBorrowedBalanceETH: BigDecimal!       # Borrowed assets as ETH value, maps to {lpBorrowedBalance}
+  # GammaPool tvl as ETH value, maps to {lpBalance}
+  lpBalanceETH: BigDecimal!
+  # GammaPool tvl as USD value, maps to {lpBalance}
+  lpBalanceUSD: BigDecimal!
+  # GammaPool tvl as priced with token0, maps to {lpBalance}
+  lpBalanceInToken0: BigDecimal!
+  # GammaPool tvl as priced with token1, maps to {lpBalance}
+  lpBalanceInToken1: BigDecimal!
+  # Borrowed assets as ETH value, maps to {lpBorrowedBalance}
+  lpBorrowedBalanceETH: BigDecimal!
   lpBorrowedBalanceUSD: BigDecimal!
   lpBorrowedBalanceInToken0: BigDecimal!
   lpBorrowedBalanceInToken1: BigDecimal!
-  lpBorrowedBalancePlusInterestETH: BigDecimal!   # Borrowed assets(including accrued fees) as ETH value, maps to {lpBorrowedBalancePlusInterest}
+  # Borrowed assets(including accrued fees) as ETH value, maps to {lpBorrowedBalancePlusInterest}
+  lpBorrowedBalancePlusInterestETH: BigDecimal!
   lpBorrowedBalancePlusInterestUSD: BigDecimal!
   lpBorrowedBalancePlusInterestInToken0: BigDecimal!
   lpBorrowedBalancePlusInterestInToken1: BigDecimal!
-  lastCfmmETH: BigDecimal!                # CFMM's total liquidity as ETH value, maps to {lastCfmmInvariant}
+  # CFMM's total liquidity as ETH value, maps to {lastCfmmInvariant}
+  lastCfmmETH: BigDecimal!
   lastCfmmUSD: BigDecimal!
   lastCfmmInToken0: BigDecimal!
   lastCfmmInToken1: BigDecimal!
@@ -57,16 +81,26 @@ type GammaPool @entity {
   """
   Other GammaPool storage values
   """
-  totalSupply: BigInt!          # GammaPool's GS-LP total supply
-  token0Balance: BigInt!        # Total amounts of token0 for loan collaterals
-  token1Balance: BigInt!        # Total amounts of token1 for loan collaterals
-  reserve0Balance: BigInt!      # Total amounts of token0 reserves
-  reserve1Balance: BigInt!      # Total amounts of token1 reserves
-  borrowRate: BigInt!           # Borrow APR of LP tokens in GammaPool
-  supplyRate: BigInt!           # Supply APR of LP tokens in GammaPool
-  utilizationRate: BigInt!      # Utilization rate of GammaPool, {supplyRate} = {borrowRate} * {utilizationRate}
-  ltvThreshold: BigInt!         # LTV liquidation threshold
-  liquidationFee: BigInt!       # Liquidation fee
+  # GammaPool's GS-LP total supply
+  totalSupply: BigInt!
+  # Total amounts of token0 for loan collaterals
+  token0Balance: BigInt!
+  # Total amounts of token1 for loan collaterals
+  token1Balance: BigInt!
+  # Total amounts of token0 reserves
+  reserve0Balance: BigInt!
+  # Total amounts of token1 reserves
+  reserve1Balance: BigInt!
+  # Borrow APR of LP tokens in GammaPool
+  borrowRate: BigInt!
+  # Supply APR of LP tokens in GammaPool
+  supplyRate: BigInt!
+  # Utilization rate of GammaPool, {supplyRate} = {borrowRate} * {utilizationRate}
+  utilizationRate: BigInt!
+  # LTV liquidation threshold
+  ltvThreshold: BigInt!
+  # Liquidation fee
+  liquidationFee: BigInt!
 
   block: BigInt!
   timestamp: BigInt!
@@ -80,50 +114,71 @@ type Loan @entity {
   Primary Loan attributes
   Initialized once at the time of loan creation
   """
-  id: ID!                   # {PoolAddress}-{tokenId}
-  tokenId: BigInt!          # Unique tokenId to identify loan across all GammaPools, hash of GammaPool address, sender address, and loan counter
-  pool: GammaPool!          # Underlying GammaPool entity
+  # {PoolAddress}-{tokenId}
+  id: ID!
+  # Unique tokenId to identify loan across all GammaPools, hash of GammaPool address, sender address, and loan counter
+  tokenId: BigInt!
+  # Underlying GammaPool entity
+  pool: GammaPool!
+  # Owner of the loan
   account: Account!
 
   """
   Loan attributes updated over time
   """
-  rateIndex: BigInt!        # GammaPool interest rate at time loan is created/updated, maps to {GammaPool -> accFeeIndex}
-  initLiquidity: BigInt!    # Initial loan debt in liquidity invariant units. Only increase when more liquidity is borrowed, decreases when liquidity is paid
-  liquidity: BigInt!        # Loan debt in liquidity invariant units, increases with every update according to how many blocks have passed
-  lpTokens: BigInt!         # Initial loan debt in terms of LP tokens at time liquidity was borrowed, updates along with {initLiquidity}
-  collateral0: BigInt!      # Reserved token0 amounts held as collateral for the liquidity debt
-  collateral1: BigInt!      # Reserved token1 amounts held as collateral for the liquidity debt
-  price: BigInt!            # Price at which loan was opened
+  # GammaPool interest rate at time loan is created/updated, maps to {GammaPool -> accFeeIndex}
+  rateIndex: BigInt!
+  # Initial loan debt in liquidity invariant units. Only increase when more liquidity is borrowed, decreases when liquidity is paid
+  initLiquidity: BigInt!
+  # Loan debt in liquidity invariant units, increases with every update according to how many blocks have passed
+  liquidity: BigInt!
+  # Initial loan debt in terms of LP tokens at time liquidity was borrowed, updates along with {initLiquidity}
+  lpTokens: BigInt!
+  # Reserved token0 amounts held as collateral for the liquidity debt
+  collateral0: BigInt!
+  # Reserved token1 amounts held as collateral for the liquidity debt
+  collateral1: BigInt!
+  # Price at which loan was opened
+  price: BigInt!
 
   """
   Extra loan information
   """
-  status: LoanStatus!       # Loan Status
-  openedBlock: BigInt!      # Block number at which loan was opened
-  openedTimestamp: BigInt!  # Timestamp at which loan was opened
-  closedBlock: BigInt       # Block number at which loan was closed
-  closedTimestamp: BigInt   # Timestamp at which loan was closed
+  # Loan Status
+  status: LoanStatus!
+  # Block number at which loan was opened
+  openedBlock: BigInt!
+  # Timestamp at which loan was opened
+  openedTimestamp: BigInt!
+  # Block number at which loan was closed
+  closedBlock: BigInt
+  # Timestamp at which loan was closed
+  closedTimestamp: BigInt
 
   liquidations: [Liquidation!] @derivedFrom(field: "loan")
 }
 
 type Liquidation @entity {
-  id: ID!                   # {PoolAddress}-{tokenId}-{index}
+  # {PoolAddress}-{tokenId}-{index}
+  id: ID!
   pool: GammaPool!
   loan: Loan!
   liquidator: Account!
 
-  collateral: BigInt!       # Collateral of loan being liquidated
-  liquidity: BigInt!        # Liquidity debt being repaid
-  writeDown: BigInt!        # Amount of liquidity invariant being written down
+  # Collateral of loan being liquidated
+  collateral: BigInt!
+  # Liquidity debt being repaid
+  liquidity: BigInt!
+  # Amount of liquidity invariant being written down
+  writeDown: BigInt!
 
   block: BigInt!
   timestamp: BigInt!
 }
 
 type Token @entity {
-  id: ID!                   # {address}
+  # Token address
+  id: ID!
   name: String!
   symbol: String!
   decimals: BigInt!
@@ -132,14 +187,16 @@ type Token @entity {
 }
 
 type VaultBalance @entity {
-  id: ID!           # {PoolAddress}-{account}
+  # {PoolAddress}-{account}
+  id: ID!
   pool: GammaPool!
   account: Account!
   balance: BigInt!
 }
 
 type Account @entity {
-  id: ID!           # {account}
+  # Account address
+  id: ID!
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   vaultBalances: [VaultBalance!] @derivedFrom(field: "account")
@@ -150,53 +207,92 @@ Historical data of GammaPools
 """
 interface PoolHistoricalData @entity {
   id: ID!
-  pool: GammaPool!              # {GammaPool}
-  timestamp: BigInt!            # start timestamp of 5min/1hr/24hr interval
-  utilizationRate: BigInt!      # Maps to {GammaPool -> utilizationRate}
-  totalLiquidity: BigInt!       # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
-  borrowRate: BigInt!           # Maps to {GammaPool -> borrowRate}
-  accFeeIndex: BigInt!          # Maps to {GammaPool -> accFeeIndex}
-  accFeeIndexGrowth: BigInt!    # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
-  price0: BigInt!               # Current price at CFMM for token0
-  price1: BigInt!               # Current price at CFMM for token1
-}
-
-type PoolFlashData implements PoolHistoricalData @entity {  # 5mins interval
-  id: ID!
+  # {GammaPool}
   pool: GammaPool!
+  # start timestamp of 5min/1hr/24hr segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
   totalLiquidity: BigInt!
+  # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
+  # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
+  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
   accFeeIndexGrowth: BigInt!
+  # Current price at CFMM for token0
   price0: BigInt!
+  # Current price at CFMM for token1
   price1: BigInt!
 }
 
-type PoolHourlyData implements PoolHistoricalData @entity {  # 1hr interval
+type PoolFlashData implements PoolHistoricalData @entity {
+  # {GammaPool Address}-{5mins interval}
   id: ID!
+  # {GammaPool}
   pool: GammaPool!
+  # start timestamp of 5min segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
   totalLiquidity: BigInt!
+  # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
+  # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
+  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
   accFeeIndexGrowth: BigInt!
+  # Current price at CFMM for token0
   price0: BigInt!
+  # Current price at CFMM for token1
   price1: BigInt!
 }
 
-type PoolDailyData implements PoolHistoricalData @entity {  # 24hr interval
+type PoolHourlyData implements PoolHistoricalData @entity {
+# {GammaPool Address}-{1hr interval}
   id: ID!
+  # {GammaPool}
   pool: GammaPool!
+  # start timestamp of 1hr segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
   totalLiquidity: BigInt!
+  # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
+  # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
+  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
   accFeeIndexGrowth: BigInt!
+  # Current price at CFMM for token0
   price0: BigInt!
+  # Current price at CFMM for token1
+  price1: BigInt!
+}
+
+type PoolDailyData implements PoolHistoricalData @entity {
+  # {GammaPool Address}-{24hr interval}
+  id: ID!
+  # {GammaPool}
+  pool: GammaPool!
+  # start timestamp of 24hr segment
+  timestamp: BigInt!
+  # Maps to {GammaPool -> utilizationRate}
+  utilizationRate: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
+  totalLiquidity: BigInt!
+  # Maps to {GammaPool -> borrowRate}
+  borrowRate: BigInt!
+  # Maps to {GammaPool -> accFeeIndex}
+  accFeeIndex: BigInt!
+  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
+  accFeeIndexGrowth: BigInt!
+  # Current price at CFMM for token0
+  price0: BigInt!
+  # Current price at CFMM for token1
   price1: BigInt!
 }
 
@@ -205,9 +301,14 @@ Keep track of last historical data records for GammaPool
 Internally used to fill in missing ticks for historical data entities
 """
 type GammaPoolTracer @entity {
+  # {GammaPool address}
   id: ID!
+  # {GammaPool}
   pool: GammaPool!
+  # last 5min historical data record
   lastFlashData: PoolFlashData
+  # last 1hr historical data record
   lastHourlyData: PoolHourlyData
+  # last 24hr historical data record
   lastDailyData: PoolDailyData
 }
