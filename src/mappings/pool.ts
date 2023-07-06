@@ -3,7 +3,7 @@ import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } fr
 import { GammaPool, GammaPoolTracer, Loan, LiquidityPosition, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFlashPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
-import { updatePrices, updatePoolStats } from '../helpers/utils';
+import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -82,7 +82,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   flashData.utilizationRate = poolData.utilizationRate;
   flashData.borrowRate = poolData.borrowRate;
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
+  flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  flashData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  flashData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   flashData.totalLiquidity = totalLiquidity;
+  flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   flashData.accFeeIndex = poolData.accFeeIndex;
   let dailyConversionMultiplier = 365 * 24 * 60 / 5;
@@ -107,7 +112,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   }
   hourlyData.utilizationRate = poolData.utilizationRate;
   hourlyData.borrowRate = poolData.borrowRate;
+  hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  hourlyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  hourlyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   hourlyData.totalLiquidity = totalLiquidity;
+  hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   hourlyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365 * 24;
@@ -132,7 +142,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   }
   dailyData.utilizationRate = poolData.utilizationRate;
   dailyData.borrowRate = poolData.borrowRate;
+  dailyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  dailyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  dailyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   dailyData.totalLiquidity = totalLiquidity;
+  dailyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   dailyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365;
@@ -184,17 +199,17 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   loan.price = loanData.px;
   if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
-    loan.closedBlock = event.block.number;
-    loan.closedTimestamp = event.block.timestamp;
+    loan.closedAtBlock = event.block.number;
+    loan.closedAtTimestamp = event.block.timestamp;
   } else if (event.params.txType == 9) {  // 9 -> LIQUIDATE
     loan.status = 'LIQUIDATED_FULL';
-    loan.closedBlock = event.block.number;
-    loan.closedTimestamp = event.block.timestamp;
+    loan.closedAtBlock = event.block.number;
+    loan.closedAtTimestamp = event.block.timestamp;
   } else if (event.params.txType == 10) { // 10 -> LIQUIDATE_WITH_LP
     if (event.params.liquidity == BigInt.fromI32(0) || event.params.rateIndex == BigInt.fromI32(0)) {
       loan.status = 'LIQUIDATED_FULL';
-      loan.closedBlock = event.block.number;
-      loan.closedTimestamp = event.block.timestamp;
+      loan.closedAtBlock = event.block.number;
+      loan.closedAtTimestamp = event.block.timestamp;
     } else {
       loan.status = 'LIQUIDATED_PARTIAL';
     }
