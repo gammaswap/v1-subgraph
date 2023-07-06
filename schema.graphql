@@ -139,6 +139,8 @@ type Loan @entity {
   # Reserved token1 amounts held as collateral for the liquidity debt
   collateral1: BigInt!
   # Price at which loan was opened
+  entryPrice: BigInt!
+  # Latest loan price
   price: BigInt!
 
   """
@@ -186,7 +188,7 @@ type Token @entity {
   priceUSD: BigDecimal!
 }
 
-type VaultBalance @entity {
+type LiquidityPosition @entity {
   # {PoolAddress}-{account}
   id: ID!
   pool: GammaPool!
@@ -199,13 +201,13 @@ type Account @entity {
   id: ID!
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
-  vaultBalances: [VaultBalance!] @derivedFrom(field: "account")
+  positions: [LiquidityPosition!] @derivedFrom(field: "account")
 }
 
 """
 Historical data of GammaPools
 """
-interface PoolHistoricalData @entity {
+interface PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
@@ -227,7 +229,7 @@ interface PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolFlashData implements PoolHistoricalData @entity {
+type FlashPoolSnapshot implements PoolSnapshot @entity {
   # {GammaPool Address}-{5mins interval}
   id: ID!
   # {GammaPool}
@@ -250,7 +252,7 @@ type PoolFlashData implements PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolHourlyData implements PoolHistoricalData @entity {
+type HourlyPoolSnapshot implements PoolSnapshot @entity {
 # {GammaPool Address}-{1hr interval}
   id: ID!
   # {GammaPool}
@@ -273,7 +275,7 @@ type PoolHourlyData implements PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolDailyData implements PoolHistoricalData @entity {
+type DailyPoolSnapshot implements PoolSnapshot @entity {
   # {GammaPool Address}-{24hr interval}
   id: ID!
   # {GammaPool}
@@ -306,9 +308,9 @@ type GammaPoolTracer @entity {
   # {GammaPool}
   pool: GammaPool!
   # last 5min historical data record
-  lastFlashData: PoolFlashData
+  lastFlashData: FlashPoolSnapshot
   # last 1hr historical data record
-  lastHourlyData: PoolHourlyData
+  lastHourlyData: HourlyPoolSnapshot
   # last 24hr historical data record
-  lastDailyData: PoolDailyData
+  lastDailyData: DailyPoolSnapshot
 }
