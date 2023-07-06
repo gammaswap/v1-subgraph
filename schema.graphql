@@ -269,7 +269,7 @@ type FlashPoolSnapshot implements PoolSnapshot @entity {
 }
 
 type HourlyPoolSnapshot implements PoolSnapshot @entity {
-# {GammaPool Address}-{1hr interval}
+  # {GammaPool Address}-{1hr interval}
   id: ID!
   # {GammaPool}
   pool: GammaPool!
