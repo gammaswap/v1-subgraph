@@ -54,13 +54,13 @@ type GammaPool @entity {
   Derived values from the very section above
   Mostly ETH/USD value equivalents for 3rd party apps
   """
-  # GammaPool tvl as ETH value, maps to {lpBalance}
+  # GammaPool LP tokens as ETH value, maps to {lpBalance}
   lpBalanceETH: BigDecimal!
-  # GammaPool tvl as USD value, maps to {lpBalance}
+  # GammaPool LP tokens as USD value, maps to {lpBalance}
   lpBalanceUSD: BigDecimal!
-  # GammaPool tvl as priced with token0, maps to {lpBalance}
+  # GammaPool LP tokens as priced with token0, maps to {lpBalance}
   lpBalanceInToken0: BigDecimal!
-  # GammaPool tvl as priced with token1, maps to {lpBalance}
+  # GammaPool LP tokens as priced with token1, maps to {lpBalance}
   lpBalanceInToken1: BigDecimal!
   # Borrowed assets as ETH value, maps to {lpBorrowedBalance}
   lpBorrowedBalanceETH: BigDecimal!
@@ -72,6 +72,10 @@ type GammaPool @entity {
   lpBorrowedBalancePlusInterestUSD: BigDecimal!
   lpBorrowedBalancePlusInterestInToken0: BigDecimal!
   lpBorrowedBalancePlusInterestInToken1: BigDecimal!
+  # Maps to {lpBalanceETH} + {lpBorrowedBalancePlusInterestETH}
+  tvlETH: BigDecimal!
+  # Maps to {lpBalanceUSD} + {lpBorrowedBalancePlusInterestUSD}
+  tvlUSD: BigDecimal!
   # CFMM's total liquidity as ETH value, maps to {lastCfmmInvariant}
   lastCfmmETH: BigDecimal!
   lastCfmmUSD: BigDecimal!
@@ -139,6 +143,8 @@ type Loan @entity {
   # Reserved token1 amounts held as collateral for the liquidity debt
   collateral1: BigInt!
   # Price at which loan was opened
+  entryPrice: BigInt!
+  # Latest loan price
   price: BigInt!
 
   """
@@ -147,13 +153,13 @@ type Loan @entity {
   # Loan Status
   status: LoanStatus!
   # Block number at which loan was opened
-  openedBlock: BigInt!
+  openedAtBlock: BigInt!
   # Timestamp at which loan was opened
-  openedTimestamp: BigInt!
+  openedAtTimestamp: BigInt!
   # Block number at which loan was closed
-  closedBlock: BigInt
+  closedAtBlock: BigInt
   # Timestamp at which loan was closed
-  closedTimestamp: BigInt
+  closedAtTimestamp: BigInt
 
   liquidations: [Liquidation!] @derivedFrom(field: "loan")
 }
@@ -186,7 +192,7 @@ type Token @entity {
   priceUSD: BigDecimal!
 }
 
-type VaultBalance @entity {
+type PoolBalance @entity {
   # {PoolAddress}-{account}
   id: ID!
   pool: GammaPool!
@@ -199,22 +205,28 @@ type Account @entity {
   id: ID!
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
-  vaultBalances: [VaultBalance!] @derivedFrom(field: "account")
+  poolBalances: [PoolBalance!] @derivedFrom(field: "account")
 }
 
 """
 Historical data of GammaPools
 """
-interface PoolHistoricalData @entity {
+interface PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
   # start timestamp of 5min/1hr/24hr segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant}
+  borrowedLiquidity: BigInt!
+  borrowedLiquidityETH: BigDecimal!
+  borrowedLiquidityUSD: BigDecimal!
+  # Pool tvl, maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
+  totalLiquidity: BigInt!
+  totalLiquidityETH: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
   # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
-  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
-  totalLiquidity: BigInt!
   # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
@@ -227,17 +239,23 @@ interface PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolFlashData implements PoolHistoricalData @entity {
+type FlashPoolSnapshot implements PoolSnapshot @entity {
   # {GammaPool Address}-{5mins interval}
   id: ID!
   # {GammaPool}
   pool: GammaPool!
   # start timestamp of 5min segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant}
+  borrowedLiquidity: BigInt!
+  borrowedLiquidityETH: BigDecimal!
+  borrowedLiquidityUSD: BigDecimal!
+  # Pool tvl, maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
+  totalLiquidity: BigInt!
+  totalLiquidityETH: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
   # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
-  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
-  totalLiquidity: BigInt!
   # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
@@ -250,17 +268,23 @@ type PoolFlashData implements PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolHourlyData implements PoolHistoricalData @entity {
-# {GammaPool Address}-{1hr interval}
+type HourlyPoolSnapshot implements PoolSnapshot @entity {
+  # {GammaPool Address}-{1hr interval}
   id: ID!
   # {GammaPool}
   pool: GammaPool!
   # start timestamp of 1hr segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant}
+  borrowedLiquidity: BigInt!
+  borrowedLiquidityETH: BigDecimal!
+  borrowedLiquidityUSD: BigDecimal!
+  # Pool tvl, maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
+  totalLiquidity: BigInt!
+  totalLiquidityETH: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
   # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
-  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
-  totalLiquidity: BigInt!
   # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
@@ -273,17 +297,23 @@ type PoolHourlyData implements PoolHistoricalData @entity {
   price1: BigInt!
 }
 
-type PoolDailyData implements PoolHistoricalData @entity {
+type DailyPoolSnapshot implements PoolSnapshot @entity {
   # {GammaPool Address}-{24hr interval}
   id: ID!
   # {GammaPool}
   pool: GammaPool!
   # start timestamp of 24hr segment
   timestamp: BigInt!
+  # Maps to {GammaPool -> lpBorrowedInvariant}
+  borrowedLiquidity: BigInt!
+  borrowedLiquidityETH: BigDecimal!
+  borrowedLiquidityUSD: BigDecimal!
+  # Pool tvl, maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
+  totalLiquidity: BigInt!
+  totalLiquidityETH: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
   # Maps to {GammaPool -> utilizationRate}
   utilizationRate: BigInt!
-  # Maps to {GammaPool -> lpBorrowedInvariant + lpInvariant}
-  totalLiquidity: BigInt!
   # Maps to {GammaPool -> borrowRate}
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
@@ -297,18 +327,18 @@ type PoolDailyData implements PoolHistoricalData @entity {
 }
 
 """
-Keep track of last historical data records for GammaPool
-Internally used to fill in missing ticks for historical data entities
+Keep track of last pool snapshots for GammaPool
+Internally used to fill in missing ticks for pool snapshot entities
 """
 type GammaPoolTracer @entity {
   # {GammaPool address}
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # last 5min historical data record
-  lastFlashData: PoolFlashData
-  # last 1hr historical data record
-  lastHourlyData: PoolHourlyData
-  # last 24hr historical data record
-  lastDailyData: PoolDailyData
+  # last 5min pool snapshot
+  lastFlashData: FlashPoolSnapshot
+  # last 1hr pool snapshots
+  lastHourlyData: HourlyPoolSnapshot
+  # last 24hr pool snapshots
+  lastDailyData: DailyPoolSnapshot
 }

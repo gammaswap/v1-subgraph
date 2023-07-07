@@ -72,29 +72,41 @@ export function updatePoolStats(pool: GammaPool): void {
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();
   const sqrtPrice = pool.lastPrice.times(precision1).sqrt().toBigDecimal();
 
-  const lpBalanceToInvariant = pool.lpBalance.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).divDecimal(invariantPrecision);
-  pool.lpBalanceInToken0 = BigDecimal.fromString('2').times(lpBalanceToInvariant).div(sqrtPrice);
-  pool.lpBalanceInToken1 = BigDecimal.fromString('2').times(lpBalanceToInvariant).times(sqrtPrice);
+  pool.lpBalanceInToken1 = BigDecimal.fromString('2').times(pool.lpInvariant.toBigDecimal()).times(sqrtPrice).div(invariantPrecision).div(precision1.toBigDecimal()).truncate(token1.decimals.toI32());
+  pool.lpBalanceInToken0 = pool.lpBalanceInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lpBalanceETH = pool.lpBalanceInToken0.times(token0.priceETH);
   pool.lpBalanceUSD = pool.lpBalanceInToken0.times(token0.priceUSD).truncate(2);
 
-  const lpBorrowedToInvariant = pool.lpBorrowedBalance.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).divDecimal(invariantPrecision);
-  pool.lpBorrowedBalanceInToken0 = BigDecimal.fromString('2').times(lpBorrowedToInvariant).div(sqrtPrice);
-  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('2').times(lpBorrowedToInvariant).times(sqrtPrice);
-  pool.lpBorrowedBalanceETH = pool.lpBorrowedBalanceInToken0.times(token0.priceETH);
-  pool.lpBorrowedBalanceUSD = pool.lpBorrowedBalanceInToken0.times(token0.priceUSD).truncate(2);
+  const borrowedInvariant = pool.lpBorrowedBalance.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).divDecimal(invariantPrecision);
+  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('2').times(borrowedInvariant).times(sqrtPrice).div(precision1.toBigDecimal()).truncate(token1.decimals.toI32());
+  pool.lpBorrowedBalanceInToken0 = pool.lpBorrowedBalanceInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
+  pool.lpBorrowedBalanceETH = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceETH);
+  pool.lpBorrowedBalanceUSD = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceUSD).truncate(2);
 
-  const lpBorrowedInterestToInvariant = pool.lpBorrowedBalancePlusInterest.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).divDecimal(invariantPrecision);
-  pool.lpBorrowedBalancePlusInterestInToken0 = BigDecimal.fromString('2').times(lpBorrowedInterestToInvariant).div(sqrtPrice);
-  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('2').times(lpBorrowedInterestToInvariant).times(sqrtPrice);
+  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('2').times(pool.lpBorrowedInvariant.toBigDecimal()).times(sqrtPrice).div(invariantPrecision).div(precision1.toBigDecimal()).truncate(token1.decimals.toI32());
+  pool.lpBorrowedBalancePlusInterestInToken0 = pool.lpBorrowedBalancePlusInterestInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lpBorrowedBalancePlusInterestETH = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceETH);
   pool.lpBorrowedBalancePlusInterestUSD = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceUSD).truncate(2);
 
+  pool.tvlETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalancePlusInterestETH);
+  pool.tvlUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalancePlusInterestUSD);
+
   const lastCfmmInvariant = pool.lastCfmmInvariant.divDecimal(invariantPrecision);
-  pool.lastCfmmInToken0 = BigDecimal.fromString('2').times(lastCfmmInvariant).div(sqrtPrice);
-  pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(lastCfmmInvariant).times(sqrtPrice);
+  pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(lastCfmmInvariant).times(sqrtPrice).div(precision1.toBigDecimal()).truncate(token1.decimals.toI32());
+  pool.lastCfmmInToken0 = pool.lastCfmmInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lastCfmmETH = pool.lastCfmmInToken0.times(token0.priceETH);
   pool.lastCfmmUSD = pool.lastCfmmInToken0.times(token0.priceUSD).truncate(2);
 
   pool.save();
+}
+
+export function getEthUsdValue(token0: Token, token1: Token, invariant: BigInt, price: BigInt, asEth: boolean): BigDecimal {
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
+  const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();
+  const sqrtPrice = price.times(precision1).sqrt().toBigDecimal();
+  const invariantInToken1 = BigDecimal.fromString('2').times(invariant.toBigDecimal()).times(sqrtPrice).div(invariantPrecision).div(precision1.toBigDecimal());
+  if (asEth) {
+    return invariantInToken1.times(token1.priceETH);
+  }
+  return invariantInToken1.times(token1.priceUSD).truncate(2);
 }

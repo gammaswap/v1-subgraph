@@ -1,9 +1,9 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, GammaPoolTracer, Loan, VaultBalance, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createPoolFlashData, createPoolHourlyData, createPoolDailyData } from '../helpers/loader';
+import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFlashPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
-import { updatePrices, updatePoolStats } from '../helpers/utils';
+import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -68,10 +68,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Historical data
   const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
 
-  const flashData = createPoolFlashData(event);
+  const flashData = createFlashPoolSnapshot(event);
   let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   if (poolTracer != null && poolTracer.lastFlashData != null) {
-    const lastFlashData = PoolFlashData.load(poolTracer.lastFlashData!);
+    const lastFlashData = FlashPoolSnapshot.load(poolTracer.lastFlashData!);
     if (lastFlashData) {
       prevAccFeeIndex = lastFlashData.accFeeIndex;
     }
@@ -82,7 +82,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   flashData.utilizationRate = poolData.utilizationRate;
   flashData.borrowRate = poolData.borrowRate;
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
+  flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  flashData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  flashData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   flashData.totalLiquidity = totalLiquidity;
+  flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   flashData.accFeeIndex = poolData.accFeeIndex;
   let dailyConversionMultiplier = 365 * 24 * 60 / 5;
@@ -97,17 +102,22 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     poolTracer.save();
   }
 
-  const hourlyData = createPoolHourlyData(event);
+  const hourlyData = createHourlyPoolSnapshot(event);
   prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   if (poolTracer != null && poolTracer.lastHourlyData != null) {
-    const lastHourlyData = PoolHourlyData.load(poolTracer.lastHourlyData!);
+    const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
     if (lastHourlyData) {
       prevAccFeeIndex = lastHourlyData.accFeeIndex;
     }
   }
   hourlyData.utilizationRate = poolData.utilizationRate;
   hourlyData.borrowRate = poolData.borrowRate;
+  hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  hourlyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  hourlyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   hourlyData.totalLiquidity = totalLiquidity;
+  hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   hourlyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365 * 24;
@@ -122,17 +132,22 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     poolTracer.save();
   }
 
-  const dailyData = createPoolDailyData(event);
+  const dailyData = createDailyPoolSnapshot(event);
   prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   if (poolTracer != null && poolTracer.lastDailyData != null) {
-    const lastDailyData = PoolDailyData.load(poolTracer.lastDailyData!);
+    const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
     if (lastDailyData) {
       prevAccFeeIndex = lastDailyData.accFeeIndex;
     }
   }
   dailyData.utilizationRate = poolData.utilizationRate;
   dailyData.borrowRate = poolData.borrowRate;
+  dailyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  dailyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  dailyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
   dailyData.totalLiquidity = totalLiquidity;
+  dailyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
   dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
   dailyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365;
@@ -178,20 +193,23 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   loan.lpTokens = loanData.lpTokens;
   loan.collateral0 = loanData.tokensHeld[0];
   loan.collateral1 = loanData.tokensHeld[1];
+  if (loan.entryPrice == BigInt.fromI32(0) && loan.price == BigInt.fromI32(0)) {
+    loan.entryPrice = loanData.px;
+  }
   loan.price = loanData.px;
   if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
-    loan.closedBlock = event.block.number;
-    loan.closedTimestamp = event.block.timestamp;
+    loan.closedAtBlock = event.block.number;
+    loan.closedAtTimestamp = event.block.timestamp;
   } else if (event.params.txType == 9) {  // 9 -> LIQUIDATE
     loan.status = 'LIQUIDATED_FULL';
-    loan.closedBlock = event.block.number;
-    loan.closedTimestamp = event.block.timestamp;
+    loan.closedAtBlock = event.block.number;
+    loan.closedAtTimestamp = event.block.timestamp;
   } else if (event.params.txType == 10) { // 10 -> LIQUIDATE_WITH_LP
     if (event.params.liquidity == BigInt.fromI32(0) || event.params.rateIndex == BigInt.fromI32(0)) {
       loan.status = 'LIQUIDATED_FULL';
-      loan.closedBlock = event.block.number;
-      loan.closedTimestamp = event.block.timestamp;
+      loan.closedAtBlock = event.block.number;
+      loan.closedAtTimestamp = event.block.timestamp;
     } else {
       loan.status = 'LIQUIDATED_PARTIAL';
     }
@@ -233,21 +251,21 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   const id1 = pool.id + '-' + fromAccount.id;
   const id2 = pool.id + '-' + toAccount.id;
 
-  let vaultBalanceFrom = VaultBalance.load(id1);
-  if (vaultBalanceFrom && fromAccount.id != ADDRESS_ZERO) {
-    vaultBalanceFrom.balance = vaultBalanceFrom.balance.minus(event.params.amount);
-    vaultBalanceFrom.save();
+  let poolBalanceFrom = PoolBalance.load(id1);
+  if (poolBalanceFrom && fromAccount.id != ADDRESS_ZERO) {
+    poolBalanceFrom.balance = poolBalanceFrom.balance.minus(event.params.amount);
+    poolBalanceFrom.save();
   }
 
-  let vaultBalanceTo = VaultBalance.load(id2);
+  let poolBalanceTo = PoolBalance.load(id2);
   if (toAccount.id != ADDRESS_ZERO) {
-    if (vaultBalanceTo == null) {
-      vaultBalanceTo = new VaultBalance(id2);
-      vaultBalanceTo.pool = pool.id;
-      vaultBalanceTo.account = toAccount.id;
-      vaultBalanceTo.balance = BigInt.fromI32(0);
+    if (poolBalanceTo == null) {
+      poolBalanceTo = new PoolBalance(id2);
+      poolBalanceTo.pool = pool.id;
+      poolBalanceTo.account = toAccount.id;
+      poolBalanceTo.balance = BigInt.fromI32(0);
     }
-    vaultBalanceTo.balance = vaultBalanceTo.balance.plus(event.params.amount);
-    vaultBalanceTo.save();
+    poolBalanceTo.balance = poolBalanceTo.balance.plus(event.params.amount);
+    poolBalanceTo.save();
   }
 }

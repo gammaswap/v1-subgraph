@@ -2,7 +2,7 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { LoanCreated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, PoolFlashData, PoolHourlyData, PoolDailyData } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
@@ -39,6 +39,8 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.lpBorrowedBalancePlusInterestUSD = BigDecimal.fromString('0');
   pool.lpBorrowedBalancePlusInterestInToken0 = BigDecimal.fromString('0');
   pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('0');
+  pool.tvlETH = BigDecimal.fromString('0');
+  pool.tvlUSD = BigDecimal.fromString('0');
   pool.lastCfmmETH = BigDecimal.fromString('0');
   pool.lastCfmmUSD = BigDecimal.fromString('0');
   pool.lastCfmmInToken0 = BigDecimal.fromString('0');
@@ -85,12 +87,13 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     loan.lpTokens = BigInt.fromI32(0);
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
+    loan.entryPrice = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
-    loan.openedBlock = event.block.number;
-    loan.openedTimestamp = event.block.timestamp;
-    loan.closedBlock = BigInt.fromI32(0);
-    loan.closedTimestamp = BigInt.fromI32(0);
+    loan.openedAtBlock = event.block.number;
+    loan.openedAtTimestamp = event.block.timestamp;
+    loan.closedAtBlock = BigInt.fromI32(0);
+    loan.closedAtTimestamp = BigInt.fromI32(0);
 
     loan.save();
   }
@@ -113,12 +116,13 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     loan.lpTokens = BigInt.fromI32(0);
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
+    loan.entryPrice = BigInt.fromI32(0);
     loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
-    loan.openedBlock = event.block.number;
-    loan.openedTimestamp = event.block.timestamp;
-    loan.closedBlock = BigInt.fromI32(0);
-    loan.closedTimestamp = BigInt.fromI32(0);
+    loan.openedAtBlock = event.block.number;
+    loan.openedAtTimestamp = event.block.timestamp;
+    loan.closedAtBlock = BigInt.fromI32(0);
+    loan.closedAtTimestamp = BigInt.fromI32(0);
 
     loan.save();
   }
@@ -169,19 +173,24 @@ export function loadOrCreateToken(id: string): Token {
   return token;
 }
 
-export function createPoolFlashData(event: PoolUpdated): PoolFlashData {
+export function createFlashPoolSnapshot(event: PoolUpdated): FlashPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 300;   // 5min segment
   const tickStartTimestamp = tickId * 300;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
-  let flashData = PoolFlashData.load(id);
+  let flashData = FlashPoolSnapshot.load(id);
 
   if (flashData == null) {
-    flashData = new PoolFlashData(id);
+    flashData = new FlashPoolSnapshot(id);
     flashData.pool = poolId;
     flashData.timestamp = BigInt.fromI32(0);
     flashData.utilizationRate = BigInt.fromI32(0);
+    flashData.borrowedLiquidity = BigInt.fromI32(0);
+    flashData.borrowedLiquidityETH = BigDecimal.fromString('0');
+    flashData.borrowedLiquidityUSD = BigDecimal.fromString('0');
     flashData.totalLiquidity = BigInt.fromI32(0);
+    flashData.totalLiquidityETH = BigDecimal.fromString('0');
+    flashData.totalLiquidityUSD = BigDecimal.fromString('0');
     flashData.borrowRate = BigInt.fromI32(0);
     flashData.accFeeIndex = BigInt.fromI32(0);
     flashData.accFeeIndexGrowth = BigInt.fromI32(0);
@@ -199,18 +208,23 @@ export function createPoolFlashData(event: PoolUpdated): PoolFlashData {
   }
 
   if (poolTracer.lastFlashData != null) {
-    const lastFlashData = PoolFlashData.load(poolTracer.lastFlashData!);
+    const lastFlashData = FlashPoolSnapshot.load(poolTracer.lastFlashData!);
     if (lastFlashData) {
       const timeDiff = tickStartTimestamp - lastFlashData.timestamp.toI32();
       const missingItemsCnt = timeDiff / 300 - 1;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastFlashData.timestamp.toI32() / 300 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
-        const missingItem = new PoolFlashData(missingId);
+        const missingItem = new FlashPoolSnapshot(missingId);
         missingItem.pool = poolId;
         missingItem.timestamp = BigInt.fromI32(missingTickId * 300);
         missingItem.utilizationRate = lastFlashData.utilizationRate;
+        missingItem.borrowedLiquidity = lastFlashData.borrowedLiquidity;
+        missingItem.borrowedLiquidityETH = lastFlashData.borrowedLiquidityETH;
+        missingItem.borrowedLiquidityUSD = lastFlashData.borrowedLiquidityUSD;
         missingItem.totalLiquidity = lastFlashData.totalLiquidity;
+        missingItem.totalLiquidityETH = lastFlashData.totalLiquidityETH;
+        missingItem.totalLiquidityUSD = lastFlashData.totalLiquidityUSD;
         missingItem.borrowRate = lastFlashData.borrowRate;
         missingItem.accFeeIndex = lastFlashData.accFeeIndex;
         missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
@@ -224,19 +238,24 @@ export function createPoolFlashData(event: PoolUpdated): PoolFlashData {
   return flashData;
 }
 
-export function createPoolHourlyData(event: PoolUpdated): PoolHourlyData {
+export function createHourlyPoolSnapshot(event: PoolUpdated): HourlyPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 3600;   // 1hr segment
   const tickStartTimestamp = tickId * 3600;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
-  let hourlyData = PoolHourlyData.load(id);
+  let hourlyData = HourlyPoolSnapshot.load(id);
 
   if (hourlyData == null) {
-    hourlyData = new PoolHourlyData(id);
+    hourlyData = new HourlyPoolSnapshot(id);
     hourlyData.pool = poolId;
     hourlyData.timestamp = BigInt.fromI32(0);
     hourlyData.utilizationRate = BigInt.fromI32(0);
+    hourlyData.borrowedLiquidity = BigInt.fromI32(0);
+    hourlyData.borrowedLiquidityETH = BigDecimal.fromString('0');
+    hourlyData.borrowedLiquidityUSD = BigDecimal.fromString('0');
     hourlyData.totalLiquidity = BigInt.fromI32(0);
+    hourlyData.totalLiquidityETH = BigDecimal.fromString('0');
+    hourlyData.totalLiquidityUSD = BigDecimal.fromString('0');
     hourlyData.borrowRate = BigInt.fromI32(0);
     hourlyData.accFeeIndex = BigInt.fromI32(0);
     hourlyData.accFeeIndexGrowth = BigInt.fromI32(0);
@@ -254,18 +273,23 @@ export function createPoolHourlyData(event: PoolUpdated): PoolHourlyData {
   }
 
   if (poolTracer.lastHourlyData != null) {
-    const lastHourlyData = PoolHourlyData.load(poolTracer.lastHourlyData!);
+    const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
     if (lastHourlyData) {
       const timeDiff = tickStartTimestamp - lastHourlyData.timestamp.toI32();
       const missingItemsCnt = timeDiff / 3600 - 1;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastHourlyData.timestamp.toI32() / 3600 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
-        const missingItem = new PoolHourlyData(missingId);
+        const missingItem = new HourlyPoolSnapshot(missingId);
         missingItem.pool = poolId;
         missingItem.timestamp = BigInt.fromI32(missingTickId * 3600);
         missingItem.utilizationRate = lastHourlyData.utilizationRate;
+        missingItem.borrowedLiquidity = lastHourlyData.borrowedLiquidity;
+        missingItem.borrowedLiquidityETH = lastHourlyData.borrowedLiquidityETH;
+        missingItem.borrowedLiquidityUSD = lastHourlyData.borrowedLiquidityUSD;
         missingItem.totalLiquidity = lastHourlyData.totalLiquidity;
+        missingItem.totalLiquidityETH = lastHourlyData.totalLiquidityETH;
+        missingItem.totalLiquidityUSD = lastHourlyData.totalLiquidityUSD;
         missingItem.borrowRate = lastHourlyData.borrowRate;
         missingItem.accFeeIndex = lastHourlyData.accFeeIndex;
         missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
@@ -279,19 +303,24 @@ export function createPoolHourlyData(event: PoolUpdated): PoolHourlyData {
   return hourlyData;
 }
 
-export function createPoolDailyData(event: PoolUpdated): PoolDailyData {
+export function createDailyPoolSnapshot(event: PoolUpdated): DailyPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 86400;   // 24hr segment
   const tickStartTimestamp = tickId * 86400;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
-  let dailyData = PoolDailyData.load(id);
+  let dailyData = DailyPoolSnapshot.load(id);
 
   if (dailyData == null) {
-    dailyData = new PoolDailyData(id);
+    dailyData = new DailyPoolSnapshot(id);
     dailyData.pool = poolId;
     dailyData.timestamp = BigInt.fromI32(0);
     dailyData.utilizationRate = BigInt.fromI32(0);
+    dailyData.borrowedLiquidity = BigInt.fromI32(0);
+    dailyData.borrowedLiquidityETH = BigDecimal.fromString('0');
+    dailyData.borrowedLiquidityUSD = BigDecimal.fromString('0');
     dailyData.totalLiquidity = BigInt.fromI32(0);
+    dailyData.totalLiquidityETH = BigDecimal.fromString('0');
+    dailyData.totalLiquidityUSD = BigDecimal.fromString('0');
     dailyData.borrowRate = BigInt.fromI32(0);
     dailyData.accFeeIndex = BigInt.fromI32(0);
     dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
@@ -309,18 +338,23 @@ export function createPoolDailyData(event: PoolUpdated): PoolDailyData {
   }
 
   if (poolTracer.lastDailyData != null) {
-    const lastDailyData = PoolDailyData.load(poolTracer.lastDailyData!);
+    const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
     if (lastDailyData) {
       const timeDiff = tickStartTimestamp - lastDailyData.timestamp.toI32();
       const missingItemsCnt = timeDiff / 86400 - 1;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastDailyData.timestamp.toI32() / 86400 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
-        const missingItem = new PoolDailyData(missingId);
+        const missingItem = new DailyPoolSnapshot(missingId);
         missingItem.pool = poolId;
         missingItem.timestamp = BigInt.fromI32(missingTickId * 3600);
         missingItem.utilizationRate = lastDailyData.utilizationRate;
+        missingItem.borrowedLiquidity = lastDailyData.borrowedLiquidity;
+        missingItem.borrowedLiquidityETH = lastDailyData.borrowedLiquidityETH;
+        missingItem.borrowedLiquidityUSD = lastDailyData.borrowedLiquidityUSD;
         missingItem.totalLiquidity = lastDailyData.totalLiquidity;
+        missingItem.totalLiquidityETH = lastDailyData.totalLiquidityETH;
+        missingItem.totalLiquidityUSD = lastDailyData.totalLiquidityUSD;
         missingItem.borrowRate = lastDailyData.borrowRate;
         missingItem.accFeeIndex = lastDailyData.accFeeIndex;
         missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
