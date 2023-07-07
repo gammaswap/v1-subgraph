@@ -1,6 +1,6 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, GammaPoolTracer, Loan, LiquidityPosition, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFlashPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
 import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
@@ -251,21 +251,21 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   const id1 = pool.id + '-' + fromAccount.id;
   const id2 = pool.id + '-' + toAccount.id;
 
-  let positionFrom = LiquidityPosition.load(id1);
-  if (positionFrom && fromAccount.id != ADDRESS_ZERO) {
-    positionFrom.balance = positionFrom.balance.minus(event.params.amount);
-    positionFrom.save();
+  let poolBalanceFrom = PoolBalance.load(id1);
+  if (poolBalanceFrom && fromAccount.id != ADDRESS_ZERO) {
+    poolBalanceFrom.balance = poolBalanceFrom.balance.minus(event.params.amount);
+    poolBalanceFrom.save();
   }
 
-  let positionTo = LiquidityPosition.load(id2);
+  let poolBalanceTo = PoolBalance.load(id2);
   if (toAccount.id != ADDRESS_ZERO) {
-    if (positionTo == null) {
-      positionTo = new LiquidityPosition(id2);
-      positionTo.pool = pool.id;
-      positionTo.account = toAccount.id;
-      positionTo.balance = BigInt.fromI32(0);
+    if (poolBalanceTo == null) {
+      poolBalanceTo = new PoolBalance(id2);
+      poolBalanceTo.pool = pool.id;
+      poolBalanceTo.account = toAccount.id;
+      poolBalanceTo.balance = BigInt.fromI32(0);
     }
-    positionTo.balance = positionTo.balance.plus(event.params.amount);
-    positionTo.save();
+    poolBalanceTo.balance = poolBalanceTo.balance.plus(event.params.amount);
+    poolBalanceTo.save();
   }
 }
