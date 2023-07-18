@@ -1,7 +1,7 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFlashPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
+import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
 import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
 
@@ -68,10 +68,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Historical data
   const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
 
-  const flashData = createFlashPoolSnapshot(event);
+  const flashData = createFiveMinPoolSnapshot(event);
   let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
-  if (poolTracer != null && poolTracer.lastFlashData != null) {
-    const lastFlashData = FlashPoolSnapshot.load(poolTracer.lastFlashData!);
+  if (poolTracer != null && poolTracer.lastFiveMinData != null) {
+    const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
     if (lastFlashData) {
       prevAccFeeIndex = lastFlashData.accFeeIndex;
     }
@@ -97,8 +97,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
   flashData.save();
 
-  if (poolTracer != null && poolTracer.lastFlashData != flashData.id) {
-    poolTracer.lastFlashData = flashData.id;
+  if (poolTracer != null && poolTracer.lastFiveMinData != flashData.id) {
+    poolTracer.lastFiveMinData = flashData.id;
     poolTracer.save();
   }
 
@@ -264,6 +264,8 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.pool = pool.id;
       poolBalanceTo.account = toAccount.id;
       poolBalanceTo.balance = BigInt.fromI32(0);
+      poolBalanceTo.initialBlock = event.block.number;
+      poolBalanceTo.initialTimestamp = event.block.timestamp;
     }
     poolBalanceTo.balance = poolBalanceTo.balance.plus(event.params.amount);
     poolBalanceTo.save();

@@ -198,6 +198,10 @@ type PoolBalance @entity {
   pool: GammaPool!
   account: Account!
   balance: BigInt!
+  # Block number at which initial deposit was made
+  initialBlock: BigInt!
+  # Timestamp at which initial deposit was made
+  initialTimestamp: BigInt!
 }
 
 type Account @entity {
@@ -239,7 +243,7 @@ interface PoolSnapshot @entity {
   price1: BigInt!
 }
 
-type FlashPoolSnapshot implements PoolSnapshot @entity {
+type FiveMinPoolSnapshot implements PoolSnapshot @entity {
   # {GammaPool Address}-{5mins interval}
   id: ID!
   # {GammaPool}
@@ -336,7 +340,7 @@ type GammaPoolTracer @entity {
   # {GammaPool}
   pool: GammaPool!
   # last 5min pool snapshot
-  lastFlashData: FlashPoolSnapshot
+  lastFiveMinData: FiveMinPoolSnapshot
   # last 1hr pool snapshots
   lastHourlyData: HourlyPoolSnapshot
   # last 24hr pool snapshots

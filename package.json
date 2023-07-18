@@ -10,7 +10,8 @@
     "codegen:tc": "graph codegen subgraph.tc.arbitrum-goerli.yaml --output-dir src/types/tc",
     "build": "graph build subgraph.arbitrum-goerli.yaml",
     "build:tc": "graph build subgraph.tc.arbitrum-goerli.yaml",
-    "deploy": "graph deploy --product hosted-service kalesberg/gammaswap-subgraph subgraph.arbitrum-goerli.yaml",
+    "deploy": "graph deploy --product hosted-service gammaswap/gammaswap subgraph.arbitrum-goerli.yaml",
+    "deploy:dev": "graph deploy --product hosted-service gammaswap/gammaswap-dev subgraph.arbitrum-goerli.yaml",
     "deploy:tc": "graph deploy --product hosted-service kalesberg/gammaswap-trading-competition subgraph.tc.arbitrum-goerli.yaml"
   },
   "keywords": [],

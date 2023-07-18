@@ -2,7 +2,7 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { LoanCreated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, FlashPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
@@ -173,15 +173,15 @@ export function loadOrCreateToken(id: string): Token {
   return token;
 }
 
-export function createFlashPoolSnapshot(event: PoolUpdated): FlashPoolSnapshot {
+export function createFiveMinPoolSnapshot(event: PoolUpdated): FiveMinPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 300;   // 5min segment
   const tickStartTimestamp = tickId * 300;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
-  let flashData = FlashPoolSnapshot.load(id);
+  let flashData = FiveMinPoolSnapshot.load(id);
 
   if (flashData == null) {
-    flashData = new FlashPoolSnapshot(id);
+    flashData = new FiveMinPoolSnapshot(id);
     flashData.pool = poolId;
     flashData.timestamp = BigInt.fromI32(0);
     flashData.utilizationRate = BigInt.fromI32(0);
@@ -207,15 +207,15 @@ export function createFlashPoolSnapshot(event: PoolUpdated): FlashPoolSnapshot {
     return flashData;
   }
 
-  if (poolTracer.lastFlashData != null) {
-    const lastFlashData = FlashPoolSnapshot.load(poolTracer.lastFlashData!);
+  if (poolTracer.lastFiveMinData != null) {
+    const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
     if (lastFlashData) {
       const timeDiff = tickStartTimestamp - lastFlashData.timestamp.toI32();
       const missingItemsCnt = timeDiff / 300 - 1;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastFlashData.timestamp.toI32() / 300 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
-        const missingItem = new FlashPoolSnapshot(missingId);
+        const missingItem = new FiveMinPoolSnapshot(missingId);
         missingItem.pool = poolId;
         missingItem.timestamp = BigInt.fromI32(missingTickId * 300);
         missingItem.utilizationRate = lastFlashData.utilizationRate;
