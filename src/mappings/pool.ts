@@ -3,7 +3,7 @@ import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
-import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
+import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER } from '../helpers/constants';
 import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -16,9 +16,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewerAddress = "0x9FFa373368D460e0dE08B5Ff44dDE9Ccc3362Fd7"; // Arbitrum Goerli
-
-  const poolViewer = PoolViewer.bind(Address.fromString(poolViewerAddress));
+  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const tokenMetadata = poolViewer.getTokensMetaData(poolContract.tokens());
   const token0 = loadOrCreateToken(pool.token0);
   const token1 = loadOrCreateToken(pool.token1);
@@ -37,7 +35,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   updatePrices(poolAddress);
 
-  const poolData = poolContract.getPoolData();
+  const poolData = poolViewer.getLatestPoolData(poolAddress);
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
   pool.lpBorrowedBalance = poolData.LP_TOKEN_BORROWED;
   pool.lpBorrowedBalancePlusInterest = poolData.LP_TOKEN_BORROWED_PLUS_INTEREST;

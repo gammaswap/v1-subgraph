@@ -1,7 +1,8 @@
-import { Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
+import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
+import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, Token } from '../types/schema';
-import { WETH_USDC_POOL } from './constants';
+import { WETH_USDC_POOL, POOL_VIEWER } from './constants';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
   const precision = BigInt.fromI32(10).pow(<u8>decimals).toBigDecimal();
@@ -11,8 +12,9 @@ export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDe
 
 export function oneUsdInEth(): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
+  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const pool = GammaPool.load(WETH_USDC_POOL);
-
+  
   if (poolContract == null || pool == null) return BigDecimal.fromString('0');
 
   const token0 = Token.load(pool.token0);
@@ -21,9 +23,10 @@ export function oneUsdInEth(): BigDecimal {
 
   const usdcToken = token0.symbol == 'USDC' ? token0 : token1;
 
-  const poolData = poolContract.getPoolData();
+  const poolData = poolViewer.getLatestPoolData(Address.fromString(WETH_USDC_POOL));
   const precision = BigInt.fromI32(10).pow(<u8>usdcToken.decimals.toI32()).toBigDecimal();
-  return poolData.lastPrice.toBigDecimal().div(precision).truncate(18);
+
+  return poolData.lastPrice.toBigDecimal().div(precision);
 }
 
 export function updatePrices(poolAddress: Address): void {
@@ -45,14 +48,14 @@ export function updatePrices(poolAddress: Address): void {
 
   if (token0.symbol == 'WETH') {
     token0.priceETH = BigDecimal.fromString('1');
-    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(18);
+    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(3);
     token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
-    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(18);
+    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(3);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
-    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(18);
+    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(3);
     token0.priceETH = poolPrice.truncate(18);
-    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(18);
+    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(3);
   }
 
   token0.save();
