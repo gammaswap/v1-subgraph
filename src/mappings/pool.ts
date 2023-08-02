@@ -5,7 +5,6 @@ import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, Hou
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO } from '../helpers/constants';
 import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
-import networkConfig from '../../networks/arbitrum-goerli.json';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -17,7 +16,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewer = PoolViewer.bind(Address.fromString(networkConfig.poolViewer));
+  const poolViewerAddress = "0x9FFa373368D460e0dE08B5Ff44dDE9Ccc3362Fd7"; // Arbitrum Goerli
+
+  const poolViewer = PoolViewer.bind(Address.fromString(poolViewerAddress));
   const tokenMetadata = poolViewer.getTokensMetaData(poolContract.tokens());
   const token0 = loadOrCreateToken(pool.token0);
   const token1 = loadOrCreateToken(pool.token1);
