@@ -73,18 +73,6 @@
       },
       {
         "indexed": false,
-        "internalType": "uint24",
-        "name": "origMin",
-        "type": "uint24"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint24",
-        "name": "origMax",
-        "type": "uint24"
-      },
-      {
-        "indexed": false,
         "internalType": "bool",
         "name": "isSet",
         "type": "bool"
@@ -175,6 +163,86 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "origFee",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "extSwapFee",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "emaMultiplier",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "minUtilRate",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "maxUtilRate",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "liquidationFee",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "ltvThreshold",
+        "type": "uint8"
+      }
+    ],
+    "name": "PoolParamsUpdate",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "active",
+        "type": "bool"
+      }
+    ],
+    "name": "RateParamsUpdate",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "acceptOwnership",
     "outputs": [],
@@ -224,6 +292,29 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "refId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isAllowed",
+        "type": "bool"
+      }
+    ],
+    "name": "allowToBeObserved",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -286,16 +377,6 @@
         "internalType": "uint256",
         "name": "_fee",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_origMin",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_origMax",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -349,6 +430,45 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "refId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getLoanObserver",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
@@ -386,19 +506,48 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "_origMinFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_origMaxFee",
-        "type": "uint256"
-      },
-      {
         "internalType": "bool",
         "name": "_isSet",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
+      },
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getPoolObserverByUser",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -450,6 +599,85 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      }
+    ],
+    "name": "getRateParams",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct IRateParamsStore.RateParams",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isAllowedToBeObserved",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isPoolObserved",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint16",
         "name": "",
         "type": "uint16"
@@ -468,25 +696,12 @@
   },
   {
     "inputs": [],
-    "name": "origMax",
+    "name": "loanObserverStoreOwner",
     "outputs": [
       {
-        "internalType": "uint24",
+        "internalType": "address",
         "name": "",
-        "type": "uint24"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "origMin",
-    "outputs": [
-      {
-        "internalType": "uint24",
-        "name": "",
-        "type": "uint24"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -519,6 +734,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "rateParamsStoreOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint16",
@@ -537,16 +765,6 @@
         "internalType": "uint16",
         "name": "_fee",
         "type": "uint16"
-      },
-      {
-        "internalType": "uint24",
-        "name": "_origMin",
-        "type": "uint24"
-      },
-      {
-        "internalType": "uint24",
-        "name": "_origMax",
-        "type": "uint24"
       }
     ],
     "name": "setFee",
@@ -601,6 +819,44 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "refId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "refAddr",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "refFee",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "refType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "active",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "restricted",
+        "type": "bool"
+      }
+    ],
+    "name": "setLoanObserver",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_pool",
         "type": "address"
@@ -616,16 +872,6 @@
         "type": "uint16"
       },
       {
-        "internalType": "uint24",
-        "name": "_origMinFee",
-        "type": "uint24"
-      },
-      {
-        "internalType": "uint24",
-        "name": "_origMaxFee",
-        "type": "uint24"
-      },
-      {
         "internalType": "bool",
         "name": "_isSet",
         "type": "bool"
@@ -639,12 +885,119 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "refId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "setPoolObserved",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_origFee",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_extSwapFee",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_emaMultiplier",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_minUtilRate",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_maxUtilRate",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_liquidationFee",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_ltvThreshold",
+        "type": "uint8"
+      }
+    ],
+    "name": "setPoolParams",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bool",
+        "name": "active",
+        "type": "bool"
+      }
+    ],
+    "name": "setRateParams",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "refId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      }
+    ],
+    "name": "unsetPoolObserved",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

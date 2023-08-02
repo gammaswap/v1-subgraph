@@ -166,15 +166,15 @@
       },
       {
         "indexed": false,
-        "internalType": "enum IStrategyEvents.TX_TYPE",
-        "name": "txType",
-        "type": "uint8"
+        "internalType": "uint128",
+        "name": "fee",
+        "type": "uint128"
       },
       {
         "indexed": false,
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
       }
     ],
     "name": "Liquidation",
@@ -194,6 +194,12 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
       }
     ],
     "name": "LoanCreated",
@@ -265,15 +271,15 @@
       },
       {
         "indexed": false,
-        "internalType": "uint48",
+        "internalType": "uint40",
         "name": "lastBlockNumber",
-        "type": "uint48"
+        "type": "uint40"
       },
       {
         "indexed": false,
-        "internalType": "uint96",
+        "internalType": "uint80",
         "name": "accFeeIndex",
-        "type": "uint96"
+        "type": "uint80"
       },
       {
         "indexed": false,
@@ -465,6 +471,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "batchLiquidationStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256[]",
@@ -477,11 +496,6 @@
       {
         "internalType": "uint256",
         "name": "totalLoanLiquidity",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalCollateral",
         "type": "uint256"
       },
       {
@@ -528,82 +542,32 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint128[]",
-        "name": "tokensHeld",
-        "type": "uint128[]"
-      },
-      {
-        "internalType": "uint128[]",
-        "name": "reserves",
-        "type": "uint128[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "ratio",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "calcDeltasForRatio",
+    "inputs": [],
+    "name": "borrowStrategy",
     "outputs": [
       {
-        "internalType": "int256[]",
-        "name": "deltas",
-        "type": "int256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint128[]",
-        "name": "tokensHeld",
-        "type": "uint128[]"
-      },
-      {
-        "internalType": "uint128[]",
-        "name": "reserves",
-        "type": "uint128[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "liquidity",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "collateralId",
-        "type": "uint256"
-      }
-    ],
-    "name": "calcDeltasToClose",
-    "outputs": [
-      {
-        "internalType": "int256[]",
-        "name": "deltas",
-        "type": "int256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "canLiquidate",
-    "outputs": [
-      {
-        "internalType": "bool",
+        "internalType": "address",
         "name": "",
-        "type": "bool"
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "name": "calcInvariant",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -684,7 +648,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
+      }
+    ],
     "name": "createLoan",
     "outputs": [
       {
@@ -725,6 +695,11 @@
         "internalType": "address",
         "name": "to",
         "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ratio",
+        "type": "uint256[]"
       }
     ],
     "name": "decreaseCollateral",
@@ -858,33 +833,13 @@
   },
   {
     "inputs": [],
-    "name": "getConstantPoolData",
+    "name": "getFeeIndexUpdateParams",
     "outputs": [
       {
         "components": [
           {
             "internalType": "address",
-            "name": "poolId",
-            "type": "address"
-          },
-          {
-            "internalType": "uint16",
-            "name": "protocolId",
-            "type": "uint16"
-          },
-          {
-            "internalType": "address",
-            "name": "longStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -893,54 +848,24 @@
             "type": "address"
           },
           {
+            "internalType": "address",
+            "name": "pool",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
             "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "LP_TOKEN_BORROWED",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "LP_TOKEN_BORROWED_PLUS_INTEREST",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint128",
-            "name": "BORROWED_INVARIANT",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "LP_INVARIANT",
-            "type": "uint128"
-          },
-          {
-            "internalType": "address",
-            "name": "cfmm",
-            "type": "address"
-          },
-          {
-            "internalType": "uint96",
-            "name": "accFeeIndex",
-            "type": "uint96"
-          },
-          {
-            "internalType": "uint48",
-            "name": "LAST_BLOCK_NUMBER",
-            "type": "uint48"
-          },
-          {
-            "internalType": "uint80",
-            "name": "lastCFMMFeeIndex",
-            "type": "uint80"
-          },
-          {
-            "internalType": "uint128",
             "name": "lastCFMMInvariant",
-            "type": "uint128"
+            "type": "uint256"
           },
           {
             "internalType": "uint256",
@@ -949,82 +874,42 @@
           },
           {
             "internalType": "uint256",
-            "name": "totalSupply",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "tokens",
-            "type": "address[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "symbols",
-            "type": "string[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "names",
-            "type": "string[]"
-          },
-          {
-            "internalType": "uint8[]",
-            "name": "decimals",
-            "type": "uint8[]"
-          },
-          {
-            "internalType": "uint128[]",
-            "name": "TOKEN_BALANCE",
-            "type": "uint128[]"
-          },
-          {
-            "internalType": "uint128[]",
-            "name": "CFMM_RESERVES",
-            "type": "uint128[]"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastPrice",
+            "name": "LAST_BLOCK_NUMBER",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "lastFeeIndex",
+            "name": "accFeeIndex",
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
-            "name": "borrowRate",
-            "type": "uint256"
+            "internalType": "uint40",
+            "name": "emaUtilRate",
+            "type": "uint40"
           },
           {
-            "internalType": "uint256",
-            "name": "utilizationRate",
-            "type": "uint256"
+            "internalType": "uint8",
+            "name": "emaMultiplier",
+            "type": "uint8"
           },
           {
-            "internalType": "uint48",
-            "name": "currBlockNumber",
-            "type": "uint48"
+            "internalType": "uint8",
+            "name": "minUtilRate",
+            "type": "uint8"
           },
           {
-            "internalType": "uint256",
-            "name": "ltvThreshold",
-            "type": "uint256"
+            "internalType": "uint16",
+            "name": "feeDivisor",
+            "type": "uint16"
           },
           {
-            "internalType": "uint256",
-            "name": "liquidationFee",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "supplyRate",
-            "type": "uint256"
+            "internalType": "uint16",
+            "name": "origFee",
+            "type": "uint16"
           }
         ],
-        "internalType": "struct IGammaPool.PoolData",
-        "name": "data",
+        "internalType": "struct IGammaPool.FeeIndexUpdateParams",
+        "name": "_data",
         "type": "tuple"
       }
     ],
@@ -1082,23 +967,137 @@
   },
   {
     "inputs": [],
-    "name": "getLatestPoolData",
+    "name": "getLoanCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getLoanData",
     "outputs": [
       {
         "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
           {
             "internalType": "address",
             "name": "poolId",
             "type": "address"
           },
           {
-            "internalType": "uint16",
-            "name": "protocolId",
-            "type": "uint16"
+            "internalType": "uint96",
+            "name": "rateIndex",
+            "type": "uint96"
+          },
+          {
+            "internalType": "uint128",
+            "name": "initLiquidity",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "lastLiquidity",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "liquidity",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "collateral",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "tokensHeld",
+            "type": "uint128[]"
           },
           {
             "internalType": "address",
-            "name": "longStrategy",
+            "name": "refAddr",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "refFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "refType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "px",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "canLiquidate",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LAST_BLOCK_NUMBER",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint8[]",
+            "name": "decimals",
+            "type": "uint8[]"
+          },
+          {
+            "internalType": "string[]",
+            "name": "symbols",
+            "type": "string[]"
+          },
+          {
+            "internalType": "string[]",
+            "name": "names",
+            "type": "string[]"
+          },
+          {
+            "internalType": "address",
+            "name": "factory",
             "type": "address"
           },
           {
@@ -1112,9 +1111,9 @@
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "factory",
-            "type": "address"
+            "internalType": "uint256",
+            "name": "BORROWED_INVARIANT",
+            "type": "uint256"
           },
           {
             "internalType": "uint256",
@@ -1123,206 +1122,18 @@
           },
           {
             "internalType": "uint256",
-            "name": "LP_TOKEN_BORROWED",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "LP_TOKEN_BORROWED_PLUS_INTEREST",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint128",
-            "name": "BORROWED_INVARIANT",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "LP_INVARIANT",
-            "type": "uint128"
-          },
-          {
-            "internalType": "address",
-            "name": "cfmm",
-            "type": "address"
-          },
-          {
-            "internalType": "uint96",
-            "name": "accFeeIndex",
-            "type": "uint96"
-          },
-          {
-            "internalType": "uint48",
-            "name": "LAST_BLOCK_NUMBER",
-            "type": "uint48"
-          },
-          {
-            "internalType": "uint80",
-            "name": "lastCFMMFeeIndex",
-            "type": "uint80"
-          },
-          {
-            "internalType": "uint128",
             "name": "lastCFMMInvariant",
-            "type": "uint128"
+            "type": "uint256"
           },
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
             "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "totalSupply",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address[]",
-            "name": "tokens",
-            "type": "address[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "symbols",
-            "type": "string[]"
-          },
-          {
-            "internalType": "string[]",
-            "name": "names",
-            "type": "string[]"
-          },
-          {
-            "internalType": "uint8[]",
-            "name": "decimals",
-            "type": "uint8[]"
-          },
-          {
-            "internalType": "uint128[]",
-            "name": "TOKEN_BALANCE",
-            "type": "uint128[]"
-          },
-          {
-            "internalType": "uint128[]",
-            "name": "CFMM_RESERVES",
-            "type": "uint128[]"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastPrice",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "borrowRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "utilizationRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint48",
-            "name": "currBlockNumber",
-            "type": "uint48"
-          },
-          {
-            "internalType": "uint256",
-            "name": "ltvThreshold",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "liquidationFee",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "supplyRate",
-            "type": "uint256"
           }
         ],
-        "internalType": "struct IGammaPool.PoolData",
-        "name": "data",
+        "internalType": "struct IGammaPool.LoanData",
+        "name": "_loanData",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getLatestRates",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "accFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastCFMMFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "borrowRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "utilizationRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastBlockNumber",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "currBlockNumber",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastPrice",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "supplyRate",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct IGammaPool.RateData",
-        "name": "data",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getLoanCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1387,6 +1198,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "collateral",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "lpTokens",
             "type": "uint256"
           },
@@ -1394,6 +1210,21 @@
             "internalType": "uint128[]",
             "name": "tokensHeld",
             "type": "uint128[]"
+          },
+          {
+            "internalType": "address",
+            "name": "refAddr",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "refFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "refType",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -1404,6 +1235,16 @@
             "internalType": "bool",
             "name": "canLiquidate",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LAST_BLOCK_NUMBER",
+            "type": "uint256"
           },
           {
             "internalType": "address[]",
@@ -1424,6 +1265,41 @@
             "internalType": "string[]",
             "name": "names",
             "type": "string[]"
+          },
+          {
+            "internalType": "address",
+            "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "shortStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "liquidationStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_TOKEN_BALANCE",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMInvariant",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMTotalSupply",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.LoanData[]",
@@ -1488,6 +1364,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "collateral",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "lpTokens",
             "type": "uint256"
           },
@@ -1495,6 +1376,21 @@
             "internalType": "uint128[]",
             "name": "tokensHeld",
             "type": "uint128[]"
+          },
+          {
+            "internalType": "address",
+            "name": "refAddr",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "refFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "refType",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -1505,6 +1401,16 @@
             "internalType": "bool",
             "name": "canLiquidate",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LAST_BLOCK_NUMBER",
+            "type": "uint256"
           },
           {
             "internalType": "address[]",
@@ -1525,6 +1431,41 @@
             "internalType": "string[]",
             "name": "names",
             "type": "string[]"
+          },
+          {
+            "internalType": "address",
+            "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "shortStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "liquidationStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_TOKEN_BALANCE",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMInvariant",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMTotalSupply",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.LoanData[]",
@@ -1591,7 +1532,17 @@
           },
           {
             "internalType": "address",
-            "name": "longStrategy",
+            "name": "borrowStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "repayStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "rebalanceStrategy",
             "type": "address"
           },
           {
@@ -1601,7 +1552,12 @@
           },
           {
             "internalType": "address",
-            "name": "liquidationStrategy",
+            "name": "singleLiquidationStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "batchLiquidationStrategy",
             "type": "address"
           },
           {
@@ -1640,19 +1596,29 @@
             "type": "address"
           },
           {
-            "internalType": "uint96",
-            "name": "accFeeIndex",
-            "type": "uint96"
-          },
-          {
-            "internalType": "uint48",
-            "name": "LAST_BLOCK_NUMBER",
-            "type": "uint48"
-          },
-          {
             "internalType": "uint80",
-            "name": "lastCFMMFeeIndex",
+            "name": "accFeeIndex",
             "type": "uint80"
+          },
+          {
+            "internalType": "uint8",
+            "name": "extSwapFee",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "origFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint40",
+            "name": "LAST_BLOCK_NUMBER",
+            "type": "uint40"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lastCFMMFeeIndex",
+            "type": "uint64"
           },
           {
             "internalType": "uint128",
@@ -1720,9 +1686,9 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint48",
+            "internalType": "uint40",
             "name": "currBlockNumber",
-            "type": "uint48"
+            "type": "uint40"
           },
           {
             "internalType": "uint256",
@@ -1738,6 +1704,26 @@
             "internalType": "uint256",
             "name": "supplyRate",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint40",
+            "name": "emaUtilRate",
+            "type": "uint40"
+          },
+          {
+            "internalType": "uint8",
+            "name": "emaMultiplier",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "minUtilRate",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeDivisor",
+            "type": "uint16"
           }
         ],
         "internalType": "struct IGammaPool.PoolData",
@@ -1772,39 +1758,16 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getTokensMetaData",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "_tokens",
-        "type": "address[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_symbols",
-        "type": "string[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_names",
-        "type": "string[]"
-      },
-      {
-        "internalType": "uint8[]",
-        "name": "_decimals",
-        "type": "uint8[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ratio",
+        "type": "uint256[]"
       }
     ],
     "name": "increaseCollateral",
@@ -1852,16 +1815,6 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
-      },
-      {
-        "internalType": "int256[]",
-        "name": "deltas",
-        "type": "int256[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "fees",
-        "type": "uint256[]"
       }
     ],
     "name": "liquidate",
@@ -1872,9 +1825,9 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256[]",
+        "internalType": "uint256",
         "name": "refund",
-        "type": "uint256[]"
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -1902,19 +1855,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "liquidationStrategy",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1966,6 +1906,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "collateral",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "lpTokens",
             "type": "uint256"
           },
@@ -1973,6 +1918,21 @@
             "internalType": "uint128[]",
             "name": "tokensHeld",
             "type": "uint128[]"
+          },
+          {
+            "internalType": "address",
+            "name": "refAddr",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "refFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "refType",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -1983,6 +1943,16 @@
             "internalType": "bool",
             "name": "canLiquidate",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LAST_BLOCK_NUMBER",
+            "type": "uint256"
           },
           {
             "internalType": "address[]",
@@ -2003,24 +1973,46 @@
             "internalType": "string[]",
             "name": "names",
             "type": "string[]"
+          },
+          {
+            "internalType": "address",
+            "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "shortStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "liquidationStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_TOKEN_BALANCE",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMInvariant",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMTotalSupply",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.LoanData",
         "name": "_loanData",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "longStrategy",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -2229,6 +2221,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "rateParamsStore",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -2255,6 +2260,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebalanceStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -2331,8 +2349,150 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "fees",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ratio",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "repayLiquiditySetRatio",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "repayLiquidityWithLP",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "repayStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "origFee",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "extSwapFee",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "emaMultiplier",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "minUtilRate",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "maxUtilRate",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "liquidationFee",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "ltvThreshold",
+        "type": "uint8"
+      }
+    ],
+    "name": "setPoolParams",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "shortStrategy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "singleLiquidationStrategy",
     "outputs": [
       {
         "internalType": "address",
@@ -2516,6 +2676,38 @@
         "internalType": "address[]",
         "name": "_tokensOrdered",
         "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "validateParameters",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "viewer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

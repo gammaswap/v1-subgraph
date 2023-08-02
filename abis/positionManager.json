@@ -226,6 +226,12 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
       }
     ],
     "name": "CreateLoan",
@@ -250,6 +256,12 @@
         "indexed": false,
         "internalType": "uint128[]",
         "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "amounts",
         "type": "uint128[]"
       }
     ],
@@ -388,6 +400,12 @@
         "internalType": "uint128[]",
         "name": "tokensHeld",
         "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
       }
     ],
     "name": "IncreaseCollateral",
@@ -422,15 +440,15 @@
       },
       {
         "indexed": false,
-        "internalType": "enum IStrategyEvents.TX_TYPE",
-        "name": "txType",
-        "type": "uint8"
+        "internalType": "uint128",
+        "name": "fee",
+        "type": "uint128"
       },
       {
         "indexed": false,
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
+        "internalType": "enum IStrategyEvents.TX_TYPE",
+        "name": "txType",
+        "type": "uint8"
       }
     ],
     "name": "Liquidation",
@@ -450,6 +468,12 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
       }
     ],
     "name": "LoanCreated",
@@ -576,15 +600,15 @@
       },
       {
         "indexed": false,
-        "internalType": "uint48",
+        "internalType": "uint40",
         "name": "lastBlockNumber",
-        "type": "uint48"
+        "type": "uint40"
       },
       {
         "indexed": false,
-        "internalType": "uint96",
+        "internalType": "uint80",
         "name": "accFeeIndex",
-        "type": "uint96"
+        "type": "uint80"
       },
       {
         "indexed": false,
@@ -674,6 +698,74 @@
       }
     ],
     "name": "RepayLiquidity",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "RepayLiquiditySetRatio",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lpTokens",
+        "type": "uint256"
+      }
+    ],
+    "name": "RepayLiquidityWithLP",
     "type": "event"
   },
   {
@@ -890,6 +982,11 @@
             "internalType": "uint128[]",
             "name": "minCollateral",
             "type": "uint128[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBorrowed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IPositionManager.BorrowAndRebalanceParams",
@@ -956,6 +1053,11 @@
             "internalType": "uint256[]",
             "name": "minBorrowed",
             "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBorrowed",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IPositionManager.BorrowLiquidityParams",
@@ -1020,6 +1122,11 @@
         "type": "address"
       },
       {
+        "internalType": "uint16",
+        "name": "refId",
+        "type": "uint16"
+      },
+      {
         "internalType": "uint256",
         "name": "deadline",
         "type": "uint256"
@@ -1056,6 +1163,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint16",
+            "name": "refId",
+            "type": "uint16"
+          },
+          {
             "internalType": "uint256[]",
             "name": "amounts",
             "type": "uint256[]"
@@ -1083,6 +1195,11 @@
           {
             "internalType": "uint256",
             "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBorrowed",
             "type": "uint256"
           }
         ],
@@ -1163,6 +1280,11 @@
             "internalType": "uint128[]",
             "name": "amounts",
             "type": "uint128[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
           }
         ],
         "internalType": "struct IPositionManager.RemoveCollateralParams",
@@ -1347,6 +1469,11 @@
           {
             "internalType": "uint256[]",
             "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
             "type": "uint256[]"
           }
         ],
@@ -1536,6 +1663,16 @@
             "type": "uint256"
           },
           {
+            "internalType": "bool",
+            "name": "isRatio",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "ratio",
+            "type": "uint256[]"
+          },
+          {
             "internalType": "uint256[]",
             "name": "fees",
             "type": "uint256[]"
@@ -1577,6 +1714,72 @@
         "internalType": "uint256[]",
         "name": "amounts",
         "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint16",
+            "name": "protocolId",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "cfmm",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "collateralId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint128[]",
+            "name": "minCollateral",
+            "type": "uint128[]"
+          }
+        ],
+        "internalType": "struct IPositionManager.RepayLiquidityWithLPParams",
+        "name": "params",
+        "type": "tuple"
+      }
+    ],
+    "name": "repayLiquidityWithLP",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "liquidityPaid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
       }
     ],
     "stateMutability": "nonpayable",
