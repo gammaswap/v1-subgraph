@@ -40,7 +40,7 @@ dataSources:
         - name: PositionManager
           file: ./abis/positionManager.json
       eventHandlers:
-        - event: CreateLoan(indexed address,indexed address,uint256)
+        - event: CreateLoan(indexed address,indexed address,uint256,uint16)
           handler: handleLoanCreateFromPositionManager
 templates:
   - name: GammaPool
@@ -62,14 +62,16 @@ templates:
       abis:
         - name: Pool
           file: ./abis/pool.json
+        - name: PoolViewer
+          file: ./abis/poolViewer.json
       eventHandlers:
-        - event: PoolUpdated(uint256,uint256,uint48,uint96,uint256,uint128,uint128,uint128[],indexed uint8)
+        - event: PoolUpdated(uint256,uint256,uint40,uint80,uint256,uint128,uint128,uint128[],indexed uint8)
           handler: handlePoolUpdate
-        - event: LoanCreated(indexed address,uint256)
+        - event: LoanCreated(indexed address,uint256,uint16)
           handler: handleLoanCreate
         - event: LoanUpdated(indexed uint256,uint128[],uint128,uint128,uint256,uint96,indexed uint8)
           handler: handleLoanUpdate
-        - event: Liquidation(indexed uint256,uint128,uint128,uint128,uint8,uint256[])
+        - event: Liquidation(indexed uint256,uint128,uint128,uint128,uint128,uint8)
           handler: handleLiquidation
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleVaultTokenTransfer

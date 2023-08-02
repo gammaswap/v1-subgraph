@@ -21,7 +21,7 @@ export function oneUsdInEth(): BigDecimal {
 
   const usdcToken = token0.symbol == 'USDC' ? token0 : token1;
 
-  const poolData = poolContract.getLatestPoolData();
+  const poolData = poolContract.getPoolData();
   const precision = BigInt.fromI32(10).pow(<u8>usdcToken.decimals.toI32()).toBigDecimal();
   return poolData.lastPrice.toBigDecimal().div(precision).truncate(18);
 }
