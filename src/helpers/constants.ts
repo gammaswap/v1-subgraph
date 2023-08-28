@@ -2,10 +2,10 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-export const POSITION_MANAGER = '0xa6079d27499a73cdff92f0e6be0fd99dfe1c3e99';
+export const POSITION_MANAGER = '0xaeffb59c9b2f571f7c50c4db64ff627966f2041d';
 
-export const WETH_USDC_POOL = '0x7841b358c123b674aed2d9169551051161976b6e';
+export const WETH_USDC_POOL = '0x8ae545f59b8119656cc9a90ec46c26b3cc35c9f9';
 
-export const UNIV2_FACTORY = '0x5860318aa15bb310026a49f78b3a1760c51907ef';
+export const UNIV2_FACTORY = '0x6f44ff7d078a59404de2f446f95b8638369ac7e8';
 
-export const POOL_VIEWER = '0x9ffa373368d460e0de08b5ff44dde9ccc3362fd7';
+export const POOL_VIEWER = '0x03298b98b871c0ee3d5a31abec9cbd8326789d03';

@@ -1,8 +1,23 @@
 enum LoanStatus {
   OPEN
   CLOSED
-  LIQUIDATED_PARTIAL
-  LIQUIDATED_FULL
+  LIQUIDATED
+}
+
+enum LoanSnapshotType {
+  INCREASE_COLLATERAL
+  DECREASE_COLLATERAL
+  REBALANCE_COLLATERAL
+  BORROW_LIQUIDITY
+  REPAY_LIQUIDITY
+  REPAY_LIQUIDITY_SET_RATIO
+  REPAY_LIQUIDITY_WITH_LP
+  LIQUIDATE
+  LIQUIDATE_WITH_LP
+  BATCH_LIQUIDATION
+  EXTERNAL_REBALANCE
+  EXTERNAL_LIQUIDATION
+  UPDATE_POOL
 }
 
 type GammaPool @entity {
@@ -17,7 +32,7 @@ type GammaPool @entity {
   # CFMM address
   cfmm: Bytes!
   # GammaPool template id
-  implementationId: BigInt!
+  protocolId: BigInt!
   # Underlying token0 address
   token0: Token!
   # Underlying token1 address
@@ -161,11 +176,39 @@ type Loan @entity {
   # Timestamp at which loan was closed
   closedAtTimestamp: BigInt
 
-  liquidations: [Liquidation!] @derivedFrom(field: "loan")
+  snapshots: [LoanSnapshot!]  @derivedFrom(field: "loan")
+  liquidation: Liquidation  @derivedFrom(field: "loan")
+}
+
+"""
+Historical data of Loans
+"""
+type LoanSnapshot @entity {
+  # {PoolAddress}-{tokenId}-{index}
+  id: ID!
+  # Loan Entity
+  loan: Loan!
+  # GammaPool interest rate at time loan is created/updated, maps to {GammaPool -> accFeeIndex}
+  rateIndex: BigInt!
+  # Initial loan debt in liquidity invariant units. Only increase when more liquidity is borrowed, decreases when liquidity is paid
+  initLiquidity: BigInt!
+  # Loan debt in liquidity invariant units, increases with every update according to how many blocks have passed
+  liquidity: BigInt!
+  # Initial loan debt in terms of LP tokens at time liquidity was borrowed, updates along with {initLiquidity}
+  lpTokens: BigInt!
+  # Reserved token0 amounts held as collateral for the liquidity debt
+  collateral0: BigInt!
+  # Reserved token1 amounts held as collateral for the liquidity debt
+  collateral1: BigInt!
+  # LoanSnapshot Type
+  type: LoanSnapshotType!
+
+  block: BigInt!
+  timestamp: BigInt!
 }
 
 type Liquidation @entity {
-  # {PoolAddress}-{tokenId}-{index}
+  # {PoolAddress}-{tokenId}
   id: ID!
   pool: GammaPool!
   loan: Loan!
