@@ -1,14 +1,14 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
-import { LoanCreated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
+import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, GammaPoolTracer, Loan, Liquidation, Token, Account, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
-  pool.implementationId = BigInt.fromI32(event.params.protocolId);
+  pool.protocolId = BigInt.fromI32(event.params.protocolId);
 
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
@@ -128,6 +128,50 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
   }
 
   return loan;
+}
+
+export function createLoanSnapshot(loan: Loan, event: LoanUpdated): LoanSnapshot {
+  const snapshots = loan.snapshots;
+  const sequence = snapshots ? snapshots.load().length : 0;
+  const id = loan.id + '-' + sequence.toString();
+  const loanSnapshot = new LoanSnapshot(id);
+  loanSnapshot.rateIndex = loan.rateIndex;
+  loanSnapshot.initLiquidity = loan.initLiquidity;
+  loanSnapshot.liquidity = loan.liquidity;
+  loanSnapshot.lpTokens = loan.lpTokens;
+  loanSnapshot.collateral0 = loan.collateral0;
+  loanSnapshot.collateral1 = loan.collateral1;
+  if (event.params.txType == 4) {
+    loanSnapshot.type = 'INCREASE_COLLATERAL';
+  } else if (event.params.txType == 5) {
+    loanSnapshot.type = 'DECREASE_COLLATERAL';
+  } else if (event.params.txType == 6) {
+    loanSnapshot.type = 'REBALANCE_COLLATERAL';
+  } else if (event.params.txType == 7) {
+    loanSnapshot.type = 'BORROW_LIQUIDITY';
+  } else if (event.params.txType == 8) {
+    loanSnapshot.type = 'REPAY_LIQUIDITY';
+  } else if (event.params.txType == 9) {
+    loanSnapshot.type = 'REPAY_LIQUIDITY_SET_RATIO';
+  } else if (event.params.txType == 10) {
+    loanSnapshot.type = 'REPAY_LIQUIDITY_WITH_LP';
+  } else if (event.params.txType == 11) {
+    loanSnapshot.type = 'LIQUIDATE';
+  } else if (event.params.txType == 12) {
+    loanSnapshot.type = 'LIQUIDATE_WITH_LP';
+  } else if (event.params.txType == 13) {
+    loanSnapshot.type = 'BATCH_LIQUIDATION';
+  } else if (event.params.txType == 15) {
+    loanSnapshot.type = 'EXTERNAL_REBALANCE';
+  } else if (event.params.txType == 16) {
+    loanSnapshot.type = 'EXTERNAL_LIQUIDATION';
+  } else if (event.params.txType == 17) {
+    loanSnapshot.type = 'UPDATE_POOL';
+  }
+  loanSnapshot.timestamp = event.block.timestamp;
+  loanSnapshot.block = event.block.number;
+
+  return loanSnapshot;
 }
 
 export function createLiquidation(id: string, event: LiquidationEvent): Liquidation {

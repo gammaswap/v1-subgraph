@@ -2,7 +2,7 @@ import { Address, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot } from '../helpers/loader';
+import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER } from '../helpers/constants';
 import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
 
@@ -186,7 +186,6 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     return;
   }
 
-  // const pool = GammaPool.load(loan.pool)!;
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.loan(event.params.tokenId);
   loan.rateIndex = loanData.rateIndex;
@@ -203,21 +202,15 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     loan.status = 'CLOSED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTimestamp = event.block.timestamp;
-  } else if (event.params.txType == 9) {  // 9 -> LIQUIDATE
-    loan.status = 'LIQUIDATED_FULL';
+  } else if (event.params.txType == 11 || event.params.txType == 12) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP
+    loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTimestamp = event.block.timestamp;
-  } else if (event.params.txType == 10) { // 10 -> LIQUIDATE_WITH_LP
-    if (event.params.liquidity == BigInt.fromI32(0) || event.params.rateIndex == BigInt.fromI32(0)) {
-      loan.status = 'LIQUIDATED_FULL';
-      loan.closedAtBlock = event.block.number;
-      loan.closedAtTimestamp = event.block.timestamp;
-    } else {
-      loan.status = 'LIQUIDATED_PARTIAL';
-    }
   }
 
   loan.save();
+
+  createLoanSnapshot(loan, event);
 }
 
 export function handleLiquidation(event: Liquidation): void {
@@ -232,10 +225,10 @@ export function handleLiquidation(event: Liquidation): void {
         log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);
         return;
       }
-      const liquidations = pool.liquidations;
-      const sequence = liquidations ? liquidations.load().length : 0;
-      const liquidationId = loanId + '-' + sequence.toString();
-      createLiquidation(liquidationId, event);
+      // const liquidations = pool.liquidations;
+      // const sequence = liquidations ? liquidations.load().length : 0;
+      // const liquidationId = loanId + '-' + sequence.toString();
+      createLiquidation(loanId, event);
     }
   }
 }
