@@ -1,7 +1,7 @@
 {
   "network": "arbitrum-goerli",
-  "startBlock": "32435025",
-  "factory": "0xeAFe1784e7233e53780A3C34a51b20e61934d8aD",
-  "positionManager": "0xAeFFb59c9b2f571f7C50c4dB64Ff627966f2041d",
-  "poolViewer": "0x03298b98b871C0eE3D5a31AbEC9Cbd8326789d03"
+  "startBlock": "39164360",
+  "factory": "0x7c02FdEc5eA4B43ca05E0AC1D180Ae8bF878fe77",
+  "positionManager": "0xe5932D00d16612e9c5ccf16F8591E559B127aa94",
+  "poolViewer": "0x20A3374e5f26fdaa2f27652dDF89B59f19810923"
 }
