@@ -10,7 +10,7 @@ export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDe
   return value.divDecimal(precision);
 }
 
-export function oneUsdInEth(): BigDecimal {
+export function oneEthInUsd(): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const pool = GammaPool.load(WETH_USDC_POOL);
@@ -25,8 +25,13 @@ export function oneUsdInEth(): BigDecimal {
 
   const poolData = poolViewer.getLatestPoolData(Address.fromString(WETH_USDC_POOL));
   const precision = BigInt.fromI32(10).pow(<u8>usdcToken.decimals.toI32()).toBigDecimal();
+  let price = poolData.lastPrice.divDecimal(precision);
+  if (token0.symbol == 'USDC') {
+    // Inverse price if token pair is flipped
+    price = BigDecimal.fromString('1').div(price);
+  }
 
-  return poolData.lastPrice.toBigDecimal().div(precision);
+  return price;
 }
 
 export function updatePrices(poolAddress: Address): void {
@@ -35,7 +40,8 @@ export function updatePrices(poolAddress: Address): void {
 
   if (poolContract == null || pool == null) return;
 
-  const usdToEth = oneUsdInEth();
+  const ethToUsd = oneEthInUsd();
+
   pool.lastPrice = poolContract.getLastCFMMPrice();
 
   const token0 = Token.load(pool.token0);
@@ -48,14 +54,14 @@ export function updatePrices(poolAddress: Address): void {
 
   if (token0.symbol == 'WETH') {
     token0.priceETH = BigDecimal.fromString('1');
-    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(3);
+    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(18);
     token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
-    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(3);
+    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(18);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
-    token1.priceUSD = token1.priceETH.div(usdToEth).truncate(3);
+    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(18);
     token0.priceETH = poolPrice.truncate(18);
-    token0.priceUSD = token0.priceETH.div(usdToEth).truncate(3);
+    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(18);
   }
 
   token0.save();
