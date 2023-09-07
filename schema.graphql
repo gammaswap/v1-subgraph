@@ -149,8 +149,12 @@ type Loan @entity {
   rateIndex: BigInt!
   # Initial loan debt in liquidity invariant units. Only increase when more liquidity is borrowed, decreases when liquidity is paid
   initLiquidity: BigInt!
+  initLiquidityETH: BigDecimal!
+  initLiquidityUSD: BigDecimal!
   # Loan debt in liquidity invariant units, increases with every update according to how many blocks have passed
   liquidity: BigInt!
+  liquidityETH: BigDecimal!
+  liquidityUSD: BigDecimal!
   # Initial loan debt in terms of LP tokens at time liquidity was borrowed, updates along with {initLiquidity}
   lpTokens: BigInt!
   # Reserved token0 amounts held as collateral for the liquidity debt
