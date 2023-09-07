@@ -4,7 +4,7 @@ import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } fr
 import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
 import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER } from '../helpers/constants';
-import { updatePrices, updatePoolStats, getEthUsdValue } from '../helpers/utils';
+import { updatePrices, updatePoolStats, updateLoanStats, getEthUsdValue } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -209,6 +209,8 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   }
 
   loan.save();
+
+  updateLoanStats(loan);
 
   createLoanSnapshot(loan, event);
 }
