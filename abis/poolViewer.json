@@ -105,6 +105,11 @@
             "type": "address"
           },
           {
+            "internalType": "address",
+            "name": "paramsStore",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
@@ -230,14 +235,14 @@
             "type": "uint40"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "ltvThreshold",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "liquidationFee",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -256,7 +261,12 @@
           },
           {
             "internalType": "uint8",
-            "name": "minUtilRate",
+            "name": "minUtilRate1",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "minUtilRate2",
             "type": "uint8"
           },
           {
@@ -341,24 +351,49 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint40",
+            "internalType": "uint256",
             "name": "emaUtilRate",
-            "type": "uint40"
+            "type": "uint256"
           },
           {
-            "internalType": "uint8",
-            "name": "minUtilRate",
-            "type": "uint8"
+            "internalType": "uint256",
+            "name": "minUtilRate1",
+            "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
+            "name": "minUtilRate2",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "feeDivisor",
-            "type": "uint16"
+            "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
             "name": "origFee",
-            "type": "uint16"
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "shortStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "paramsStore",
+            "type": "address"
           }
         ],
         "internalType": "struct IGammaPool.RateData",
@@ -503,17 +538,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -534,6 +564,16 @@
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
             "type": "uint256"
           }
         ],
@@ -674,17 +714,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -705,6 +740,16 @@
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
             "type": "uint256"
           }
         ],
@@ -771,6 +816,11 @@
           {
             "internalType": "address",
             "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "paramsStore",
             "type": "address"
           },
           {
@@ -899,14 +949,14 @@
             "type": "uint40"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "ltvThreshold",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "liquidationFee",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -925,7 +975,12 @@
           },
           {
             "internalType": "uint8",
-            "name": "minUtilRate",
+            "name": "minUtilRate1",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "minUtilRate2",
             "type": "uint8"
           },
           {
@@ -1095,17 +1150,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -1127,10 +1177,20 @@
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.LoanData",
-        "name": "_loanData",
+        "name": "loanData",
         "type": "tuple"
       }
     ],
