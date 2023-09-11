@@ -1,50 +1,5 @@
 [
   {
-    "inputs": [],
-    "name": "ERC20Allowance",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ERC20Transfer",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "Forbidden",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "Initialized",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "Locked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "MinShares",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotEnoughTokens",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "RestrictedToken",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ST_Fail",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -379,99 +334,6 @@
   },
   {
     "inputs": [],
-    "name": "MIN_SHARES",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      }
-    ],
-    "name": "allowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "approve",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "asset",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "batchLiquidationStrategy",
     "outputs": [
       {
@@ -589,67 +451,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minAmt",
-        "type": "uint256"
-      }
-    ],
-    "name": "clearToken",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      }
-    ],
-    "name": "convertToAssets",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      }
-    ],
-    "name": "convertToShares",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint16",
         "name": "refId",
         "type": "uint16"
@@ -664,19 +465,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -708,30 +496,6 @@
         "internalType": "uint128[]",
         "name": "tokensHeld",
         "type": "uint128[]"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      }
-    ],
-    "name": "deposit",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -844,7 +608,7 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
@@ -883,33 +647,48 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint40",
+            "internalType": "uint256",
             "name": "emaUtilRate",
-            "type": "uint40"
+            "type": "uint256"
           },
           {
-            "internalType": "uint8",
+            "internalType": "uint256",
             "name": "emaMultiplier",
-            "type": "uint8"
+            "type": "uint256"
           },
           {
-            "internalType": "uint8",
-            "name": "minUtilRate",
-            "type": "uint8"
+            "internalType": "uint256",
+            "name": "minUtilRate1",
+            "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
+            "name": "minUtilRate2",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "feeDivisor",
-            "type": "uint16"
+            "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
             "name": "origFee",
-            "type": "uint16"
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.FeeIndexUpdateParams",
-        "name": "_data",
+        "name": "data",
         "type": "tuple"
       }
     ],
@@ -1097,17 +876,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -1128,6 +902,16 @@
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
             "type": "uint256"
           }
         ],
@@ -1268,17 +1052,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -1299,6 +1078,16 @@
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
             "type": "uint256"
           }
         ],
@@ -1434,17 +1223,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -1465,6 +1249,16 @@
           {
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
             "type": "uint256"
           }
         ],
@@ -1563,6 +1357,11 @@
           {
             "internalType": "address",
             "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "paramsStore",
             "type": "address"
           },
           {
@@ -1691,14 +1490,14 @@
             "type": "uint40"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "ltvThreshold",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint8",
             "name": "liquidationFee",
-            "type": "uint256"
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -1717,7 +1516,12 @@
           },
           {
             "internalType": "uint8",
-            "name": "minUtilRate",
+            "name": "minUtilRate1",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "minUtilRate2",
             "type": "uint8"
           },
           {
@@ -1800,7 +1604,7 @@
       },
       {
         "internalType": "bytes",
-        "name": "",
+        "name": "_data",
         "type": "bytes"
       }
     ],
@@ -1861,7 +1665,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],
@@ -1976,17 +1780,12 @@
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "paramsStore",
             "type": "address"
           },
           {
             "internalType": "address",
             "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "liquidationStrategy",
             "type": "address"
           },
           {
@@ -2008,200 +1807,21 @@
             "internalType": "uint256",
             "name": "lastCFMMTotalSupply",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ltvThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationFee",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IGammaPool.LoanData",
         "name": "_loanData",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "maxDeposit",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "maxMint",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "maxRedeem",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "maxWithdraw",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      }
-    ],
-    "name": "mint",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "name",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      }
-    ],
-    "name": "previewDeposit",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      }
-    ],
-    "name": "previewMint",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      }
-    ],
-    "name": "previewRedeem",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      }
-    ],
-    "name": "previewWithdraw",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -2273,35 +1893,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      }
-    ],
-    "name": "redeem",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -2453,13 +2044,18 @@
       },
       {
         "internalType": "uint8",
-        "name": "minUtilRate",
+        "name": "minUtilRate1",
         "type": "uint8"
       },
       {
         "internalType": "uint8",
-        "name": "maxUtilRate",
+        "name": "minUtilRate2",
         "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "feeDivisor",
+        "type": "uint16"
       },
       {
         "internalType": "uint8",
@@ -2518,19 +2114,6 @@
   },
   {
     "inputs": [],
-    "name": "symbol",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "sync",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -2547,85 +2130,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalAssets",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "transfer",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "transferFrom",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -2711,35 +2215,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "assets",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      }
-    ],
-    "name": "withdraw",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "shares",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

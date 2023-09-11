@@ -57,8 +57,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.borrowRate = poolData.borrowRate;
   pool.supplyRate = poolData.supplyRate;
   pool.utilizationRate = poolData.utilizationRate;
-  pool.ltvThreshold = poolData.ltvThreshold;
-  pool.liquidationFee = poolData.liquidationFee;
+  pool.ltvThreshold = BigInt.fromI32(poolData.ltvThreshold);
+  pool.liquidationFee = BigInt.fromI32(poolData.liquidationFee);
 
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;

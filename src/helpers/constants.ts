@@ -4,8 +4,8 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-export const POSITION_MANAGER = '0x8b0a5abf6ed4400feb29ab111351f9134ff38fd3';
+export const POSITION_MANAGER = '0xbbd32dd63484ae82f5539568e5b9ea6e50a57a4f';
 
-export const WETH_USDC_POOL = '0x54b75d7614b1233e965abc2bd4823ac7607f7a34';
+export const WETH_USDC_POOL = '0x0d5119c66806875d93c6c06d79f94eba6707e433';
 
-export const POOL_VIEWER = '0xe0a2fc73008126d5451018c4f8a39929edd3eaa5';
+export const POOL_VIEWER = '0x3871014c9606c3cd7a5c5a3a06a2edd74169f600';
