@@ -92,7 +92,6 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
     loan.entryPrice = BigInt.fromI32(0);
-    loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTimestamp = event.block.timestamp;
@@ -125,7 +124,6 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     loan.collateral0 = BigInt.fromI32(0);
     loan.collateral1 = BigInt.fromI32(0);
     loan.entryPrice = BigInt.fromI32(0);
-    loan.price = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTimestamp = event.block.timestamp;
