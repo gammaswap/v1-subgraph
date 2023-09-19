@@ -163,8 +163,6 @@ type Loan @entity {
   collateral1: BigInt!
   # Price at which loan was opened
   entryPrice: BigInt!
-  # Latest loan price
-  price: BigInt!
 
   """
   Extra loan information

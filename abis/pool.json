@@ -648,6 +648,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "lastCFMMFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "emaUtilRate",
             "type": "uint256"
           },
@@ -851,6 +856,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "lastCFMMFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LAST_BLOCK_NUMBER",
             "type": "uint256"
           },
@@ -1027,6 +1037,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "lastCFMMFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LAST_BLOCK_NUMBER",
             "type": "uint256"
           },
@@ -1194,6 +1209,11 @@
           {
             "internalType": "uint256",
             "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMFeeIndex",
             "type": "uint256"
           },
           {
@@ -1751,6 +1771,11 @@
           {
             "internalType": "uint256",
             "name": "accFeeIndex",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastCFMMFeeIndex",
             "type": "uint256"
           },
           {

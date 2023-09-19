@@ -187,17 +187,16 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   }
 
   const poolContract = Pool.bind(event.address);
-  const loanData = poolContract.loan(event.params.tokenId);
+  const loanData = poolContract.getLoanData(event.params.tokenId);
   loan.rateIndex = loanData.rateIndex;
   loan.initLiquidity = loanData.initLiquidity;
   loan.liquidity = loanData.liquidity;
   loan.lpTokens = loanData.lpTokens;
   loan.collateral0 = loanData.tokensHeld[0];
   loan.collateral1 = loanData.tokensHeld[1];
-  if (loan.entryPrice == BigInt.fromI32(0) && loan.price == BigInt.fromI32(0)) {
+  if (loan.entryPrice == BigInt.fromI32(0)) {
     loan.entryPrice = loanData.px;
   }
-  loan.price = loanData.px;
   if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
     loan.closedAtBlock = event.block.number;
