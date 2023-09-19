@@ -1,0 +1,7 @@
+{
+  "network": "arbitrum",
+  "startBlock": "132429931",
+  "factory": "0xe048ccE443E787c5b6FA886236De2981D54E244f",
+  "positionManager": "0x8714200DA2FB69D6Cd188Cf02C6B6041dD245976",
+  "poolViewer": "0x519Ac91e2567133787662056B6dE9130Cf36E512"
+}

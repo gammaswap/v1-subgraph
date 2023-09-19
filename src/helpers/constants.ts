@@ -4,8 +4,12 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-export const POSITION_MANAGER = '0xe94f83a0dbb5374df098ac64393fc5a5427dbc48';
+export const POSITION_MANAGER = '0xce0308eb75902b127f68adcba60cd971c9340ebd';
 
-export const WETH_USDC_POOL = '0xdaeaffdbadb20b86f1863aa80355afc886c95761';
+export const WETH_USDC_POOL = '0x7ed5c2944c509772cc0b0740836e63b5db6ca799';
 
-export const POOL_VIEWER = '0x268085e7c9a4a92ff7e4a73d33d21e3827c86192';
+export const POOL_VIEWER = '0x918aa0d6e22024e74e89a592fdbd6a91a825f841';
+
+export const NETWORK = 'arbitrum-goerli';
+
+export const ARBITRUM_BRIDGE_USDC_TOKEN = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8';
