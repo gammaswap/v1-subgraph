@@ -8,6 +8,7 @@
     "prepare:arbitrum": "mustache networks/arbitrum.json subgraph.template.yaml subgraph.arbitrum.yaml",
     "prepare:tc": "mustache networks/arbitrum-goerli.tc.json subgraph.tc.template.yaml subgraph.tc.arbitrum-goerli.yaml",
     "codegen": "graph codegen subgraph.arbitrum-goerli.yaml --output-dir src/types/",
+    "codegen:arbitrum": "graph codegen subgraph.arbitrum.yaml --output-dir src/types/",
     "codegen:tc": "graph codegen subgraph.tc.arbitrum-goerli.yaml --output-dir src/types/tc",
     "build": "graph build subgraph.arbitrum-goerli.yaml",
     "build:arbitrum": "graph build subgraph.arbitrum.yaml",

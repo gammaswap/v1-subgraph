@@ -3,7 +3,7 @@ import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, loadOrCreateToken, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
-import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER } from '../helpers/constants';
+import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER, NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN } from '../helpers/constants';
 import { updatePrices, updatePoolStats, updateLoanStats, getEthUsdValue } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -22,13 +22,21 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const token1 = loadOrCreateToken(pool.token1);
   if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
     token0.name = tokenMetadata.get_names()[0];
-    token0.symbol = tokenMetadata.get_symbols()[0];
+    if (NETWORK == "arbitrum" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+      token0.symbol = "USDC.e";
+    } else {
+      token0.symbol = tokenMetadata.get_symbols()[0];
+    }
     token0.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[0]);
     token0.save();
   }
   if (token1.name == "" || token1.symbol == "" || token1.decimals == BigInt.fromI32(0)) {
     token1.name = tokenMetadata.get_names()[1];
-    token1.symbol = tokenMetadata.get_symbols()[1];
+    if (NETWORK == "arbitrum" && pool.token1 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+      token1.symbol = "USDC.e";
+    } else {
+      token1.symbol = tokenMetadata.get_symbols()[0];
+    }
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
