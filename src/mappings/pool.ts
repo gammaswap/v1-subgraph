@@ -20,9 +20,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const tokenMetadata = poolViewer.getTokensMetaData(poolContract.tokens());
   const token0 = loadOrCreateToken(pool.token0);
   const token1 = loadOrCreateToken(pool.token1);
+  let networkName = NETWORK;
   if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
     token0.name = tokenMetadata.get_names()[0];
-    if (NETWORK == "arbitrum" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+    if (networkName == "arbitrum-one" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
       token0.symbol = "USDC.e";
     } else {
       token0.symbol = tokenMetadata.get_symbols()[0];
@@ -32,10 +33,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   }
   if (token1.name == "" || token1.symbol == "" || token1.decimals == BigInt.fromI32(0)) {
     token1.name = tokenMetadata.get_names()[1];
-    if (NETWORK == "arbitrum" && pool.token1 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+    if (networkName == "arbitrum-one" && pool.token1 == ARBITRUM_BRIDGE_USDC_TOKEN) {
       token1.symbol = "USDC.e";
     } else {
-      token1.symbol = tokenMetadata.get_symbols()[0];
+      token1.symbol = tokenMetadata.get_symbols()[1];
     }
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();

@@ -2,6 +2,7 @@
   "network": "arbitrum-one",
   "startBlock": "132429931",
   "factory": "0xe048ccE443E787c5b6FA886236De2981D54E244f",
-  "positionManager": "0x8714200DA2FB69D6Cd188Cf02C6B6041dD245976",
-  "poolViewer": "0x519Ac91e2567133787662056B6dE9130Cf36E512"
+  "positionManager": "0x8714200da2fb69d6cd188cf02c6b6041dd245976",
+  "poolViewer": "0x519ac91e2567133787662056b6de9130cf36e512",
+  "wethUsdcPool": "0x9888f6206d9e1bf0ddbf031a0695c3bc9da20f89"
 }

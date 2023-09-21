@@ -18,7 +18,7 @@ dataSources:
         - GammaPool
       abis:
         - name: Factory
-          file: ./abis/factory.json
+          file: ./abis/IGammaPoolFactory.json
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
           handler: handlePoolCreate
@@ -38,7 +38,7 @@ dataSources:
         - Loan
       abis:
         - name: PositionManager
-          file: ./abis/positionManager.json
+          file: ./abis/IPositionManager.json
       eventHandlers:
         - event: CreateLoan(indexed address,indexed address,uint256,uint16)
           handler: handleLoanCreateFromPositionManager
@@ -61,9 +61,9 @@ templates:
         - Account
       abis:
         - name: Pool
-          file: ./abis/pool.json
+          file: ./abis/IGammaPool.json
         - name: PoolViewer
-          file: ./abis/poolViewer.json
+          file: ./abis/IPoolViewer.json
       eventHandlers:
         - event: PoolUpdated(uint256,uint256,uint40,uint80,uint256,uint128,uint128,uint128[],indexed uint8)
           handler: handlePoolUpdate
