@@ -171,10 +171,14 @@ type Loan @entity {
   status: LoanStatus!
   # Block number at which loan was opened
   openedAtBlock: BigInt!
+  # Txhash at which loan was opened
+  openedAtTxhash: String!
   # Timestamp at which loan was opened
   openedAtTimestamp: BigInt!
   # Block number at which loan was closed
   closedAtBlock: BigInt
+  # Txhash at which loan was closed
+  closedAtTxhash: String!
   # Timestamp at which loan was closed
   closedAtTimestamp: BigInt
 

@@ -209,10 +209,12 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
     loan.closedAtBlock = event.block.number;
+    loan.closedAtTxhash = event.transaction.hash.toHexString();
     loan.closedAtTimestamp = event.block.timestamp;
   } else if (event.params.txType == 11 || event.params.txType == 12) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
+    loan.closedAtTxhash = event.transaction.hash.toHexString();
     loan.closedAtTimestamp = event.block.timestamp;
   }
 

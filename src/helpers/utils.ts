@@ -77,31 +77,37 @@ export function updatePoolStats(pool: GammaPool): void {
 
   if (poolContract == null || token0 == null || token1 == null) return;
 
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();
-  const sqrtPrice = pool.lastPrice.times(precision1).sqrt().toBigDecimal();
-  const priceInToken1 = sqrtPrice.div(invariantPrecision).div(precision1.toBigDecimal());
+  const sqrtPriceWithPrecision = pool.lastPrice.times(precision1).sqrt().toBigDecimal();
+  const sqrtPrice = sqrtPriceWithPrecision.div(invariantPrecision).div(precision1.toBigDecimal());
 
-  pool.lpBalanceInToken1 = BigDecimal.fromString('2').times(pool.lpInvariant.toBigDecimal()).times(priceInToken1).truncate(token1.decimals.toI32());
+  pool.lpBalanceInToken1 = BigDecimal.fromString('2').times(pool.lpInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lpBalanceInToken0 = pool.lpBalanceInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lpBalanceETH = pool.lpBalanceInToken0.times(token0.priceETH);
   pool.lpBalanceUSD = pool.lpBalanceInToken0.times(token0.priceUSD).truncate(2);
 
   const borrowedInvariant = pool.lpBorrowedBalance.times(pool.lastCfmmInvariant).div(pool.lastCfmmTotalSupply).toBigDecimal();
-  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('2').times(borrowedInvariant).times(priceInToken1).truncate(token1.decimals.toI32());
+  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('2').times(borrowedInvariant).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lpBorrowedBalanceInToken0 = pool.lpBorrowedBalanceInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lpBorrowedBalanceETH = pool.lpBorrowedBalanceInToken0.times(token0.priceETH);
   pool.lpBorrowedBalanceUSD = pool.lpBorrowedBalanceInToken0.times(token0.priceUSD).truncate(2);
 
-  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('2').times(pool.lpBorrowedInvariant.toBigDecimal()).times(priceInToken1).truncate(token1.decimals.toI32());
+  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('2').times(pool.lpBorrowedInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lpBorrowedBalancePlusInterestInToken0 = pool.lpBorrowedBalancePlusInterestInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lpBorrowedBalancePlusInterestETH = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceETH);
   pool.lpBorrowedBalancePlusInterestUSD = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceUSD).truncate(2);
 
-  pool.tvlETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalancePlusInterestETH);
-  pool.tvlUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalancePlusInterestUSD);
+  const token1InToken0 = pool.token0Balance.times(pool.lastPrice).div(precision0).div(precision1);
+  const tokensInToken0 = token1InToken0.plus(pool.token0Balance).div(precision0).toBigDecimal();
+  const tokensInETH = tokensInToken0.times(token0.priceETH).truncate(2);
+  const tokensInUSD = tokensInToken0.times(token0.priceUSD).truncate(2);
 
-  pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(pool.lastCfmmInvariant.toBigDecimal()).times(priceInToken1).truncate(token1.decimals.toI32());
+  pool.tvlETH = pool.lpBalanceETH.plus(tokensInETH);
+  pool.tvlUSD = pool.lpBalanceUSD.plus(tokensInUSD);
+
+  pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(pool.lastCfmmInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lastCfmmInToken0 = pool.lastCfmmInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lastCfmmETH = pool.lastCfmmInToken0.times(token0.priceETH);
   pool.lastCfmmUSD = pool.lastCfmmInToken0.times(token0.priceUSD).truncate(2);
