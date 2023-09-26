@@ -99,8 +99,8 @@ export function updatePoolStats(pool: GammaPool): void {
   pool.lpBorrowedBalancePlusInterestETH = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceETH);
   pool.lpBorrowedBalancePlusInterestUSD = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceUSD).truncate(2);
 
-  const token0InToken1 = pool.token0Balance.times(pool.lastPrice).div(precision0).div(precision1);
-  const allTokensInToken1 = token0InToken1.plus(pool.token1Balance).div(precision0).toBigDecimal();
+  const token0InToken1 = pool.token0Balance.times(pool.lastPrice).div(precision0).div(precision1).div(precision0).toBigDecimal();
+  const allTokensInToken1 = token0InToken1.plus(pool.token1Balance.div(precision1).toBigDecimal());
   const tokensInETH = allTokensInToken1.times(token1.priceETH).truncate(2);
   const tokensInUSD = allTokensInToken1.times(token1.priceUSD).truncate(2);
 
