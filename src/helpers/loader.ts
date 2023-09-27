@@ -94,8 +94,10 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     loan.entryPrice = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
+    loan.openedAtTxhash = event.transaction.hash.toHexString();
     loan.openedAtTimestamp = event.block.timestamp;
     loan.closedAtBlock = BigInt.fromI32(0);
+    loan.closedAtTxhash = "";
     loan.closedAtTimestamp = BigInt.fromI32(0);
 
     loan.save();
@@ -126,8 +128,10 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     loan.entryPrice = BigInt.fromI32(0);
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
+    loan.openedAtTxhash = event.transaction.hash.toHexString();
     loan.openedAtTimestamp = event.block.timestamp;
     loan.closedAtBlock = BigInt.fromI32(0);
+    loan.closedAtTxhash = "";
     loan.closedAtTimestamp = BigInt.fromI32(0);
 
     loan.save();

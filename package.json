@@ -20,7 +20,7 @@
     "deploy:arbitrum": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum subgraph.arbitrum.yaml"
   },
   "keywords": [],
-  "author": "",
+  "author": "Simon Mall",
   "license": "MIT",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.51.2",
