@@ -4,6 +4,8 @@ node_modules
 build
 src/types
 
+.idea
+
 subgraph.*.yaml
 !subgraph.template.yaml
 !subgraph.tc.template.yaml

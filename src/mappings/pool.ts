@@ -163,6 +163,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   dailyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365;
   accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  //dailyData.prevAccFeeIndex = prevAccFeeIndex
+  //dailyData.accFeeIndexGrowthDiff = accFeeGrowthDiff
   dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
   dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
   dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);

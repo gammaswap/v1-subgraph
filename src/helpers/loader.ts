@@ -401,7 +401,7 @@ export function createDailyPoolSnapshot(event: PoolUpdated): DailyPoolSnapshot {
         const missingId = poolId.concat('-').concat(missingTickId.toString());
         const missingItem = new DailyPoolSnapshot(missingId);
         missingItem.pool = poolId;
-        missingItem.timestamp = BigInt.fromI32(missingTickId * 3600);
+        missingItem.timestamp = BigInt.fromI32(missingTickId * 86400);
         missingItem.utilizationRate = lastDailyData.utilizationRate;
         missingItem.borrowedLiquidity = lastDailyData.borrowedLiquidity;
         missingItem.borrowedLiquidityETH = lastDailyData.borrowedLiquidityETH;
