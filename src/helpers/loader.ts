@@ -1,8 +1,10 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
+import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
 import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN } from './constants';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
@@ -10,8 +12,32 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.cfmm = event.params.cfmm;
   pool.protocolId = BigInt.fromI32(event.params.protocolId);
 
+  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
+  const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
+  let networkName = NETWORK;
+  if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
+    token0.name = tokenMetadata.get_names()[0];
+    if (networkName == "arbitrum-one" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+      token0.symbol = "USDC.e";
+    } else {
+      token0.symbol = tokenMetadata.get_symbols()[0];
+    }
+    token0.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[0]);
+    token0.save();
+  }
+  if (token1.name == "" || token1.symbol == "" || token1.decimals == BigInt.fromI32(0)) {
+    token1.name = tokenMetadata.get_names()[1];
+    if (networkName == "arbitrum-one" && pool.token1 == ARBITRUM_BRIDGE_USDC_TOKEN) {
+      token1.symbol = "USDC.e";
+    } else {
+      token1.symbol = tokenMetadata.get_symbols()[1];
+    }
+    token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
+    token1.save();
+  }
+
   pool.token0 = token0.id;
   pool.token1 = token1.id;
 

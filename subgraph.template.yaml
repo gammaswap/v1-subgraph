@@ -19,6 +19,8 @@ dataSources:
       abis:
         - name: Factory
           file: ./abis/IGammaPoolFactory.json
+        - name: PoolViewer
+          file: ./abis/IPoolViewer.json
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
           handler: handlePoolCreate
