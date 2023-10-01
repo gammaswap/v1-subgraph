@@ -79,69 +79,69 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Historical data
   const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
 
-  const flashData = createFiveMinPoolSnapshot(event);
+  // const flashData = createFiveMinPoolSnapshot(event);
   let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
-  if (poolTracer != null && poolTracer.lastFiveMinData != null) {
-    const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
-    if (lastFlashData) {
-      prevAccFeeIndex = lastFlashData.accFeeIndex;
-    }
-  }
+  // if (poolTracer != null && poolTracer.lastFiveMinData != null) {
+  //   const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
+  //   if (lastFlashData) {
+  //     prevAccFeeIndex = lastFlashData.accFeeIndex;
+  //   }
+  // }
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const ratePrecision = BigInt.fromI32(10).pow(18);
-  flashData.utilizationRate = poolData.utilizationRate;
-  flashData.borrowRate = poolData.borrowRate;
+  // flashData.utilizationRate = poolData.utilizationRate;
+  // flashData.borrowRate = poolData.borrowRate;
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
-  flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
-  flashData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
-  flashData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
-  flashData.totalLiquidity = totalLiquidity;
-  flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
-  flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
-  flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
-  flashData.accFeeIndex = poolData.accFeeIndex;
+  // flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  // flashData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  // flashData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
+  // flashData.totalLiquidity = totalLiquidity;
+  // flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  // flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
+  // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  // flashData.accFeeIndex = poolData.accFeeIndex;
   let dailyConversionMultiplier = 365 * 24 * 60 / 5;
   let accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-  flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
-  flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
-  flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
-  flashData.save();
+  // flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+  // flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  // flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  // flashData.save();
 
-  if (poolTracer != null && poolTracer.lastFiveMinData != flashData.id) {
-    poolTracer.lastFiveMinData = flashData.id;
-    poolTracer.save();
-  }
+  // if (poolTracer != null && poolTracer.lastFiveMinData != flashData.id) {
+  //   poolTracer.lastFiveMinData = flashData.id;
+  //   poolTracer.save();
+  // }
 
-  const hourlyData = createHourlyPoolSnapshot(event);
-  prevAccFeeIndex = BigInt.fromI32(10).pow(18);
-  if (poolTracer != null && poolTracer.lastHourlyData != null) {
-    const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
-    if (lastHourlyData) {
-      prevAccFeeIndex = lastHourlyData.accFeeIndex;
-    }
-  }
-  hourlyData.utilizationRate = poolData.utilizationRate;
-  hourlyData.borrowRate = poolData.borrowRate;
-  hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
-  hourlyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
-  hourlyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
-  hourlyData.totalLiquidity = totalLiquidity;
-  hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
-  hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
-  hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
-  hourlyData.accFeeIndex = poolData.accFeeIndex;
-  dailyConversionMultiplier = 365 * 24;
-  accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-  hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
-  hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
-  hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
-  hourlyData.save();
+  // const hourlyData = createHourlyPoolSnapshot(event);
+  // prevAccFeeIndex = BigInt.fromI32(10).pow(18);
+  // if (poolTracer != null && poolTracer.lastHourlyData != null) {
+  //   const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
+  //   if (lastHourlyData) {
+  //     prevAccFeeIndex = lastHourlyData.accFeeIndex;
+  //   }
+  // }
+  // hourlyData.utilizationRate = poolData.utilizationRate;
+  // hourlyData.borrowRate = poolData.borrowRate;
+  // hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
+  // hourlyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, true);
+  // hourlyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.lastPrice, false);
+  // hourlyData.totalLiquidity = totalLiquidity;
+  // hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
+  // hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
+  // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+  // hourlyData.accFeeIndex = poolData.accFeeIndex;
+  // dailyConversionMultiplier = 365 * 24;
+  // accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+  // hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+  // hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
+  // hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
+  // hourlyData.save();
 
-  if (poolTracer != null && poolTracer.lastHourlyData != hourlyData.id) {
-    poolTracer.lastHourlyData = hourlyData.id;
-    poolTracer.save();
-  }
+  // if (poolTracer != null && poolTracer.lastHourlyData != hourlyData.id) {
+  //   poolTracer.lastHourlyData = hourlyData.id;
+  //   poolTracer.save();
+  // }
 
   const dailyData = createDailyPoolSnapshot(event);
   prevAccFeeIndex = BigInt.fromI32(10).pow(18);
@@ -163,8 +163,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   dailyData.accFeeIndex = poolData.accFeeIndex;
   dailyConversionMultiplier = 365;
   accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-  //dailyData.prevAccFeeIndex = prevAccFeeIndex
-  //dailyData.accFeeIndexGrowthDiff = accFeeGrowthDiff
+  dailyData.prevAccFeeIndex = prevAccFeeIndex
+  dailyData.accFeeIndexGrowthDiff = accFeeGrowthDiff
   dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
   dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
   dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
