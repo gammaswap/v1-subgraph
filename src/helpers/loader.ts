@@ -16,7 +16,11 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
+  pool.token0 = token0.id;
+  pool.token1 = token1.id;
+
   let networkName = NETWORK;
+
   if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
     token0.name = tokenMetadata.get_names()[0];
     if (networkName == "arbitrum-one" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
@@ -37,9 +41,6 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
-
-  pool.token0 = token0.id;
-  pool.token1 = token1.id;
 
   pool.lpBalance = BigInt.fromI32(0);
   pool.lpBorrowedBalance = BigInt.fromI32(0);
