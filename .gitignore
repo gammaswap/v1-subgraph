@@ -9,3 +9,5 @@ src/types
 subgraph.*.yaml
 !subgraph.template.yaml
 !subgraph.tc.template.yaml
+
+src/helpers/constants.ts
