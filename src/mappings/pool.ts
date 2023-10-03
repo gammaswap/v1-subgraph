@@ -57,7 +57,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Historical data
   // const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
 
-  const flashData = createFiveMinPoolSnapshot(event, poolData);
+  // const flashData = createFiveMinPoolSnapshot(event, poolData);
   // let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastFiveMinData != null) {
   //   const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
@@ -91,7 +91,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   //   poolTracer.save();
   // }
 
-  const hourlyData = createHourlyPoolSnapshot(event, poolData);
+  // const hourlyData = createHourlyPoolSnapshot(event, poolData);
   // prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastHourlyData != null) {
   //   const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
@@ -121,7 +121,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   //   poolTracer.save();
   // }
 
-  createDailyPoolSnapshot(event, poolData);
+  // createDailyPoolSnapshot(event, poolData);
   // prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastDailyData != null) {
   //   const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);

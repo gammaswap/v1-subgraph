@@ -13,7 +13,7 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
   pool.protocolId = BigInt.fromI32(event.params.protocolId);
-
+  log.warning("===111===", []);
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
@@ -39,7 +39,7 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
-
+  log.warning("===222===", []);
   pool.token0 = token0.id;
   pool.token1 = token1.id;
 
