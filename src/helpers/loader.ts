@@ -276,10 +276,10 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
   if (flashData == null) {
     flashData = new FiveMinPoolSnapshot(id);
     flashData.pool = poolId;
-    flashData.timestamp = BigInt.fromI32(0);
+    flashData.timestamp = BigInt.fromI32(tickStartTimestamp);
     let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
     if (poolTracer != null && poolTracer.lastFiveMinData != null) {
-      const lastFiveMinData = DailyPoolSnapshot.load(poolTracer.lastFiveMinData!);
+      const lastFiveMinData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
       if (lastFiveMinData) {
         prevAccFeeIndex = lastFiveMinData.accFeeIndex;
       }
@@ -292,7 +292,7 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.totalLiquidity = totalLiquidity;
     flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
     flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
-    flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+    // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     flashData.accFeeIndex = poolData.accFeeIndex;
     const dailyConversionMultiplier = 365 * 24 * 60 / 5;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
@@ -367,7 +367,7 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.timestamp = BigInt.fromI32(tickStartTimestamp);
     let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
     if (poolTracer != null && poolTracer.lastHourlyData != null) {
-      const lastHourlyData = DailyPoolSnapshot.load(poolTracer.lastHourlyData!);
+      const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
       if (lastHourlyData) {
         prevAccFeeIndex = lastHourlyData.accFeeIndex;
       }
@@ -380,7 +380,7 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.totalLiquidity = totalLiquidity;
     hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
     hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
-    hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+    // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     hourlyData.accFeeIndex = poolData.accFeeIndex;
     const dailyConversionMultiplier = 365 * 24;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
@@ -468,7 +468,7 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.totalLiquidity = totalLiquidity;
     dailyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, true);
     dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
-    dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
+    // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
     const dailyConversionMultiplier = 365;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
