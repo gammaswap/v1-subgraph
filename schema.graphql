@@ -247,6 +247,8 @@ type PoolBalance @entity {
   pool: GammaPool!
   account: Account!
   balance: BigInt!
+  balanceETH: BigDecimal!
+  balanceUSD: BigDecimal!
   # Block number at which initial deposit was made
   initialBlock: BigInt!
   # Timestamp at which initial deposit was made

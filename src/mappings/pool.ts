@@ -1,4 +1,4 @@
-import { Address, BigInt, log } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, GammaPoolTracer, Loan, PoolBalance, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
@@ -57,7 +57,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Historical data
   // const poolTracer = GammaPoolTracer.load(poolAddress.toHexString());
 
-  // const flashData = createFiveMinPoolSnapshot(event, poolData);
+  const flashData = createFiveMinPoolSnapshot(event, poolData);
   // let prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastFiveMinData != null) {
   //   const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
@@ -91,7 +91,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   //   poolTracer.save();
   // }
 
-  // const hourlyData = createHourlyPoolSnapshot(event, poolData);
+  const hourlyData = createHourlyPoolSnapshot(event, poolData);
   // prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastHourlyData != null) {
   //   const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
@@ -121,7 +121,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   //   poolTracer.save();
   // }
 
-  // createDailyPoolSnapshot(event, poolData);
+  createDailyPoolSnapshot(event, poolData);
   // prevAccFeeIndex = BigInt.fromI32(10).pow(18);
   // if (poolTracer != null && poolTracer.lastDailyData != null) {
   //   const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
@@ -239,6 +239,13 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   let poolBalanceFrom = PoolBalance.load(id1);
   if (poolBalanceFrom && fromAccount.id != ADDRESS_ZERO) {
     poolBalanceFrom.balance = poolBalanceFrom.balance.minus(event.params.amount);
+    if (pool.totalSupply == BigInt.fromI32(0)) {
+      poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
+      poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
+    } else {
+      poolBalanceFrom.balanceETH = pool.tvlETH.times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceFrom.balanceUSD = pool.tvlUSD.times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+    }
     poolBalanceFrom.save();
   }
 
@@ -249,10 +256,19 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.pool = pool.id;
       poolBalanceTo.account = toAccount.id;
       poolBalanceTo.balance = BigInt.fromI32(0);
+      poolBalanceTo.balanceETH = BigDecimal.fromString('0');
+      poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
       poolBalanceTo.initialBlock = event.block.number;
       poolBalanceTo.initialTimestamp = event.block.timestamp;
     }
     poolBalanceTo.balance = poolBalanceTo.balance.plus(event.params.amount);
+    if (pool.totalSupply == BigInt.fromI32(0)) {
+      poolBalanceTo.balanceETH = BigDecimal.fromString('0');
+      poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
+    } else {
+      poolBalanceTo.balanceETH = pool.tvlETH.times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceTo.balanceUSD = pool.tvlUSD.times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+    }
     poolBalanceTo.save();
   }
 }
