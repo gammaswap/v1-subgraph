@@ -4,15 +4,17 @@ import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated 
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
+import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
 import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN } from './constants';
 import { getEthUsdValue } from './utils';
 
 export function createPool(id: string, event: PoolCreated): GammaPool {
+  const protocol = loadOrCreateProtocol(event.params.protocolId.toString());
+
   const pool = new GammaPool(id);
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
-  pool.protocolId = BigInt.fromI32(event.params.protocolId);
+  pool.protocol = protocol.id;
 
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
@@ -43,6 +45,9 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
     token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
     token1.save();
   }
+
+  loadOrCreateProtocolToken(protocol.id, token0.id);
+  loadOrCreateProtocolToken(protocol.id, token1.id);
 
   pool.lpBalance = BigInt.fromI32(0);
   pool.lpBorrowedBalance = BigInt.fromI32(0);
@@ -254,6 +259,29 @@ export function loadOrCreateToken(id: string): Token {
   }
 
   return token;
+}
+
+export function loadOrCreateProtocol(id: string): Protocol {
+  let protocol = Protocol.load(id);
+  if (protocol == null) {
+    protocol = new Protocol(id);
+    protocol.save();
+  }
+
+  return protocol;
+}
+
+export function loadOrCreateProtocolToken(protocolId: string, token: string): ProtocolToken {
+  const id = protocolId + '-' + token;
+  let protocolToken = ProtocolToken.load(id);
+  if (protocolToken == null) {
+    protocolToken = new ProtocolToken(id);
+    protocolToken.protocol = protocolId;
+    protocolToken.token = token;
+    protocolToken.save();
+  }
+
+  return protocolToken;
 }
 
 export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): FiveMinPoolSnapshot {

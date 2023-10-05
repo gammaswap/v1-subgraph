@@ -31,8 +31,8 @@ type GammaPool @entity {
   address: Bytes!
   # CFMM address
   cfmm: Bytes!
-  # GammaPool template id
-  protocolId: BigInt!
+  # GammaPool protocol (Sushiswap, Deltaswap ...)
+  protocol: Protocol!
   # Underlying token0 address
   token0: Token!
   # Underlying token1 address
@@ -239,6 +239,7 @@ type Token @entity {
   decimals: BigInt!
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
+  protocols: [ProtocolToken!] @derivedFrom(field: "token")
 }
 
 type PoolBalance @entity {
@@ -382,6 +383,18 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   # Debug
   prevAccFeeIndex: BigInt
   accFeeIndexGrowthDiff: BigInt
+}
+
+type Protocol @entity {
+  id: ID!
+  pools: [GammaPool!] @derivedFrom(field: "protocol")
+  tokens: [ProtocolToken!] @derivedFrom(field: "protocol")
+}
+
+type ProtocolToken @entity {
+  id: ID!
+  protocol: Protocol!
+  token: Token!
 }
 
 """
