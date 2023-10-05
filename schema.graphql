@@ -271,8 +271,10 @@ interface PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 5min/1hr/24hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 5min/1hr/24hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -300,8 +302,10 @@ type FiveMinPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 5min segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 5min segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -329,8 +333,10 @@ type HourlyPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 1hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 1hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -358,8 +364,10 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 24hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 24hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
