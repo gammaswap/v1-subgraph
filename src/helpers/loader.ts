@@ -8,6 +8,8 @@ import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Acc
 import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN } from './constants';
 import { getEthUsdValue } from './utils';
 
+const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
+
 export function createPool(id: string, event: PoolCreated): GammaPool {
   const protocol = loadOrCreateProtocol(event.params.protocolId.toString());
 
@@ -358,7 +360,7 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
         missingItem.totalLiquidityUSD = lastFlashData.totalLiquidityUSD;
         missingItem.borrowRate = lastFlashData.borrowRate;
         missingItem.accFeeIndex = lastFlashData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = lastFlashData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastFlashData.price0;
         missingItem.price1 = lastFlashData.price1;
         missingItem.save();
@@ -448,7 +450,7 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
         missingItem.totalLiquidityUSD = lastHourlyData.totalLiquidityUSD;
         missingItem.borrowRate = lastHourlyData.borrowRate;
         missingItem.accFeeIndex = lastHourlyData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = lastHourlyData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastHourlyData.price0;
         missingItem.price1 = lastHourlyData.price1;
         missingItem.save();
@@ -503,11 +505,16 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
-    const dailyConversionMultiplier = 365;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
     dailyData.prevAccFeeIndex = prevAccFeeIndex;
     dailyData.accFeeIndexGrowthDiff = accFeeGrowthDiff;
-    dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+    dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    if (poolTracer != null && poolTracer.lastDailyData != null) {
+      const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
+      if (lastDailyData) {
+        dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(event.block.timestamp.minus(lastDailyData.timestamp));
+      }
+    }
     dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
     dailyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
     dailyData.save();
@@ -542,7 +549,7 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
         missingItem.accFeeIndex = lastDailyData.accFeeIndex;
         missingItem.prevAccFeeIndex = lastDailyData.prevAccFeeIndex;
         missingItem.accFeeIndexGrowthDiff = BigInt.fromI32(0);
-        missingItem.accFeeIndexGrowth = lastDailyData.accFeeIndexGrowth;
+        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastDailyData.price0;
         missingItem.price1 = lastDailyData.price1;
         missingItem.save();
