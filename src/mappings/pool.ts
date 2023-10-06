@@ -146,8 +146,8 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
       poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
     } else {
-      poolBalanceFrom.balanceETH = pool.tvlETH.times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceFrom.balanceUSD = pool.tvlUSD.times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceFrom.balanceUSD = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
     }
     poolBalanceFrom.save();
   }
@@ -169,8 +169,8 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.balanceETH = BigDecimal.fromString('0');
       poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
     } else {
-      poolBalanceTo.balanceETH = pool.tvlETH.times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceTo.balanceUSD = pool.tvlUSD.times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceTo.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceTo.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
     }
     poolBalanceTo.save();
   }
