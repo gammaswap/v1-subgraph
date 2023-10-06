@@ -157,6 +157,7 @@ export function handleVaultTokenTransfer(event: Transfer): void {
     if (poolBalanceTo == null) {
       poolBalanceTo = new PoolBalance(id2);
       poolBalanceTo.pool = pool.id;
+      poolBalanceTo.protocol = pool.protocol;
       poolBalanceTo.account = toAccount.id;
       poolBalanceTo.balance = BigInt.fromI32(0);
       poolBalanceTo.balanceETH = BigDecimal.fromString('0');

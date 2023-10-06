@@ -31,7 +31,7 @@ type GammaPool @entity {
   address: Bytes!
   # CFMM address
   cfmm: Bytes!
-  # GammaPool protocol (Sushiswap, Deltaswap ...)
+  # DEX protocol (Sushiswap, Deltaswap ...)
   protocol: Protocol!
   # Underlying token0 address
   token0: Token!
@@ -139,6 +139,8 @@ type Loan @entity {
   tokenId: BigInt!
   # Underlying GammaPool entity
   pool: GammaPool!
+  # DEX protocol (Sushiswap, Deltaswap ...)
+  protocol: Protocol!
   # Owner of the loan
   account: Account!
 
@@ -246,6 +248,7 @@ type PoolBalance @entity {
   # {PoolAddress}-{account}
   id: ID!
   pool: GammaPool!
+  protocol: Protocol!
   account: Account!
   balance: BigInt!
   balanceETH: BigDecimal!

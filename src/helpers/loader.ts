@@ -116,6 +116,7 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     const account = loadOrCreateAccount(event.params.caller.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
+    loan.protocol = pool.protocol;
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
     loan.initLiquidity = BigInt.fromI32(0);
@@ -150,6 +151,7 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     const account = loadOrCreateAccount(event.params.owner.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
+    loan.protocol = pool.protocol;
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
     loan.initLiquidity = BigInt.fromI32(0);
