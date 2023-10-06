@@ -325,9 +325,14 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     flashData.accFeeIndex = poolData.accFeeIndex;
-    const dailyConversionMultiplier = 365 * 24 * 60 / 5;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+    flashData.accFeeIndexGrowth = BigInt.fromI32(0);
+    if (poolTracer != null && poolTracer.lastFiveMinData != null) {
+      const lastFiveMinData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
+      if (lastFiveMinData) {
+        flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(flashData.timestamp.minus(lastFiveMinData.timestamp));
+      }
+    }
     flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
     flashData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
     flashData.save();
@@ -415,9 +420,14 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     hourlyData.accFeeIndex = poolData.accFeeIndex;
-    const dailyConversionMultiplier = 365 * 24;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(dailyConversionMultiplier));
+    hourlyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    if (poolTracer != null && poolTracer.lastHourlyData != null) {
+      const lastHourlyData = DailyPoolSnapshot.load(poolTracer.lastHourlyData!);
+      if (lastHourlyData) {
+        hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(hourlyData.timestamp.minus(hourlyData.timestamp));
+      }
+    }
     hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
     hourlyData.price1 = poolData.CFMM_RESERVES[1].times(precision0).div(poolData.CFMM_RESERVES[0]);
     hourlyData.save();
@@ -506,13 +516,11 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
     const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    dailyData.prevAccFeeIndex = prevAccFeeIndex;
-    dailyData.accFeeIndexGrowthDiff = accFeeGrowthDiff;
     dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
     if (poolTracer != null && poolTracer.lastDailyData != null) {
       const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
       if (lastDailyData) {
-        dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(event.block.timestamp.minus(lastDailyData.timestamp));
+        dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(dailyData.timestamp.minus(lastDailyData.timestamp));
       }
     }
     dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -547,8 +555,6 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
         missingItem.totalLiquidityUSD = lastDailyData.totalLiquidityUSD;
         missingItem.borrowRate = lastDailyData.borrowRate;
         missingItem.accFeeIndex = lastDailyData.accFeeIndex;
-        missingItem.prevAccFeeIndex = lastDailyData.prevAccFeeIndex;
-        missingItem.accFeeIndexGrowthDiff = BigInt.fromI32(0);
         missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastDailyData.price0;
         missingItem.price1 = lastDailyData.price1;

@@ -388,9 +388,6 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
-  # Debug
-  prevAccFeeIndex: BigInt
-  accFeeIndexGrowthDiff: BigInt
 }
 
 type Protocol @entity {
