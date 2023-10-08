@@ -89,7 +89,13 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   if (loan.entryPrice == BigInt.fromI32(0)) {
     loan.entryPrice = loanData.px;
   }
-  if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
+  
+  if (event.params.txType == 7) { // 7 -> BORROW_LIQUIDITY
+    loan.status = 'OPEN';
+    loan.openedAtBlock = event.block.number;
+    loan.openedAtTxhash = event.transaction.hash.toHexString();
+    loan.openedAtTimestamp = event.block.timestamp;
+  } else if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
     loan.status = 'CLOSED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();
