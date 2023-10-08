@@ -31,8 +31,8 @@ type GammaPool @entity {
   address: Bytes!
   # CFMM address
   cfmm: Bytes!
-  # GammaPool template id
-  protocolId: BigInt!
+  # DEX protocol (Sushiswap, Deltaswap ...)
+  protocol: Protocol!
   # Underlying token0 address
   token0: Token!
   # Underlying token1 address
@@ -139,6 +139,8 @@ type Loan @entity {
   tokenId: BigInt!
   # Underlying GammaPool entity
   pool: GammaPool!
+  # DEX protocol (Sushiswap, Deltaswap ...)
+  protocol: Protocol!
   # Owner of the loan
   account: Account!
 
@@ -239,14 +241,18 @@ type Token @entity {
   decimals: BigInt!
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
+  protocols: [ProtocolToken!] @derivedFrom(field: "token")
 }
 
 type PoolBalance @entity {
   # {PoolAddress}-{account}
   id: ID!
   pool: GammaPool!
+  protocol: Protocol!
   account: Account!
   balance: BigInt!
+  balanceETH: BigDecimal!
+  balanceUSD: BigDecimal!
   # Block number at which initial deposit was made
   initialBlock: BigInt!
   # Timestamp at which initial deposit was made
@@ -268,8 +274,10 @@ interface PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 5min/1hr/24hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 5min/1hr/24hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -297,8 +305,10 @@ type FiveMinPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 5min segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 5min segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -326,8 +336,10 @@ type HourlyPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 1hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 1hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -355,8 +367,10 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   id: ID!
   # {GammaPool}
   pool: GammaPool!
-  # start timestamp of 24hr segment
+  # Pool updated timestamp
   timestamp: BigInt!
+  # start timestamp of 24hr segment
+  tickTimestamp: BigInt!
   # Maps to {GammaPool -> lpBorrowedInvariant}
   borrowedLiquidity: BigInt!
   borrowedLiquidityETH: BigDecimal!
@@ -377,6 +391,18 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
+}
+
+type Protocol @entity {
+  id: ID!
+  pools: [GammaPool!] @derivedFrom(field: "protocol")
+  tokens: [ProtocolToken!] @derivedFrom(field: "protocol")
+}
+
+type ProtocolToken @entity {
+  id: ID!
+  protocol: Protocol!
+  token: Token!
 }
 
 """
