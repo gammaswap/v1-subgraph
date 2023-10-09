@@ -89,12 +89,20 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   if (loan.entryPrice == BigInt.fromI32(0)) {
     loan.entryPrice = loanData.px;
   }
-  if (event.params.txType == 8) { // 8 -> REPAY_LIQUIDITY
-    loan.status = 'CLOSED';
-    loan.closedAtBlock = event.block.number;
-    loan.closedAtTxhash = event.transaction.hash.toHexString();
-    loan.closedAtTimestamp = event.block.timestamp;
-  } else if (event.params.txType == 11 || event.params.txType == 12) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP
+  
+  if (event.params.txType == 7) { // 7 -> BORROW_LIQUIDITY
+    loan.status = 'OPEN';
+    loan.openedAtBlock = event.block.number;
+    loan.openedAtTxhash = event.transaction.hash.toHexString();
+    loan.openedAtTimestamp = event.block.timestamp;
+  } else if ([8, 9, 10].includes(event.params.txType)) { // 8 -> REPAY_LIQUIDITY, 9 -> REPAY_LIQUIDITY_SET_RATIO, 10 -> REPAY_LIQUIDITY_WITH_LP
+    if (loan.initLiquidity == BigInt.zero()) {
+      loan.status = 'CLOSED';
+      loan.closedAtBlock = event.block.number;
+      loan.closedAtTxhash = event.transaction.hash.toHexString();
+      loan.closedAtTimestamp = event.block.timestamp;
+    }
+  } else if ([11, 12, 13].includes(event.params.txType)) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();

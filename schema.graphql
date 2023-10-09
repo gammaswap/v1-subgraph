@@ -292,12 +292,18 @@ interface PoolSnapshot @entity {
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
-  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
-  accFeeIndexGrowth: BigInt!
+  # # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
+  # accFeeIndexGrowth: BigInt!
   # Current price at CFMM for token0
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
+  # GammaPool's GS-LP total supply
+  totalSupply: BigInt!
+  # Supply APY
+  supplyAPY: BigDecimal!
+  # Borrow APR
+  borrowAPR: BigDecimal!
 }
 
 type FiveMinPoolSnapshot implements PoolSnapshot @entity {
@@ -323,12 +329,18 @@ type FiveMinPoolSnapshot implements PoolSnapshot @entity {
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
-  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
-  accFeeIndexGrowth: BigInt!
+  # # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
+  # accFeeIndexGrowth: BigInt!
   # Current price at CFMM for token0
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
+  # GammaPool's GS-LP total supply
+  totalSupply: BigInt!
+  # Supply APY
+  supplyAPY: BigDecimal!
+  # Borrow APR
+  borrowAPR: BigDecimal!
 }
 
 type HourlyPoolSnapshot implements PoolSnapshot @entity {
@@ -354,12 +366,18 @@ type HourlyPoolSnapshot implements PoolSnapshot @entity {
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
-  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
-  accFeeIndexGrowth: BigInt!
+  # # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
+  # accFeeIndexGrowth: BigInt!
   # Current price at CFMM for token0
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
+  # GammaPool's GS-LP total supply
+  totalSupply: BigInt!
+  # Supply APY
+  supplyAPY: BigDecimal!
+  # Borrow APR
+  borrowAPR: BigDecimal!
 }
 
 type DailyPoolSnapshot implements PoolSnapshot @entity {
@@ -385,12 +403,18 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
   borrowRate: BigInt!
   # Maps to {GammaPool -> accFeeIndex}
   accFeeIndex: BigInt!
-  # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
-  accFeeIndexGrowth: BigInt!
+  # # Indicates {accFeeIndex} increasement during timed interval, maps to {accFeeIndex[1] - accFeeIndex[0]}
+  # accFeeIndexGrowth: BigInt!
   # Current price at CFMM for token0
   price0: BigInt!
   # Current price at CFMM for token1
   price1: BigInt!
+  # GammaPool's GS-LP total supply
+  totalSupply: BigInt!
+  # Supply APY
+  supplyAPY: BigDecimal!
+  # Borrow APR
+  borrowAPR: BigDecimal!
 }
 
 type Protocol @entity {
