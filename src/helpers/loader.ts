@@ -327,12 +327,24 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     flashData.accFeeIndex = poolData.accFeeIndex;
-    const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    flashData.accFeeIndexGrowth = BigInt.fromI32(0);
+    flashData.totalSupply = poolData.totalSupply;
+    flashData.supplyAPY = BigDecimal.fromString('0');
+    flashData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastFiveMinData != null) {
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
       const lastFiveMinData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
       if (lastFiveMinData) {
-        flashData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(flashData.timestamp.minus(lastFiveMinData.timestamp));
+        // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
+        flashData.supplyAPY = totalLiquidity.divDecimal(lastFiveMinData.totalLiquidity.toBigDecimal())
+          .div(flashData.totalSupply.divDecimal(lastFiveMinData.totalSupply.toBigDecimal()))
+          .minus(BigDecimal.fromString('1'))
+          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
+          .div(flashData.timestamp.minus(lastFiveMinData.timestamp).toBigDecimal());
+
+        // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
+        flashData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
+          .div(flashData.timestamp.minus(lastFiveMinData.timestamp))
+          .divDecimal(ratePrecision.toBigDecimal());
       }
     }
     flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -367,9 +379,11 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
         missingItem.totalLiquidityUSD = lastFlashData.totalLiquidityUSD;
         missingItem.borrowRate = lastFlashData.borrowRate;
         missingItem.accFeeIndex = lastFlashData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastFlashData.price0;
         missingItem.price1 = lastFlashData.price1;
+        missingItem.totalSupply = lastFlashData.totalSupply;
+        missingItem.supplyAPY = lastFlashData.supplyAPY;
+        missingItem.borrowAPR = lastFlashData.borrowAPR;
         missingItem.save();
       }
     }
@@ -422,12 +436,24 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     hourlyData.accFeeIndex = poolData.accFeeIndex;
-    const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    hourlyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    hourlyData.totalSupply = poolData.totalSupply;
+    hourlyData.supplyAPY = BigDecimal.fromString('0');
+    hourlyData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastHourlyData != null) {
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
       const lastHourlyData = DailyPoolSnapshot.load(poolTracer.lastHourlyData!);
       if (lastHourlyData) {
-        hourlyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(hourlyData.timestamp.minus(hourlyData.timestamp));
+        // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
+        hourlyData.supplyAPY = totalLiquidity.divDecimal(lastHourlyData.totalLiquidity.toBigDecimal())
+          .div(hourlyData.totalSupply.divDecimal(lastHourlyData.totalSupply.toBigDecimal()))
+          .minus(BigDecimal.fromString('1'))
+          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
+          .div(hourlyData.timestamp.minus(lastHourlyData.timestamp).toBigDecimal());
+
+        // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
+        hourlyData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
+          .div(hourlyData.timestamp.minus(lastHourlyData.timestamp))
+          .divDecimal(ratePrecision.toBigDecimal());
       }
     }
     hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -462,9 +488,11 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
         missingItem.totalLiquidityUSD = lastHourlyData.totalLiquidityUSD;
         missingItem.borrowRate = lastHourlyData.borrowRate;
         missingItem.accFeeIndex = lastHourlyData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastHourlyData.price0;
         missingItem.price1 = lastHourlyData.price1;
+        missingItem.totalSupply = lastHourlyData.totalSupply;
+        missingItem.supplyAPY = lastHourlyData.supplyAPY;
+        missingItem.borrowAPR = lastHourlyData.borrowAPR;
         missingItem.save();
       }
     }
@@ -517,12 +545,24 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.lastPrice, false);
     // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
-    const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-    dailyData.accFeeIndexGrowth = BigInt.fromI32(0);
+    dailyData.totalSupply = poolData.totalSupply;
+    dailyData.supplyAPY = BigDecimal.fromString('0');
+    dailyData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastDailyData != null) {
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
       const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
       if (lastDailyData) {
-        dailyData.accFeeIndexGrowth = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(dailyData.timestamp.minus(lastDailyData.timestamp));
+        // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
+        dailyData.supplyAPY = totalLiquidity.divDecimal(lastDailyData.totalLiquidity.toBigDecimal())
+          .div(dailyData.totalSupply.divDecimal(lastDailyData.totalSupply.toBigDecimal()))
+          .minus(BigDecimal.fromString('1'))
+          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
+          .div(dailyData.timestamp.minus(lastDailyData.timestamp).toBigDecimal());
+
+        // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
+        dailyData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
+          .div(dailyData.timestamp.minus(lastDailyData.timestamp))
+          .divDecimal(ratePrecision.toBigDecimal());
       }
     }
     dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -557,9 +597,11 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
         missingItem.totalLiquidityUSD = lastDailyData.totalLiquidityUSD;
         missingItem.borrowRate = lastDailyData.borrowRate;
         missingItem.accFeeIndex = lastDailyData.accFeeIndex;
-        missingItem.accFeeIndexGrowth = BigInt.fromI32(0);
         missingItem.price0 = lastDailyData.price0;
         missingItem.price1 = lastDailyData.price1;
+        missingItem.totalSupply = lastDailyData.totalSupply;
+        missingItem.supplyAPY = lastDailyData.supplyAPY;
+        missingItem.borrowAPR = lastDailyData.borrowAPR;
         missingItem.save();
       }
     }
