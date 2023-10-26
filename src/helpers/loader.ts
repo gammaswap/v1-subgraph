@@ -16,7 +16,8 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   const pool = new GammaPool(id);
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
-  pool.protocol = protocol.id;
+  // pool.protocol = protocol.id;
+  pool.protocolId = BigInt.fromI32(event.params.protocolId);
 
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
@@ -116,7 +117,7 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     const account = loadOrCreateAccount(event.params.caller.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
-    loan.protocol = pool.protocol;
+    loan.protocol = pool.protocolId.toString();
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
     loan.initLiquidity = BigInt.fromI32(0);
@@ -151,7 +152,7 @@ export function createLoanPositionManager(event: CreateLoan): Loan {
     const account = loadOrCreateAccount(event.params.owner.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
-    loan.protocol = pool.protocol;
+    loan.protocol = pool.protocolId.toString();
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
     loan.initLiquidity = BigInt.fromI32(0);

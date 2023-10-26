@@ -32,7 +32,8 @@ type GammaPool @entity {
   # CFMM address
   cfmm: Bytes!
   # DEX protocol (Sushiswap, Deltaswap ...)
-  protocol: Protocol!
+  # protocol: Protocol!
+  protocolId: BigInt!
   # Underlying token0 address
   token0: Token!
   # Underlying token1 address
@@ -419,7 +420,7 @@ type DailyPoolSnapshot implements PoolSnapshot @entity {
 
 type Protocol @entity {
   id: ID!
-  pools: [GammaPool!] @derivedFrom(field: "protocol")
+  # pools: [GammaPool!] @derivedFrom(field: "protocol")
   tokens: [ProtocolToken!] @derivedFrom(field: "protocol")
 }
 
