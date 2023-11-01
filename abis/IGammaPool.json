@@ -1933,11 +1933,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256[]",
-        "name": "fees",
-        "type": "uint256[]"
-      },
-      {
         "internalType": "uint256",
         "name": "collateralId",
         "type": "uint256"
@@ -1975,11 +1970,6 @@
         "internalType": "uint256",
         "name": "liquidity",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "fees",
-        "type": "uint256[]"
       },
       {
         "internalType": "uint256[]",
