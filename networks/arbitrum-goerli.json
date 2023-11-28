@@ -1,10 +1,10 @@
 {
   "network": "arbitrum-goerli",
-  "startBlock": "50640468",
-  "factory": "0xcef9e66595f9c92f0e95fb48c64dd88ef3e4790f",
-  "positionManager": "0x140f67f643c41f45ffa3c788af91e3248aa2aa97",
-  "poolViewer": "0x0150ce9e650a37f12fc9250a5053681c9259ed37",
-  "wethUsdcPool": "0x868305a19a6dabef9bb7cbcd7ad19e2d39b1be4a",
-  "stakingRouter": "0x651af2bcf670b343308ec3e386e0ce3c6c3d8a6e",
-  "migrator": "0x778a075c44df6c17abf174222e709e090a693a6e"
+  "startBlock": "56350237",
+  "factory": "0x756c91877892068383292dd66b347640db5fe426",
+  "positionManager": "0xfb55e27bb4c3e29cd253cbc74b0552fda8bc6189",
+  "poolViewer": "0x81c628daeaf75ec115baeaa4e368a15cdb148a79",
+  "wethUsdcPool": "0xa1e225489466c79899d4d6056f245927a1fbbecb",
+  "stakingRouter": "0xf1719f7f02f3dd7c44735aa3d3c11090f189c63a",
+  "migrator": "0x78a9dd62525cc8d5ce4f290eb2351cab58c51c3d"
 }
