@@ -121,6 +121,8 @@ type GammaPool @entity {
   ltvThreshold: BigInt!
   # Liquidation fee
   liquidationFee: BigInt!
+  # Staking is active
+  activeStaking: Boolean!
 
   block: BigInt!
   timestamp: BigInt!
@@ -445,4 +447,22 @@ type GammaPoolTracer @entity {
   lastHourlyData: HourlyPoolSnapshot
   # last 24hr pool snapshots
   lastDailyData: DailyPoolSnapshot
+}
+
+type RewardTracker @entity {
+  id: ID!
+  distributor: RewardDistributor!
+  gsPool: GammaPool
+  depositTokens: [Bytes!]
+  totalSupply: BigInt!
+  cumulativeRewardPerToken: BigInt!
+}
+
+type RewardDistributor @entity {
+  id: ID!
+  rewardToken: Bytes!
+  tokensPerInterval: BigInt!
+  lastDistributionTime: BigInt!
+  rewardTracker: RewardTracker! @derivedFrom(field: "distributor")
+  paused: Boolean!
 }

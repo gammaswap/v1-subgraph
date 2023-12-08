@@ -17,7 +17,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
 
-  updatePrices(poolAddress);
+  if (pool.protocolId == BigInt.fromI32(2)) {
+    updatePrices(poolAddress);
+  }
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;

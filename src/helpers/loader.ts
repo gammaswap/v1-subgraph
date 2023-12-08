@@ -93,6 +93,7 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.utilizationRate = BigInt.fromI32(0);
   pool.ltvThreshold = BigInt.fromI32(0);
   pool.liquidationFee = BigInt.fromI32(0);
+  pool.activeStaking = true;
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
