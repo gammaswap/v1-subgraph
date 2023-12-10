@@ -17,6 +17,7 @@ import {
 } from '../../types/StakingRouter/IStakingRouter';
 import { createRewardTracker, createRewardDistributor } from '../../helpers/staking/loader';
 import { WETH, GS, ES_GS, BN_GS } from '../../helpers/constants';
+import { GammaPool } from '../../types/schema';
 
 export function handleCoreTrackerCreate(event: CoreTrackerCreated): void {
   createRewardDistributor(event.params.rewardDistributor, ES_GS);
@@ -38,6 +39,14 @@ export function handleCoreTrackerUpdate(event: CoreTrackerUpdated): void {
 
 export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   const poolAddress = event.params.gsPool.toHexString();
+  const pool = GammaPool.load(poolAddress);
+  if (pool == null) {
+    log.error("POOL NOT AVAILABLE: {}", [poolAddress]);
+    return;
+  }
+  pool.hasStakingTrackers = true;
+  pool.save();
+
   createRewardDistributor(event.params.rewardDistributor, ES_GS);
   createRewardTracker(poolAddress, event.params.rewardTracker, event.params.rewardDistributor, [poolAddress]);
 }

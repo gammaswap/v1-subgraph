@@ -121,6 +121,8 @@ type GammaPool @entity {
   ltvThreshold: BigInt!
   # Liquidation fee
   liquidationFee: BigInt!
+  # Has staking trackers
+  hasStakingTrackers: Boolean!
   # Staking is active
   activeStaking: Boolean!
 
