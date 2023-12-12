@@ -1,15 +1,15 @@
-import { StatusChange } from '../../types/templates/RewardDistributor/RewardDistributor';
+import { BonusMultiplierChange, Distribute, StatusChange, TokensPerIntervalChange } from '../../types/templates/RewardDistributor/RewardDistributor';
 import { GammaPool, RewardTracker } from '../../types/schema';
 
-export function handleDistribute(): void {
+export function handleDistribute(event: Distribute): void {
   
 }
 
-export function handleEmissionChange(): void {
+export function handleEmissionChange(event: TokensPerIntervalChange): void {
 
 }
 
-export function handleMultiplierChange(): void {
+export function handleMultiplierChange(event: BonusMultiplierChange): void {
 
 }
 
