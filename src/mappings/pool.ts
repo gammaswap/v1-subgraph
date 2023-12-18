@@ -17,7 +17,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
 
-  updatePrices(poolAddress);
+  if (pool.protocolId == BigInt.fromI32(2)) {
+    updatePrices(poolAddress);
+  }
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
@@ -41,6 +43,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.borrowRate = poolData.borrowRate;
   pool.supplyRate = poolData.supplyRate;
   pool.utilizationRate = poolData.utilizationRate;
+  pool.emaUtilRate = poolData.emaUtilRate;
+  pool.emaMultiplier = poolData.emaMultiplier;
+  pool.minUtilRate1 = poolData.minUtilRate1;
+  pool.minUtilRate2 = poolData.minUtilRate2;
+  pool.feeDivisor = poolData.feeDivisor;
+  pool.origFee = poolData.origFee;
   pool.ltvThreshold = BigInt.fromI32(poolData.ltvThreshold);
   pool.liquidationFee = BigInt.fromI32(poolData.liquidationFee);
 

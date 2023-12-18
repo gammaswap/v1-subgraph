@@ -117,10 +117,26 @@ type GammaPool @entity {
   supplyRate: BigInt!
   # Utilization rate of GammaPool, {supplyRate} = {borrowRate} * {utilizationRate}
   utilizationRate: BigInt!
+  # EMA of utilization rate
+  emaUtilRate: BigInt!
+  # Multiplier of EMA used to calculate emaUtilRate
+  emaMultiplier: Int!
+  # Minimum utilization rate at which point we start using the dynamic fee
+  minUtilRate1: Int!
+  # Minimum utilization rate at which point we start using the dynamic fee
+  minUtilRate2: Int!
+  # Dynamic origination fee divisor, to cap at 99% use 16384 = 2^(99-85)
+  feeDivisor: Int!
+  # Loan opening origination fee in basis points
+  origFee: Int!
   # LTV liquidation threshold
   ltvThreshold: BigInt!
   # Liquidation fee
   liquidationFee: BigInt!
+  # Has staking trackers
+  hasStakingTrackers: Boolean!
+  # Staking is active
+  activeStaking: Boolean!
 
   block: BigInt!
   timestamp: BigInt!
@@ -445,4 +461,22 @@ type GammaPoolTracer @entity {
   lastHourlyData: HourlyPoolSnapshot
   # last 24hr pool snapshots
   lastDailyData: DailyPoolSnapshot
+}
+
+type RewardTracker @entity {
+  id: ID!
+  distributor: RewardDistributor!
+  gsPool: GammaPool
+  depositTokens: [Bytes!]
+  totalSupply: BigInt!
+  cumulativeRewardPerToken: BigInt!
+}
+
+type RewardDistributor @entity {
+  id: ID!
+  rewardToken: Bytes!
+  tokensPerInterval: BigInt!
+  lastDistributionTime: BigInt!
+  rewardTracker: RewardTracker! @derivedFrom(field: "distributor")
+  paused: Boolean!
 }

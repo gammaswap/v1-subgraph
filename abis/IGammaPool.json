@@ -597,111 +597,6 @@
   },
   {
     "inputs": [],
-    "name": "getFeeIndexUpdateParams",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "shortStrategy",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "paramsStore",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "pool",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "BORROWED_INVARIANT",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "LP_TOKEN_BALANCE",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastCFMMInvariant",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastCFMMTotalSupply",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "LAST_BLOCK_NUMBER",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "accFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastCFMMFeeIndex",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "emaUtilRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "emaMultiplier",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minUtilRate1",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minUtilRate2",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "feeDivisor",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "origFee",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "ltvThreshold",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "liquidationFee",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct IGammaPool.FeeIndexUpdateParams",
-        "name": "data",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getLastCFMMPrice",
     "outputs": [
       {
@@ -901,6 +796,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "LP_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
           },
@@ -1082,6 +982,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "LP_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
           },
@@ -1254,6 +1159,11 @@
           {
             "internalType": "uint256",
             "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_INVARIANT",
             "type": "uint256"
           },
           {
@@ -1820,6 +1730,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "LP_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
           },
@@ -1933,11 +1848,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256[]",
-        "name": "fees",
-        "type": "uint256[]"
-      },
-      {
         "internalType": "uint256",
         "name": "collateralId",
         "type": "uint256"
@@ -1975,11 +1885,6 @@
         "internalType": "uint256",
         "name": "liquidity",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "fees",
-        "type": "uint256[]"
       },
       {
         "internalType": "uint256[]",

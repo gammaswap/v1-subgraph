@@ -558,6 +558,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "LP_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "LP_TOKEN_BALANCE",
             "type": "uint256"
           },
@@ -735,6 +740,11 @@
           {
             "internalType": "uint256",
             "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_INVARIANT",
             "type": "uint256"
           },
           {
@@ -1176,6 +1186,11 @@
           {
             "internalType": "uint256",
             "name": "BORROWED_INVARIANT",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "LP_INVARIANT",
             "type": "uint256"
           },
           {

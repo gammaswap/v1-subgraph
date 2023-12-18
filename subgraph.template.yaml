@@ -44,6 +44,45 @@ dataSources:
       eventHandlers:
         - event: CreateLoan(indexed address,indexed address,uint256,uint16)
           handler: handleLoanCreateFromPositionManager
+  - name: StakingRouter
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{stakingRouter}}"
+      abi: IStakingRouter
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/staking/stakingRouter.ts
+      entities:
+        - RewardTracker
+        - RewardDistributor
+      abis:
+        - name: IStakingRouter
+          file: ./abis/staking/IStakingRouter.json
+      eventHandlers:
+        - event: CoreTrackerCreated(address,address,address,address,address,address,address)
+          handler: handleCoreTrackerCreate
+        - event: CoreTrackerUpdated(address,address,address)
+          handler: handleCoreTrackerUpdate
+        - event: PoolTrackerCreated(indexed address,address,address,address)
+          handler: handlePoolTrackerCreate
+        - event: PoolTrackerUpdated(indexed address,address,address)
+          handler: handlePoolTrackerUpdate
+        - event: StakedGs(address,address,uint256)
+          handler: handleGsStake
+        - event: StakedLp(address,address,uint256)
+          handler: handleLpStake
+        # - event: StakedLoan(address,address,uint256)
+        #   handler: handleLoanStake
+        - event: UnstakedGs(address,address,uint256)
+          handler: handleGsUnstake
+        - event: UnstakedLp(address,address,uint256)
+          handler: handleLpUnstake
+        # - event: UnstakedLoan(address,address,uint256)
+        #   handler: handleLoanUnstake
 templates:
   - name: GammaPool
     kind: ethereum/contract
@@ -77,3 +116,55 @@ templates:
           handler: handleLiquidation
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleVaultTokenTransfer
+  - name: RewardTracker
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: RewardTracker
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/staking/rewardTracker.ts
+      entities:
+        - RewardTracker
+      abis:
+        - name: RewardTracker
+          file: ./abis/staking/RewardTracker.json
+      eventHandlers:
+        - event: DepositTokenSet(indexed address,bool)
+          handler: handleDepositTokenSet
+        - event: Stake(indexed address,indexed address,indexed address,uint256)
+          handler: handleStake
+        - event: Unstake(indexed address,indexed address,uint256,indexed address)
+          handler: handleUnstake
+        - event: RewardsUpdate(indexed uint256)
+          handler: handleRewardsUpdate
+        - event: UserRewardsUpdate(indexed address,uint256,uint256,uint256,uint256)
+          handler: handleUserRewardsUpdate
+        - event: Claim(indexed address,uint256,address)
+          handler: handleClaim
+  - name: RewardDistributor
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: RewardDistributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/staking/rewardDistributor.ts
+      entities:
+        - RewardDistributor
+      abis:
+        - name: RewardDistributor
+          file: ./abis/staking/RewardDistributor.json
+      eventHandlers:
+        - event: Distribute(uint256)
+          handler: handleDistribute
+        - event: TokensPerIntervalChange(uint256)
+          handler: handleEmissionChange
+        - event: BonusMultiplierChange(uint256)
+          handler: handleMultiplierChange
+        - event: StatusChange(indexed address,uint256,bool)
+          handler: handleStatusChange
