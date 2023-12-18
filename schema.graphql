@@ -117,6 +117,18 @@ type GammaPool @entity {
   supplyRate: BigInt!
   # Utilization rate of GammaPool, {supplyRate} = {borrowRate} * {utilizationRate}
   utilizationRate: BigInt!
+  # EMA of utilization rate
+  emaUtilRate: BigInt!
+  # Multiplier of EMA used to calculate emaUtilRate
+  emaMultiplier: Int!
+  # Minimum utilization rate at which point we start using the dynamic fee
+  minUtilRate1: Int!
+  # Minimum utilization rate at which point we start using the dynamic fee
+  minUtilRate2: Int!
+  # Dynamic origination fee divisor, to cap at 99% use 16384 = 2^(99-85)
+  feeDivisor: Int!
+  # Loan opening origination fee in basis points
+  origFee: Int!
   # LTV liquidation threshold
   ltvThreshold: BigInt!
   # Liquidation fee
