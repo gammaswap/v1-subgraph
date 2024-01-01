@@ -1,13 +1,13 @@
 {
   "network": "arbitrum-sepolia",
-  "startBlock": "2926333",
-  "factory": "0xfb8fd1d468b91ba3ca562b52bac341a9db36627b",
-  "positionManager": "0xfc748e6e93b74e48ade0774ef29d739a2e110d3d",
-  "poolViewer": "0x4542625156022da88230ae771ecab860601c98f9",
-  "wethUsdcPool": "0x0660c6949f6495d1b0107bdeb0490e25ab0ab139",
+  "startBlock": "3350842",
+  "factory": "0x5860318aA15bb310026a49f78B3A1760C51907eF",
+  "positionManager": "0xA6079d27499A73cDfF92F0E6BE0fd99dFe1C3E99",
+  "poolViewer": "0xD688520fBd8fec213dC68BD831BC9F8329187147",
+  "wethUsdcPool": "0xb58990f113008c663d4ac83Ea4eDDd1F4aD29A37",
   "weth": "0x0133ff8b0ea9f22e510ff3a8b245aa863b2eb13f",
-  "stakingRouter": "0x2d03c884c9bd0457e8815cc933caee4d67093389",
-  "GS": "0xcc199cee077ce42144b79baa8be6d4d6f7e70ec3",
-  "esGS": "0x9a89777a3069013bc612e9514bc2cae63e945b49",
-  "bnGS": "0xf4217806ef03d7083b8d732210202acadc14deef"
+  "stakingRouter": "0xE0C2feA185BD19404bc5Fb3f996C14C263Ddf1e5",
+  "GS": "0xDd68372F24e7a601BE090c75Fd1F6Ad0FB5C63F4",
+  "esGS": "0xC240bc454e8B4f63C03a8888EA241daCE926F2aC",
+  "bnGS": "0x968191b3816F62fCDD82111Ed3f01A7B66F5f7c9"
 }
