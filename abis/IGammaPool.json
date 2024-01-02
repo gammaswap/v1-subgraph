@@ -398,6 +398,11 @@
         "internalType": "uint256[]",
         "name": "amounts",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "uint128[]",
+        "name": "tokensHeld",
+        "type": "uint128[]"
       }
     ],
     "stateMutability": "nonpayable",
@@ -1458,6 +1463,11 @@
             "internalType": "uint16",
             "name": "feeDivisor",
             "type": "uint16"
+          },
+          {
+            "internalType": "uint72",
+            "name": "minBorrow",
+            "type": "uint72"
           }
         ],
         "internalType": "struct IGammaPool.PoolData",
@@ -1531,6 +1541,11 @@
         "internalType": "uint8[]",
         "name": "_decimals",
         "type": "uint8[]"
+      },
+      {
+        "internalType": "uint72",
+        "name": "_minBorrow",
+        "type": "uint72"
       },
       {
         "internalType": "bytes",
@@ -1996,6 +2011,11 @@
         "internalType": "uint8",
         "name": "ltvThreshold",
         "type": "uint8"
+      },
+      {
+        "internalType": "uint72",
+        "name": "minBorrow",
+        "type": "uint72"
       }
     ],
     "name": "setPoolParams",
