@@ -273,6 +273,11 @@
             "internalType": "uint16",
             "name": "feeDivisor",
             "type": "uint16"
+          },
+          {
+            "internalType": "uint72",
+            "name": "minBorrow",
+            "type": "uint72"
           }
         ],
         "internalType": "struct IGammaPool.PoolData",
@@ -1007,6 +1012,11 @@
             "internalType": "uint16",
             "name": "feeDivisor",
             "type": "uint16"
+          },
+          {
+            "internalType": "uint72",
+            "name": "minBorrow",
+            "type": "uint72"
           }
         ],
         "internalType": "struct IGammaPool.PoolData",

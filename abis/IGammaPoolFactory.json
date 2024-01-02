@@ -135,6 +135,12 @@
         "internalType": "uint8",
         "name": "ltvThreshold",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint72",
+        "name": "minBorrow",
+        "type": "uint72"
       }
     ],
     "name": "PoolParamsUpdate",
@@ -197,6 +203,24 @@
         "type": "address"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_data",
+        "type": "bytes"
+      }
+    ],
+    "name": "execute",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -557,59 +581,6 @@
         "type": "address"
       },
       {
-        "internalType": "uint16",
-        "name": "_origFee",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_extSwapFee",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_emaMultiplier",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_minUtilRate1",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_minUtilRate2",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint16",
-        "name": "_feeDivisor",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_liquidationFee",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_ltvThreshold",
-        "type": "uint8"
-      }
-    ],
-    "name": "setPoolParams",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_pool",
-        "type": "address"
-      },
-      {
         "internalType": "uint8",
         "name": "_functionId",
         "type": "uint8"
@@ -623,6 +594,24 @@
         "type": "uint256"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "_protocolId",
+        "type": "uint16"
+      },
+      {
+        "internalType": "address",
+        "name": "_newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "updateProtocol",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   }
