@@ -465,6 +465,7 @@ type GammaPoolTracer @entity {
 
 type RewardTracker @entity {
   id: ID!
+  isFeeTracker: Boolean!
   distributor: RewardDistributor!
   gsPool: GammaPool
   depositTokens: [Bytes!]
@@ -474,6 +475,7 @@ type RewardTracker @entity {
 
 type RewardDistributor @entity {
   id: ID!
+  isBonusDistributor: Boolean!
   rewardToken: Bytes!
   tokensPerInterval: BigInt!
   lastDistributionTime: BigInt!
