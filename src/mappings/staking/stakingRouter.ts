@@ -20,19 +20,19 @@ import { WETH, GS, ES_GS, BN_GS } from '../../helpers/constants';
 import { GammaPool } from '../../types/schema';
 
 export function handleCoreTrackerCreate(event: CoreTrackerCreated): void {
-  createRewardDistributor(event.params.rewardDistributor, ES_GS, false);
-  createRewardTracker('', event.params.rewardTracker, event.params.rewardDistributor, [GS, ES_GS], false);
-  createRewardDistributor(event.params.bonusDistributor, BN_GS, true);
-  createRewardTracker('', event.params.bonusTracker, event.params.bonusDistributor, [event.params.rewardTracker.toHexString()], false);
-  createRewardDistributor(event.params.feeDistributor, WETH, false);
-  createRewardTracker('', event.params.feeTracker, event.params.feeDistributor, [event.params.bonusTracker.toHexString(), BN_GS], true);
-
   RewardTrackerDataSource.create(event.params.rewardTracker);
   RewardTrackerDataSource.create(event.params.bonusTracker);
   RewardTrackerDataSource.create(event.params.feeTracker);
   RewardDistributorDataSource.create(event.params.rewardDistributor);
   RewardDistributorDataSource.create(event.params.bonusDistributor);
   RewardDistributorDataSource.create(event.params.feeDistributor);
+
+  createRewardDistributor(event.params.rewardDistributor, ES_GS, false);
+  createRewardTracker('', event.params.rewardTracker, event.params.rewardDistributor, [GS, ES_GS], false);
+  createRewardDistributor(event.params.bonusDistributor, BN_GS, true);
+  createRewardTracker('', event.params.bonusTracker, event.params.bonusDistributor, [event.params.rewardTracker.toHexString()], false);
+  createRewardDistributor(event.params.feeDistributor, WETH, false);
+  createRewardTracker('', event.params.feeTracker, event.params.feeDistributor, [event.params.bonusTracker.toHexString(), BN_GS], true);
 }
 
 export function handleCoreTrackerUpdate(event: CoreTrackerUpdated): void {
@@ -48,6 +48,9 @@ export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   }
   pool.hasStakingTrackers = true;
   pool.save();
+
+  RewardTrackerDataSource.create(event.params.rewardTracker);
+  RewardDistributorDataSource.create(event.params.rewardDistributor);
 
   createRewardDistributor(event.params.rewardDistributor, ES_GS, false);
   createRewardTracker(poolAddress, event.params.rewardTracker, event.params.rewardDistributor, [poolAddress], false);

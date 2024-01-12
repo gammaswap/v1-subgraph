@@ -17,17 +17,16 @@ export function handleMultiplierChange(event: BonusMultiplierChange): void {
 export function handleStatusChange(event: StatusChange): void {
   const rewardDistributor = RewardDistributor.load(event.address.toHexString());
   const rewardTracker = RewardTracker.load(event.params.rewardTracker.toHexString());
+
   if (rewardDistributor == null || rewardTracker == null) return;
 
   rewardDistributor.paused = event.params.paused;
   rewardDistributor.save();
-  
+
   if (rewardTracker.gsPool != null) {
     const pool = GammaPool.load(rewardTracker.gsPool!);
-    log.warning("==============: {}", [rewardTracker.gsPool!])
     
     if (pool != null) {
-      log.warning("@@@@@@@@@@@@@: {}", [event.params.paused ? "Paused" : "Unpaused"])
       pool.activeStaking = !event.params.paused;
       pool.save();
     }
