@@ -21,7 +21,10 @@
     "deploy:arbgoerli-dev": "graph deploy --product hosted-service gammaswap/gammaswap-v1_1-arbgoerli-dev subgraph.arbitrum-goerli.yaml",
     "deploy:arbsepolia": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia subgraph.arbitrum-sepolia.yaml",
     "deploy:arbsepolia-dev": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia-dev subgraph.arbitrum-sepolia.yaml",
-    "deploy:arbitrum": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum subgraph.arbitrum.yaml"
+    "deploy:arbsepolia-dev2": "graph deploy --product hosted-service gammaswap/arbsepolia-dev subgraph.arbitrum-sepolia.yaml",
+    "deploy:arbitrum-old": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum subgraph.arbitrum-oct23.yaml",
+    "deploy:arbitrum": "graph deploy --product hosted-service gammaswap/gammaswap-v1_1-arbitrum subgraph.arbitrum.yaml"
+
   },
   "keywords": [],
   "author": "Simon Mall",
