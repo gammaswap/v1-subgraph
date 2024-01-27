@@ -14,7 +14,7 @@ export function oneEthInUsd(): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const pool = GammaPool.load(WETH_USDC_POOL);
-  
+
   if (poolContract == null || pool == null) return BigDecimal.fromString('0');
 
   const token0 = Token.load(pool.token0);

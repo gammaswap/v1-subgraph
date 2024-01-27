@@ -450,7 +450,7 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastHourlyData != null) {
       const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
-      const lastHourlyData = DailyPoolSnapshot.load(poolTracer.lastHourlyData!);
+      const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
       if (lastHourlyData) {
         // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
         hourlyData.supplyAPY = totalLiquidity.divDecimal(lastHourlyData.totalLiquidity.toBigDecimal())

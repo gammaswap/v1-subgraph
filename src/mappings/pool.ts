@@ -3,7 +3,7 @@ import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
-import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER } from '../helpers/constants';
+import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
 import { updatePrices, updatePoolStats, updateLoanStats } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -17,7 +17,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
 
-  if (pool.protocolId == BigInt.fromI32(2)) {
+  if (pool.protocolId == BigInt.fromI32(DEFAULT_PROTOCOL_ID)) {
     updatePrices(poolAddress);
   }
 
