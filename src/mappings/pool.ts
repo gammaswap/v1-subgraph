@@ -66,13 +66,6 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 }
 
 export function handleLoanCreate(event: LoanCreated): void {
-  const caller = event.params.caller.toHexString();
-  /**
-   * If position manager is the caller,
-   * use `handleLoanCreateFromPositionManager`
-   */
-  if (caller == POSITION_MANAGER) return;
-
   const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   createLoan(loanId, event);
 }
