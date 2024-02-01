@@ -1,6 +1,9 @@
 import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { createLoanPositionManager } from '../helpers/loader';
+import { transferLoanOwner } from '../helpers/loader';
 
 export function handleLoanCreateFromPositionManager(event: CreateLoan): void {
-  createLoanPositionManager(event);
+  const loanId = event.params.pool.toHexString() + '-' + event.params.tokenId.toString();
+  const owner = event.params.owner.toHexString();
+
+  transferLoanOwner(loanId, owner);
 }

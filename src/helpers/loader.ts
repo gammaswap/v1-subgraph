@@ -152,39 +152,16 @@ export function createLoan(id: string, event: LoanCreated): Loan {
   return loan;
 }
 
-export function createLoanPositionManager(event: CreateLoan): Loan {
-  const pool = GammaPool.load(event.params.pool.toHexString()); // Make sure pool exists
-  const id = event.params.pool.toHexString() + '-' + event.params.tokenId.toString();
-  const loan = new Loan(id);
-  if (pool != null) {
-    const account = loadOrCreateAccount(event.params.owner.toHexString()); // Make sure account exists
-    loan.tokenId = event.params.tokenId;
-    loan.pool = pool.id;
-    loan.protocol = pool.protocolId.toString();
-    loan.account = account.id;
-    loan.rateIndex = BigInt.fromI32(0);
-    loan.initLiquidity = BigInt.fromI32(0);
-    loan.initLiquidityETH = BigDecimal.fromString('0');
-    loan.initLiquidityUSD = BigDecimal.fromString('0');
-    loan.liquidity = BigInt.fromI32(0);
-    loan.liquidityETH = BigDecimal.fromString('0');
-    loan.liquidityUSD = BigDecimal.fromString('0');
-    loan.lpTokens = BigInt.fromI32(0);
-    loan.collateral0 = BigInt.fromI32(0);
-    loan.collateral1 = BigInt.fromI32(0);
-    loan.entryPrice = BigInt.fromI32(0);
-    loan.status = 'OPEN';
-    loan.openedAtBlock = event.block.number;
-    loan.openedAtTxhash = event.transaction.hash.toHexString();
-    loan.openedAtTimestamp = event.block.timestamp;
-    loan.closedAtBlock = BigInt.fromI32(0);
-    loan.closedAtTxhash = "";
-    loan.closedAtTimestamp = BigInt.fromI32(0);
-
-    loan.save();
+export function transferLoanOwner(loanId: string, newOwner: string): void {
+  const loan = Loan.load(loanId);
+  if (loan == null) {
+    log.error("LOAN NOT AVAILABLE: {}", [loanId]);
+    return;
   }
 
-  return loan;
+  const account = loadOrCreateAccount(newOwner);
+  loan.account = account.id;
+  loan.save();
 }
 
 export function createLoanSnapshot(loan: Loan, event: LoanUpdated): LoanSnapshot {
