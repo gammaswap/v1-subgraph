@@ -2,6 +2,7 @@
   "network": "sepolia",
   "startBlock": "5219485",
   "factory": "0xa65d90ac1eb85a6740e24439d1a99c663583a909",
+  "dsFactory": "0x0000000000000000000000000000000000000000",
   "positionManager": "0xff535a587e8ed6392f1efc83e1e6b4248cd7efe7",
   "poolViewer": "0x9b57a2e4faea1ab46819a9a22b48f7b271f7e1da",
   "wethUsdcPool": "0xceff921e338e845af7353169dafb80bc30472daa",

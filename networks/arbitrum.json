@@ -1,7 +1,6 @@
 {
   "network": "arbitrum-one",
   "startBlock": "173451651",
-  "dsStartBlock": "173455645",
   "factory": "0xfd513630f697a9c1731f196185fb9eba6eaac20b",
   "dsFactory": "0xcb85e1222f715a81b8edaeb73b28182fa37cffa8",
   "positionManager": "0x3b72616376652cc82f17dd7a9b58f71cdb3b98b0",
