@@ -24,6 +24,26 @@ dataSources:
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
           handler: handlePoolCreate
+  - name: DeltaswapFactory
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{dsFactory}}"
+      abi: DeltaSwapFactory
+      startBlock: {{dsStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/dsFactory.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: DeltaSwapFactory
+          file: ./abis/IDeltaSwapFactory.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreate
   - name: PositionManager
     kind: ethereum/contract
     network: {{network}}
@@ -168,3 +188,23 @@ templates:
           handler: handleMultiplierChange
         - event: StatusChange(indexed address,uint256,bool)
           handler: handleStatusChange
+  - name: DeltaSwapPair
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: DeltaSwapPair
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pair.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: PoolViewer
+          file: ./abis/IPoolViewer.json
+      eventHandlers:
+        - event: Sync(uint112,uint112)
+          handler: handleSync

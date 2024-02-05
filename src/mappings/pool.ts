@@ -3,7 +3,7 @@ import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
-import { POSITION_MANAGER, ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
+import { ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
 import { updatePrices, updatePoolStats, updateLoanStats } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -22,6 +22,13 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   }
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);
+  pool.shortStrategy = poolData.shortStrategy;
+  pool.borrowStrategy = poolData.borrowStrategy;
+  pool.repayStrategy = poolData.repayStrategy;
+  pool.rebalanceStrategy = poolData.rebalanceStrategy;
+  pool.singleLiquidationStrategy = poolData.singleLiquidationStrategy;
+  pool.batchLiquidationStrategy = poolData.batchLiquidationStrategy;
+
   pool.lpBalance = poolData.LP_TOKEN_BALANCE;
   pool.lpBorrowedBalance = poolData.LP_TOKEN_BORROWED;
   pool.lpBorrowedBalancePlusInterest = poolData.LP_TOKEN_BORROWED_PLUS_INTEREST;
