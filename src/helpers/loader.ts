@@ -1,11 +1,11 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
+import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
-import { CreateLoan } from '../types/PositionManager/PositionManager';
-import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot } from '../types/schema';
-import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN } from './constants';
+import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair } from '../types/schema';
+import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO } from './constants';
 import { getEthUsdValue } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
@@ -51,6 +51,13 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
 
   loadOrCreateProtocolToken(protocol.id, token0.id);
   loadOrCreateProtocolToken(protocol.id, token1.id);
+
+  pool.shortStrategy = Address.fromHexString(ADDRESS_ZERO);
+  pool.borrowStrategy = Address.fromHexString(ADDRESS_ZERO);
+  pool.repayStrategy = Address.fromHexString(ADDRESS_ZERO);
+  pool.rebalanceStrategy = Address.fromHexString(ADDRESS_ZERO);
+  pool.singleLiquidationStrategy = Address.fromHexString(ADDRESS_ZERO);
+  pool.batchLiquidationStrategy = Address.fromHexString(ADDRESS_ZERO);
 
   pool.lpBalance = BigInt.fromI32(0);
   pool.lpBorrowedBalance = BigInt.fromI32(0);
@@ -245,6 +252,7 @@ export function loadOrCreateToken(id: string): Token {
     token.decimals = BigInt.fromI32(0);
     token.priceETH = BigDecimal.fromString('0');
     token.priceUSD = BigDecimal.fromString('0');
+    token.isDerived = false;
     token.save();
   }
 
@@ -272,6 +280,21 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
   }
 
   return protocolToken;
+}
+
+export function createPair(event: PairCreated): void {
+  const id = event.params.pair.toHexString();
+  let pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    pair = new DeltaSwapPair(id);
+    const token0 = loadOrCreateToken(event.params.token0.toHexString());
+    const token1 = loadOrCreateToken(event.params.token1.toHexString());
+    pair.token0 = token0.id;
+    pair.token1 = token1.id;
+    pair.reserve0 = BigInt.fromI32(0);
+    pair.reserve1 = BigInt.fromI32(0);
+    pair.save();
+  }
 }
 
 export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): FiveMinPoolSnapshot {

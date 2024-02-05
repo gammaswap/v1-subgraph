@@ -54,20 +54,42 @@ export function updatePrices(poolAddress: Address): void {
 
   if (token0.symbol == 'WETH') {
     token0.priceETH = BigDecimal.fromString('1');
-    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(18);
+    token0.priceUSD = ethToUsd.truncate(6);
     token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
-    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(18);
+    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
-    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(18);
+    token1.priceUSD = ethToUsd.truncate(6);
     token0.priceETH = poolPrice.truncate(18);
-    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(18);
+    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
   }
 
   token0.save();
   token1.save();
 
   pool.save();
+}
+
+export function updatePrices2(token0: Token, token1: Token, ratio: BigInt): void {
+  log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, ratio.toString()]);
+  const ethToUsd = oneEthInUsd();
+  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  const poolPrice = ratio.divDecimal(precision);
+
+  if (token0.symbol == 'WETH') {
+    token0.priceETH = BigDecimal.fromString('1');
+    token0.priceUSD = ethToUsd.truncate(6);
+    token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
+    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
+  } else if (token1.symbol == 'WETH') {
+    token1.priceETH = BigDecimal.fromString('1');
+    token1.priceUSD = ethToUsd.truncate(6);
+    token0.priceETH = poolPrice.truncate(18);
+    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
+  }
+
+  token0.save();
+  token1.save();
 }
 
 export function updatePoolStats(pool: GammaPool): void {
