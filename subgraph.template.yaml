@@ -43,7 +43,7 @@ dataSources:
           file: ./abis/IDeltaSwapFactory.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
-          handler: handlePairCreate
+          handler: handlePairCreated
   - name: PositionManager
     kind: ethereum/contract
     network: {{network}}
