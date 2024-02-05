@@ -1,6 +1,7 @@
 {
   "network": "arbitrum-sepolia",
   "startBlock": "7876976",
+  "dsStartBlock": "7877837",
   "factory": "0x0778f5341b0422c2ab60ce75f79971ebfd017d47",
   "dsFactory": "0xd6f71ba7e46b7b12e52e6ce0194f0c2b3bfeef83",
   "positionManager": "0xf05f0389d37b945b24082f981ca4aada62e193df",
