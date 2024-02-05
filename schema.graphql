@@ -39,6 +39,19 @@ type GammaPool @entity {
   # Underlying token1 address
   token1: Token!
 
+  # Short Strategy Address
+  shortStrategy: Bytes!
+  # Borrow Strategy Address
+  borrowStrategy: Bytes!
+  # Repay Strategy Address
+  repayStrategy: Bytes!
+  # Rebalance Strategy Address
+  rebalanceStrategy: Bytes!
+  # Single Liquidation Strategy Address
+  singleLiquidationStrategy: Bytes!
+  # Batch Liquidation Strategy Address
+  batchLiquidationStrategy: Bytes!
+
   """
   Raw pool storage variables
   All these values get updated with user txns
@@ -258,6 +271,7 @@ type Token @entity {
   decimals: BigInt!
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
+  isDerived: Boolean!
   protocols: [ProtocolToken!] @derivedFrom(field: "token")
 }
 
@@ -481,4 +495,15 @@ type RewardDistributor @entity {
   lastDistributionTime: BigInt!
   rewardTracker: RewardTracker! @derivedFrom(field: "distributor")
   paused: Boolean!
+}
+
+"""
+Track DeltaSwap pairs if present to update token prices
+"""
+type DeltaSwapPair @entity {
+  id: ID! # pair address
+  token0: Token!
+  token1: Token!
+  reserve0: BigInt!
+  reserve1: BigInt!
 }
