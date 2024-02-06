@@ -507,3 +507,14 @@ type DeltaSwapPair @entity {
   reserve0: BigInt!
   reserve1: BigInt!
 }
+
+"""
+About this subgraph
+"""
+type About @entity {
+  id: ID! #random
+  version: String!
+  network: String!
+  totalPools: BigInt!
+  totalLoans: BigInt!
+}

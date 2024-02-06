@@ -4,8 +4,8 @@ import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
-import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair } from '../types/schema';
-import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO } from './constants';
+import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair, About } from '../types/schema';
+import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
 import { getEthUsdValue } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
@@ -622,4 +622,19 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
   }
 
   return dailyData;
+}
+
+export function loadOrCreateAbout(): About {
+  const id = 'about';
+  let instance = About.load(id);
+  if (instance == null) {
+    instance = new About(id);
+    instance.version = VERSION;
+    instance.network = NETWORK;
+    instance.totalPools = BigInt.fromI32(0);
+    instance.totalLoans = BigInt.fromI32(0);
+    instance.save();
+  }
+
+  return instance;
 }
