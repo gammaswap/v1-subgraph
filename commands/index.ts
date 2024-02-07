@@ -50,7 +50,7 @@ program
       "deploy:dev": "graph deploy --product hosted-service gammaswap/gammaswap-dev subgraph.arbitrum-sepolia.yaml"
      */
 
-    exec(`graph build --product hosted-service ${graph_uri} subgraph.${network}.yaml`);
+    exec(`graph deploy --product hosted-service ${graph_uri} subgraph.${network}.yaml`);
   })
 
 program.parse();
