@@ -4,30 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare:arbsepolia": "mustache networks/arbitrum-sepolia.json subgraph.template.yaml subgraph.arbitrum-sepolia.yaml && mustache networks/arbitrum-sepolia.json src/helpers/constants.template.ts src/helpers/constants.ts",
-    "prepare:arbsepolia-oct23": "mustache networks/arbitrum-sepolia-oct23.json subgraph.template.yaml subgraph.arbitrum-sepolia-oct23.yaml && mustache networks/arbitrum-sepolia-oct23.json src/helpers/constants.template.ts src/helpers/constants.ts",
-    "prepare:arbitrum": "mustache networks/arbitrum.json subgraph.template.yaml subgraph.arbitrum.yaml && mustache networks/arbitrum.json src/helpers/constants.template.ts src/helpers/constants.ts",
-    "prepare:arbitrum-oct23": "mustache networks/arbitrum-oct23.json subgraph.template.yaml subgraph.arbitrum-oct23.yaml && mustache networks/arbitrum-oct23.json src/helpers/constants.template.ts src/helpers/constants.ts",
-    "prepare:sepolia": "mustache networks/sepolia.json subgraph.template.yaml subgraph.sepolia.yaml && mustache networks/sepolia.json src/helpers/constants.template.ts src/helpers/constants.ts",
-    "codegen:arbitrum": "graph codegen subgraph.arbitrum.yaml --output-dir src/types/",
-    "codegen:arbitrum-oct23": "graph codegen subgraph.arbitrum-oct23.yaml --output-dir src/types/",
-    "codegen:arbsepolia": "graph codegen subgraph.arbitrum-sepolia.yaml --output-dir src/types/",
-    "codegen:arbsepolia-oct23": "graph codegen subgraph.arbitrum-sepolia-oct23.yaml --output-dir src/types/",
-    "codegen:sepolia": "graph codegen subgraph.sepolia.yaml --output-dir src/types/",
-    "build:arbsepolia": "graph build subgraph.arbitrum-sepolia.yaml",
-    "build:arbsepolia-oct23": "graph build subgraph.arbitrum-sepolia-oct23.yaml",
-    "build:arbitrum": "graph build subgraph.arbitrum.yaml",
-    "build:arbitrum-oct23": "graph build subgraph.arbitrum-oct23.yaml",
-    "build:sepolia": "graph build subgraph.sepolia.yaml",
-    "deploy:arbsepolia": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia subgraph.arbitrum-sepolia.yaml",
-    "deploy:arbsepolia-dev"  : "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia-dev subgraph.arbitrum-sepolia.yaml",
-    "deploy:arbsepolia-oct23": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia-oct23 subgraph.arbitrum-sepolia-oct23.yaml",
-    "deploy:arbitrum": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum subgraph.arbitrum.yaml",
-    "deploy:arbitrum-dev": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum-dev subgraph.arbitrum.yaml",
-    "deploy:arbitrum-oct23": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbitrum-oct23 subgraph.arbitrum-oct23.yaml",
-    "deploy:sepolia": "graph deploy --product hosted-service gammaswap/gammaswap-v1-sepolia subgraph.sepolia.yaml",
-    "deploy:sepolia-dev"  : "graph deploy --product hosted-service gammaswap/gammaswap-v1-sepolia-dev subgraph.sepolia.yaml",
-    "deploy:dev": "graph deploy --product hosted-service gammaswap/gammaswap-dev subgraph.arbitrum-sepolia.yaml"
+    "prepare": "node -r ts-node/register commands/index.ts prepare",
+    "codegen": "node -r ts-node/register commands/index.ts codegen",
+    "build": "node -r ts-node/register commands/index.ts build",
+    "deploy": "node -r ts-node/register commands/index.ts deploy"
   },
   "keywords": [],
   "author": "Simon Mall",
@@ -35,6 +15,12 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.51.2",
     "@graphprotocol/graph-ts": "^0.31.0",
-    "mustache": "^4.2.0"
+    "@types/node": "^20.11.16",
+    "@types/shelljs": "^0.8.15",
+    "commander": "^12.0.0",
+    "mustache": "^4.2.0",
+    "shelljs": "^0.8.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }

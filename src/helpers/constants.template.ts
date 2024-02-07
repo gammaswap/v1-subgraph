@@ -24,4 +24,4 @@ export const BN_GS = '{{bnGS}}';
 
 export const DEFAULT_PROTOCOL_ID = 3;
 
-export const VERSION = '{{version}}';
+export const VERSION = 'VERSION_PLACEHOLDER';
