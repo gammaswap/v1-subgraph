@@ -11,6 +11,6 @@ export function handlePoolCreate(event: PoolCreated): void {
   GammaPoolDataSource.create(event.params.pool);
 
   const about = loadOrCreateAbout();
-  about.totalPools = about.totalLoans.plus(BigInt.fromI32(1));
+  about.totalPools = about.totalPools.plus(BigInt.fromI32(1));
   about.save();
 }
