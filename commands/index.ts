@@ -36,7 +36,7 @@ program
   .command('deploy')
   .argument('<graph_uri>')
   .argument('<network>')
-  .action(async (network: string) => 
+  .action(async (graph_uri: string, network: string) => 
   {
     /**
       "deploy:arbsepolia": "graph deploy --product hosted-service gammaswap/gammaswap-v1-arbsepolia subgraph.arbitrum-sepolia.yaml",
@@ -49,7 +49,8 @@ program
       "deploy:sepolia-dev": "graph deploy --product hosted-service gammaswap/gammaswap-v1-sepolia-dev subgraph.sepolia.yaml",
       "deploy:dev": "graph deploy --product hosted-service gammaswap/gammaswap-dev subgraph.arbitrum-sepolia.yaml"
      */
-    exec(`graph build subgraph.${network}.yaml`);
+
+    exec(`graph build --product hosted-service ${graph_uri} subgraph.${network}.yaml`);
   })
 
 program.parse();
