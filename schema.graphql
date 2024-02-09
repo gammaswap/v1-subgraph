@@ -517,4 +517,7 @@ type About @entity {
   network: String!
   totalPools: BigInt!
   totalLoans: BigInt!
+  totalActiveLoans: BigInt!
+  totalTvlETH: BigDecimal!
+  totalTvlUSD: BigDecimal!
 }

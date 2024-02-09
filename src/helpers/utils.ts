@@ -3,6 +3,7 @@ import { Pool } from '../types/templates/GammaPool/Pool';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, Loan, Token } from '../types/schema';
 import { WETH_USDC_POOL, POOL_VIEWER } from './constants';
+import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
   const precision = BigInt.fromI32(10).pow(<u8>decimals).toBigDecimal();
@@ -126,8 +127,16 @@ export function updatePoolStats(pool: GammaPool): void {
   const tokensInETH = allTokensInToken1.times(token1.priceETH).truncate(2);
   const tokensInUSD = allTokensInToken1.times(token1.priceUSD).truncate(2);
 
+  const prevTvlETH = pool.tvlETH;
+  const prevTvlUSD = pool.tvlUSD;
+
   pool.tvlETH = pool.lpBalanceETH.plus(tokensInETH);
   pool.tvlUSD = pool.lpBalanceUSD.plus(tokensInUSD);
+
+  const about = loadOrCreateAbout();
+  about.totalTvlETH = about.totalTvlETH.plus(pool.tvlETH).minus(prevTvlETH);
+  about.totalTvlUSD = about.totalTvlUSD.plus(pool.tvlUSD).minus(prevTvlUSD);
+  about.save();
 
   pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(pool.lastCfmmInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lastCfmmInToken0 = pool.lastCfmmInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());

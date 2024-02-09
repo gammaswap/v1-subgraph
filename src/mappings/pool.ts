@@ -78,6 +78,7 @@ export function handleLoanCreate(event: LoanCreated): void {
 
   const about = loadOrCreateAbout();
   about.totalLoans = about.totalLoans.plus(BigInt.fromI32(1));
+  about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
   about.save();
 }
 
@@ -144,6 +145,9 @@ export function handleLiquidation(event: Liquidation): void {
       // const sequence = liquidations ? liquidations.load().length : 0;
       // const liquidationId = loanId + '-' + sequence.toString();
       createLiquidation(loanId, event);
+
+      const about = loadOrCreateAbout();
+      about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
     }
   }
 }
