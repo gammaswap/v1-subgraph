@@ -520,4 +520,6 @@ type About @entity {
   totalActiveLoans: BigInt!
   totalTvlETH: BigDecimal!
   totalTvlUSD: BigDecimal!
+  totalBorrowedETH: BigDecimal!
+  totalBorrowedUSD: BigDecimal!
 }

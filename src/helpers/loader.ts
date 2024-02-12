@@ -636,6 +636,8 @@ export function loadOrCreateAbout(): About {
     instance.totalActiveLoans = BigInt.fromI32(0);
     instance.totalTvlETH = BigDecimal.fromString('0');
     instance.totalTvlUSD = BigDecimal.fromString('0');
+    instance.totalBorrowedETH = BigDecimal.fromString('0');
+    instance.totalBorrowedUSD = BigDecimal.fromString('0');
     instance.save();
   }
 
