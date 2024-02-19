@@ -116,14 +116,18 @@ export function handleLoanUpdate(event: LoanUpdated): void {
       loan.closedAtBlock = event.block.number;
       loan.closedAtTxhash = event.transaction.hash.toHexString();
       loan.closedAtTimestamp = event.block.timestamp;
-      about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+      if (about.totalActiveLoans.gt(BigInt.fromI32(0))) {
+        about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+      }
     }
   } else if ([11, 12, 13].includes(event.params.txType)) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();
     loan.closedAtTimestamp = event.block.timestamp;
-    about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+    if (about.totalActiveLoans.gt(BigInt.fromI32(0))) {
+      about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+    }
   }
 
   loan.save();
