@@ -2,7 +2,7 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot } from '../helpers/loader';
+import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
 import { ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
 import { updatePrices, updatePoolStats, updateLoanStats } from '../helpers/utils';
 
@@ -75,6 +75,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 export function handleLoanCreate(event: LoanCreated): void {
   const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
   createLoan(loanId, event);
+
+  const about = loadOrCreateAbout();
+  about.totalLoans = about.totalLoans.plus(BigInt.fromI32(1));
+  about.save();
 }
 
 export function handleLoanUpdate(event: LoanUpdated): void {
@@ -85,6 +89,8 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     log.error("LOAN NOT AVAILABLE: {}", [loanId]);
     return;
   }
+
+  const about = loadOrCreateAbout();
 
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.getLoanData(event.params.tokenId);
@@ -103,21 +109,30 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     loan.openedAtBlock = event.block.number;
     loan.openedAtTxhash = event.transaction.hash.toHexString();
     loan.openedAtTimestamp = event.block.timestamp;
+    about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
   } else if ([8, 9, 10].includes(event.params.txType)) { // 8 -> REPAY_LIQUIDITY, 9 -> REPAY_LIQUIDITY_SET_RATIO, 10 -> REPAY_LIQUIDITY_WITH_LP
     if (loan.initLiquidity == BigInt.zero()) {
       loan.status = 'CLOSED';
       loan.closedAtBlock = event.block.number;
       loan.closedAtTxhash = event.transaction.hash.toHexString();
       loan.closedAtTimestamp = event.block.timestamp;
+      if (about.totalActiveLoans.gt(BigInt.fromI32(0))) {
+        about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+      }
     }
   } else if ([11, 12, 13].includes(event.params.txType)) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();
     loan.closedAtTimestamp = event.block.timestamp;
+    if (about.totalActiveLoans.gt(BigInt.fromI32(0))) {
+      about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
+    }
   }
 
   loan.save();
+
+  about.save();
 
   updateLoanStats(loan);
 
