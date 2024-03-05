@@ -15,7 +15,7 @@ export function isGapPeriod(blockNumber: BigInt) : boolean {
   const gapStartBlock = BigInt.fromString(GAP_START_BLOCK);
   const gapEndBlock = BigInt.fromString(GAP_END_BLOCK);
   return gapStartBlock.gt(BigInt.zero()) && gapEndBlock.gt(BigInt.zero()) &&
-      blockNumber.ge(gapStartBlock) && blockNumber.lt(gapEndBlock);// GammaPool 1.2.1
+      blockNumber.ge(gapStartBlock) && blockNumber.lt(gapEndBlock); // GammaPool 1.2.1 interface break in arbitrumSepolia
 }
 
 export function getPoolViewer(blockNumber: BigInt) : PoolViewer {
@@ -28,11 +28,11 @@ export function getPoolViewer(blockNumber: BigInt) : PoolViewer {
 
 export function oneEthInUsd(blockNumber: BigInt): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
-  const poolViewer = getPoolViewer(blockNumber);
   const pool = GammaPool.load(WETH_USDC_POOL);
 
   if (poolContract == null || pool == null) return BigDecimal.fromString('0');
 
+  const poolViewer = getPoolViewer(blockNumber);
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
   if (token0 == null || token1 == null) return BigDecimal.fromString('0');
