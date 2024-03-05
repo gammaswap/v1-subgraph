@@ -6,6 +6,8 @@
   "dsFactory": "0xd6f71ba7e46b7b12e52e6ce0194f0c2b3bfeef83",
   "positionManager": "0xf05f0389d37b945b24082f981ca4aada62e193df",
   "poolViewer": "0xa31be149ae9f4e1df7564cff230add42855823ca",
+  "poolViewer2": "0x90bb41d511cf341481c047724410a48d15e4a7ac",
+  "pv2StartBlock": "19920301",
   "wethUsdcPool": "0x6adbf5cfaf537f2248818ae67654c358ffa290b3",
   "weth": "0x0133ff8b0ea9f22e510ff3a8b245aa863b2eb13f",
   "stakingRouter": "0x0000000000000000000000000000000000000000",

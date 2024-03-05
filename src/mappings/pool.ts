@@ -3,8 +3,8 @@ import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
-import { ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
-import { updatePrices, updatePoolStats, updateLoanStats } from '../helpers/utils';
+import { ADDRESS_ZERO, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
+import { updatePrices, updatePoolStats, updateLoanStats, getPoolViewerAddress } from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -15,10 +15,11 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
+  const poolViewerAddress = getPoolViewerAddress(event.block.number);
+  const poolViewer = PoolViewer.bind(poolViewerAddress);
 
   if (pool.protocolId == BigInt.fromI32(DEFAULT_PROTOCOL_ID)) {
-    updatePrices(poolAddress);
+    updatePrices(poolAddress, poolViewer);
   }
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);

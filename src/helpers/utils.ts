@@ -2,7 +2,7 @@ import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, Loan, Token } from '../types/schema';
-import { WETH_USDC_POOL, POOL_VIEWER } from './constants';
+import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2_START_BLOCK, POOL_VIEWER2 } from './constants';
 import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -11,9 +11,16 @@ export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDe
   return value.divDecimal(precision);
 }
 
-export function oneEthInUsd(): BigDecimal {
+export function getPoolViewerAddress(blockNumber: BigInt): Address {
+  const pv2StartBlock = BigInt.fromString(POOL_VIEWER2_START_BLOCK);
+  if(pv2StartBlock.gt(BigInt.zero()) && blockNumber.ge(pv2StartBlock)){
+    return Address.fromString(POOL_VIEWER2);
+  }
+  return Address.fromString(POOL_VIEWER)
+}
+
+export function oneEthInUsd(poolViewer: PoolViewer): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
-  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
   const pool = GammaPool.load(WETH_USDC_POOL);
 
   if (poolContract == null || pool == null) return BigDecimal.fromString('0');
@@ -35,13 +42,13 @@ export function oneEthInUsd(): BigDecimal {
   return price;
 }
 
-export function updatePrices(poolAddress: Address): void {
+export function updatePrices(poolAddress: Address, poolViewer: PoolViewer): void {
   const poolContract = Pool.bind(poolAddress);
   const pool = GammaPool.load(poolAddress.toHexString());
 
   if (poolContract == null || pool == null) return;
 
-  const ethToUsd = oneEthInUsd();
+  const ethToUsd = oneEthInUsd(poolViewer);
 
   pool.lastPrice = poolContract.getLastCFMMPrice();
 
@@ -71,9 +78,9 @@ export function updatePrices(poolAddress: Address): void {
   pool.save();
 }
 
-export function updatePrices2(token0: Token, token1: Token, ratio: BigInt): void {
+export function updatePrices2(token0: Token, token1: Token, ratio: BigInt, poolViewer: PoolViewer): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, ratio.toString()]);
-  const ethToUsd = oneEthInUsd();
+  const ethToUsd = oneEthInUsd(poolViewer);
   const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
   const poolPrice = ratio.divDecimal(precision);
 

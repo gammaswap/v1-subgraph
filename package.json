@@ -16,7 +16,8 @@
     "deploy:arbitrum-oct23": "yarn deploy gammaswap/gammaswap-v1-arbitrum-oct23 arbitrum-oct23",
     "deploy:sepolia": "yarn deploy gammaswap/gammaswap-v1-sepolia sepolia",
     "deploy:sepolia-dev": "yarn deploy gammaswap/gammaswap-v1-sepolia-dev sepolia",
-    "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia"
+    "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia",
+    "deploy:dev2": "yarn deploy gammaswap/arbsepolia-dev arbitrum-sepolia"
   },
   "keywords": [],
   "author": "Simon Mall",
