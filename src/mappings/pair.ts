@@ -1,9 +1,8 @@
-import {log, BigInt, Address} from '@graphprotocol/graph-ts';
+import { log, BigInt } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { DeltaSwapPair } from '../types/schema';
-import { updatePrices2, getPoolViewerAddress } from '../helpers/utils';
-import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
+import { updatePrices2 } from '../helpers/utils';
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
@@ -25,7 +24,5 @@ export function handleSync(event: Sync): void {
     .times(BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()))
     .div(event.params.reserve0);
 
-  const poolViewerAddress = getPoolViewerAddress(event.block.number);
-  const poolViewer = PoolViewer.bind(poolViewerAddress);
-  updatePrices2(token0, token1, ratio, poolViewer);
+  updatePrices2(token0, token1, ratio, event.block.number);
 }

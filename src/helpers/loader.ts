@@ -6,7 +6,7 @@ import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from 
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair, About } from '../types/schema';
 import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
-import {getEthUsdValue, getPoolViewerAddress} from './utils';
+import { getEthUsdValue, getPoolViewer } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
@@ -19,8 +19,7 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   // pool.protocol = protocol.id;
   pool.protocolId = BigInt.fromI32(event.params.protocolId);
 
-  const poolViewerAddress = getPoolViewerAddress(event.block.number);
-  const poolViewer = PoolViewer.bind(poolViewerAddress);
+  const poolViewer = getPoolViewer(event.block.number);
   const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());

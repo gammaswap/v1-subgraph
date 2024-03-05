@@ -4,7 +4,12 @@ import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } fr
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
 import { ADDRESS_ZERO, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
-import { updatePrices, updatePoolStats, updateLoanStats, getPoolViewerAddress } from '../helpers/utils';
+import {
+  updatePrices,
+  updatePoolStats,
+  updateLoanStats,
+  getPoolViewer
+} from '../helpers/utils';
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -15,11 +20,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewerAddress = getPoolViewerAddress(event.block.number);
-  const poolViewer = PoolViewer.bind(poolViewerAddress);
+  const poolViewer = getPoolViewer(event.block.number);
 
   if (pool.protocolId == BigInt.fromI32(DEFAULT_PROTOCOL_ID)) {
-    updatePrices(poolAddress, poolViewer);
+    updatePrices(poolAddress, event.block.number);
   }
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);

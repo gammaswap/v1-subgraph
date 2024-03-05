@@ -14,7 +14,9 @@ export const POOL_VIEWER = '{{poolViewer}}';
 
 export const POOL_VIEWER2 = '{{poolViewer2}}';
 
-export const POOL_VIEWER2_START_BLOCK = '{{pv2StartBlock}}';
+export const GAP_START_BLOCK = '{{gapStartBlock}}';
+
+export const GAP_END_BLOCK = '{{gapEndBlock}}';
 
 export const NETWORK = '{{network}}';
 

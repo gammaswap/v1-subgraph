@@ -2,7 +2,7 @@ import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, Loan, Token } from '../types/schema';
-import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2_START_BLOCK, POOL_VIEWER2 } from './constants';
+import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2, GAP_START_BLOCK, GAP_END_BLOCK } from './constants';
 import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -11,16 +11,24 @@ export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDe
   return value.divDecimal(precision);
 }
 
-export function getPoolViewerAddress(blockNumber: BigInt): Address {
-  const pv2StartBlock = BigInt.fromString(POOL_VIEWER2_START_BLOCK);
-  if(pv2StartBlock.gt(BigInt.zero()) && blockNumber.ge(pv2StartBlock)){
-    return Address.fromString(POOL_VIEWER2);
-  }
-  return Address.fromString(POOL_VIEWER)
+export function isGapPeriod(blockNumber: BigInt) : boolean {
+  const gapStartBlock = BigInt.fromString(GAP_START_BLOCK);
+  const gapEndBlock = BigInt.fromString(GAP_END_BLOCK);
+  return gapStartBlock.gt(BigInt.zero()) && gapEndBlock.gt(BigInt.zero()) &&
+      blockNumber.ge(gapStartBlock) && blockNumber.lt(gapEndBlock);// GammaPool 1.2.1
 }
 
-export function oneEthInUsd(poolViewer: PoolViewer): BigDecimal {
+export function getPoolViewer(blockNumber: BigInt) : PoolViewer {
+  const gapEndBlock = BigInt.fromString(GAP_END_BLOCK);
+  if(gapEndBlock.gt(BigInt.zero()) && blockNumber.ge(gapEndBlock)) {
+    return PoolViewer.bind(Address.fromString(POOL_VIEWER2));// GammaPool 1.2.2
+  }
+  return PoolViewer.bind(Address.fromString(POOL_VIEWER));// GammaPool 1.1.0
+}
+
+export function oneEthInUsd(blockNumber: BigInt): BigDecimal {
   const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
+  const poolViewer = getPoolViewer(blockNumber);
   const pool = GammaPool.load(WETH_USDC_POOL);
 
   if (poolContract == null || pool == null) return BigDecimal.fromString('0');
@@ -42,13 +50,13 @@ export function oneEthInUsd(poolViewer: PoolViewer): BigDecimal {
   return price;
 }
 
-export function updatePrices(poolAddress: Address, poolViewer: PoolViewer): void {
+export function updatePrices(poolAddress: Address, blockNumber: BigInt): void {
   const poolContract = Pool.bind(poolAddress);
   const pool = GammaPool.load(poolAddress.toHexString());
 
   if (poolContract == null || pool == null) return;
 
-  const ethToUsd = oneEthInUsd(poolViewer);
+  const ethToUsd = oneEthInUsd(blockNumber);
 
   pool.lastPrice = poolContract.getLastCFMMPrice();
 
@@ -78,9 +86,13 @@ export function updatePrices(poolAddress: Address, poolViewer: PoolViewer): void
   pool.save();
 }
 
-export function updatePrices2(token0: Token, token1: Token, ratio: BigInt, poolViewer: PoolViewer): void {
+export function updatePrices2(token0: Token, token1: Token, ratio: BigInt, blockNumber: BigInt): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, ratio.toString()]);
-  const ethToUsd = oneEthInUsd(poolViewer);
+  if(isGapPeriod(blockNumber)) { // to ignore v1-core@1.2.1 interface conflict (IPoolViewer & IGammaPool) in arbsepolia
+    log.warning("Is Gap Period: {}", [blockNumber.toString()]);
+    return;
+  }
+  const ethToUsd = oneEthInUsd(blockNumber);
   const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
   const poolPrice = ratio.divDecimal(precision);
 
