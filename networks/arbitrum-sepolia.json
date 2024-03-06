@@ -9,6 +9,7 @@
   "poolViewer2": "0x90bb41d511cf341481c047724410a48d15e4a7ac",
   "gapStartBlock": "19920301",
   "gapEndBlock": "19940413",
+  "pv2StartBlock": "19920301",
   "wethUsdcPool": "0x6adbf5cfaf537f2248818ae67654c358ffa290b3",
   "weth": "0x0133ff8b0ea9f22e510ff3a8b245aa863b2eb13f",
   "stakingRouter": "0x0000000000000000000000000000000000000000",

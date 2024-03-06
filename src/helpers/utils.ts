@@ -2,7 +2,7 @@ import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { GammaPool, Loan, Token } from '../types/schema';
-import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2, GAP_START_BLOCK, GAP_END_BLOCK } from './constants';
+import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2, POOL_VIEWER2_START_BLOCK, GAP_START_BLOCK, GAP_END_BLOCK } from './constants';
 import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -19,7 +19,7 @@ export function isGapPeriod(blockNumber: BigInt) : boolean {
 }
 
 export function getPoolViewer(blockNumber: BigInt) : PoolViewer {
-  const gapEndBlock = BigInt.fromString(GAP_END_BLOCK);
+  const gapEndBlock = BigInt.fromString(POOL_VIEWER2_START_BLOCK);
   if(gapEndBlock.gt(BigInt.zero()) && blockNumber.ge(gapEndBlock)) {
     return PoolViewer.bind(Address.fromString(POOL_VIEWER2));// GammaPool 1.2.2
   }

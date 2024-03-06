@@ -18,6 +18,8 @@ export const GAP_START_BLOCK = '{{gapStartBlock}}';
 
 export const GAP_END_BLOCK = '{{gapEndBlock}}';
 
+export const POOL_VIEWER2_START_BLOCK = '{{pv2StartBlock}}';
+
 export const NETWORK = '{{network}}';
 
 export const ARBITRUM_BRIDGE_USDC_TOKEN = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8';
