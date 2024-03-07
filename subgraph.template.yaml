@@ -19,10 +19,6 @@ dataSources:
       abis:
         - name: Factory
           file: ./abis/IGammaPoolFactory.json
-        - name: PoolViewer
-          file: ./abis/IPoolViewer.json
-        - name: Pool
-          file: ./abis/IGammaPool.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
@@ -209,12 +205,6 @@ templates:
       abis:
         - name: DeltaSwapPair
           file: ./abis/IDeltaSwapPair.json
-        - name: PoolViewer
-          file: ./abis/IPoolViewer.json
-        - name: Pool
-          file: ./abis/IGammaPool.json
-        - name: ERC20
-          file: ./abis/ERC20.json
       eventHandlers:
         - event: Sync(uint112,uint112)
           handler: handleSync

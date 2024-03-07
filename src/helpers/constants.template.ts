@@ -8,19 +8,7 @@ export const WETH = '{{weth}}';
 
 export const POSITION_MANAGER = '{{positionManager}}';
 
-export const WETH_USDC_POOL = '{{wethUsdcPool}}';
-
 export const WETH_USDC_PAIR = '{{wethUsdcPair}}';
-
-export const POOL_VIEWER = '{{poolViewer}}';
-
-export const POOL_VIEWER2 = '{{poolViewer2}}';
-
-export const GAP_START_BLOCK = '{{gapStartBlock}}';
-
-export const GAP_END_BLOCK = '{{gapEndBlock}}';
-
-export const POOL_VIEWER_UPDATE_BLOCK = '{{pvUpdateBlock}}';
 
 export const NETWORK = '{{network}}';
 

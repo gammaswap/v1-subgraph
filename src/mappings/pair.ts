@@ -2,18 +2,13 @@ import { log } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { DeltaSwapPair } from '../types/schema';
-import { isGapPeriod, getPriceFromDSPair, updateTokenPrices } from '../helpers/utils';
+import { getPriceFromDSPair, updateTokenPrices } from '../helpers/utils';
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
   const pair = DeltaSwapPair.load(event.address.toHexString());
   if (pair == null) {
     log.error("DeltaSwap Pair Unavailable: {}", [event.address.toHexString()]);
-    return;
-  }
-
-  if(isGapPeriod(event.block.number)) { // to ignore v1-core@1.2.1 interface conflict (IPoolViewer & IGammaPool) in arbsepolia
-    log.warning("Is Gap Period: {}", [event.block.number.toString()]);
     return;
   }
 
