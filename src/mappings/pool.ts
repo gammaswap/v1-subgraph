@@ -1,8 +1,8 @@
-import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
+import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
-import { ADDRESS_ZERO } from '../helpers/constants';
+import { ADDRESS_ZERO, WETH_USDC_POOL } from '../helpers/constants';
 import {
   updatePoolStats,
   updateLoanStats,
@@ -19,7 +19,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewer = getPoolViewer(event.block.number);
+  const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
+  const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
+  const poolViewer = getPoolViewer(event.block.number, viewerAddress);
 
   updatePrices(pool);
 

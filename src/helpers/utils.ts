@@ -2,7 +2,7 @@ import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
 import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
 import { DeltaSwapPair, GammaPool, Loan, Token } from '../types/schema';
-import { WETH_USDC_POOL, POOL_VIEWER, POOL_VIEWER2, POOL_VIEWER_UPDATE_BLOCK, GAP_START_BLOCK, GAP_END_BLOCK, WETH_USDC_PAIR, DEFAULT_PROTOCOL_ID } from './constants';
+import { POOL_VIEWER, POOL_VIEWER2, POOL_VIEWER_UPDATE_BLOCK, GAP_START_BLOCK, GAP_END_BLOCK, WETH_USDC_PAIR, DEFAULT_PROTOCOL_ID } from './constants';
 import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -18,14 +18,13 @@ export function isGapPeriod(blockNumber: BigInt) : boolean {
       blockNumber.ge(gapStartBlock) && blockNumber.lt(gapEndBlock); // GammaPool 1.2.1 interface break in arbitrumSepolia
 }
 
-export function getPoolViewer(blockNumber: BigInt) : PoolViewer {
+export function getPoolViewer(blockNumber: BigInt, viewerAddress: Address) : PoolViewer {
   const updateBlock = BigInt.fromString(POOL_VIEWER_UPDATE_BLOCK);
   if(updateBlock.gt(BigInt.zero()) && blockNumber.ge(updateBlock)) {
     return PoolViewer.bind(Address.fromString(POOL_VIEWER2));// GammaPool 1.2.2
-  } /*else if(blockNumber.equals(updateBlock)) {
-    const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL)); // Get PoolViewer from GammaPool
-    return PoolViewer.bind(poolContract.viewer());
-  }/**/
+  } else if(blockNumber.equals(updateBlock)) {
+    return PoolViewer.bind(viewerAddress);
+  }
   return PoolViewer.bind(Address.fromString(POOL_VIEWER));// GammaPool 1.1.0
 }
 
