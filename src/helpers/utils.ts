@@ -1,8 +1,7 @@
 import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
-import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
-import { GammaPool, Loan, Token } from '../types/schema';
-import { WETH_USDC_POOL, POOL_VIEWER } from './constants';
+import { DeltaSwapPair, GammaPool, Loan, Token } from '../types/schema';
+import { WETH_USDC_PAIR, DEFAULT_PROTOCOL_ID } from './constants';
 import { loadOrCreateAbout } from './loader';
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -12,80 +11,82 @@ export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDe
 }
 
 export function oneEthInUsd(): BigDecimal {
-  const poolContract = Pool.bind(Address.fromString(WETH_USDC_POOL));
-  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
-  const pool = GammaPool.load(WETH_USDC_POOL);
+  const pair = DeltaSwapPair.load(WETH_USDC_PAIR);
+  if (pair == null) return BigDecimal.fromString('0');
 
-  if (poolContract == null || pool == null) return BigDecimal.fromString('0');
+  const token0 = Token.load(pair.token0);
 
-  const token0 = Token.load(pool.token0);
-  const token1 = Token.load(pool.token1);
-  if (token0 == null || token1 == null) return BigDecimal.fromString('0');
+  if (token0 == null) return BigDecimal.fromString('0');
 
-  const usdcToken = token0.symbol == 'USDC' ? token0 : token1;
+  let price = getPriceFromDSPair(pair);
 
-  const poolData = poolViewer.getLatestPoolData(Address.fromString(WETH_USDC_POOL));
-  const precision = BigInt.fromI32(10).pow(<u8>usdcToken.decimals.toI32()).toBigDecimal();
-  let price = poolData.lastPrice.divDecimal(precision);
-  if (token0.symbol == 'USDC') {
-    // Inverse price if token pair is flipped
-    price = BigDecimal.fromString('1').div(price);
+  if(token0.symbol == 'USDC' && price.gt(BigDecimal.zero())) {
+      price = BigDecimal.fromString("1").div(price);
   }
 
   return price;
 }
 
-export function updatePrices(poolAddress: Address): void {
-  const poolContract = Pool.bind(poolAddress);
-  const pool = GammaPool.load(poolAddress.toHexString());
+export function getPriceFromDSPair(pair: DeltaSwapPair) : BigDecimal {
+  const token0 = Token.load(pair.token0);
+  const token1 = Token.load(pair.token1);
 
-  if (poolContract == null || pool == null) return;
+  if (token0 == null || token1 == null) return BigDecimal.fromString('0');
 
-  const ethToUsd = oneEthInUsd();
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
 
-  pool.lastPrice = poolContract.getLastCFMMPrice();
+  const reserve0 = pair.reserve0.toBigDecimal().div(precision0);
+  const reserve1 = pair.reserve1.toBigDecimal().div(precision1);
 
+  if (reserve0.equals(BigDecimal.zero())) return BigDecimal.fromString('0');
+
+  return reserve1.div(reserve0);
+}
+
+export function updatePrices(pool: GammaPool): void {
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
   if (token0 == null || token1 == null) return;
 
-  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-  const poolPrice = pool.lastPrice.divDecimal(precision);
+  let poolPrice = BigDecimal.fromString('0');
 
-  if (token0.symbol == 'WETH') {
-    token0.priceETH = BigDecimal.fromString('1');
-    token0.priceUSD = ethToUsd.truncate(6);
-    token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
-    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
-  } else if (token1.symbol == 'WETH') {
-    token1.priceETH = BigDecimal.fromString('1');
-    token1.priceUSD = ethToUsd.truncate(6);
-    token0.priceETH = poolPrice.truncate(18);
-    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
+  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+
+  if (pool.protocolId.equals(BigInt.fromI32(DEFAULT_PROTOCOL_ID))) {
+    const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
+
+    if (pair == null) return;
+
+    poolPrice = getPriceFromDSPair(pair);
+    pool.lastPrice = BigInt.fromString(poolPrice.times(precision).truncate(0).toString())
+  } else {
+    const poolContract = Pool.bind(Address.fromBytes(pool.address));
+    pool.lastPrice = poolContract.getLastCFMMPrice();
+    poolPrice = pool.lastPrice.divDecimal(precision);
   }
 
-  token0.save();
-  token1.save();
+  if(poolPrice.gt(BigDecimal.zero())) {
+    updateTokenPrices(token0, token1, poolPrice);
+  }
 
   pool.save();
 }
 
-export function updatePrices2(token0: Token, token1: Token, ratio: BigInt): void {
-  log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, ratio.toString()]);
+export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDecimal): void {
+  log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, pairPrice.toString()]);
   const ethToUsd = oneEthInUsd();
-  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-  const poolPrice = ratio.divDecimal(precision);
 
   if (token0.symbol == 'WETH') {
     token0.priceETH = BigDecimal.fromString('1');
     token0.priceUSD = ethToUsd.truncate(6);
-    token1.priceETH = BigDecimal.fromString('1').div(poolPrice).truncate(18);
+    token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
     token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
-    token0.priceETH = poolPrice.truncate(18);
+    token0.priceETH = pairPrice.truncate(18);
     token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
   }
 
@@ -94,11 +95,10 @@ export function updatePrices2(token0: Token, token1: Token, ratio: BigInt): void
 }
 
 export function updatePoolStats(pool: GammaPool): void {
-  const poolContract = Pool.bind(Address.fromString(pool.id));
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
-  if (poolContract == null || token0 == null || token1 == null) return;
+  if (token0 == null || token1 == null) return;
 
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());

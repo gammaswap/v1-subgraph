@@ -1,8 +1,8 @@
-import { log, BigInt } from '@graphprotocol/graph-ts';
+import { log } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { DeltaSwapPair } from '../types/schema';
-import { updatePrices2 } from '../helpers/utils';
+import { getPriceFromDSPair, updateTokenPrices } from '../helpers/utils';
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
@@ -20,9 +20,11 @@ export function handleSync(event: Sync): void {
     return;
   }
 
-  const ratio = event.params.reserve1
-    .times(BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()))
-    .div(event.params.reserve0);
+  pair.reserve0 = event.params.reserve0;
+  pair.reserve1 = event.params.reserve1;
+  pair.save();
 
-  updatePrices2(token0, token1, ratio);
+  const price = getPriceFromDSPair(pair);
+
+  updateTokenPrices(token0, token1, price);
 }

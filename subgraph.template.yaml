@@ -19,8 +19,8 @@ dataSources:
       abis:
         - name: Factory
           file: ./abis/IGammaPoolFactory.json
-        - name: PoolViewer
-          file: ./abis/IPoolViewer.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
           handler: handlePoolCreate
@@ -41,6 +41,8 @@ dataSources:
       abis:
         - name: DeltaSwapFactory
           file: ./abis/IDeltaSwapFactory.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handlePairCreated
@@ -203,8 +205,6 @@ templates:
       abis:
         - name: DeltaSwapPair
           file: ./abis/IDeltaSwapPair.json
-        - name: PoolViewer
-          file: ./abis/IPoolViewer.json
       eventHandlers:
         - event: Sync(uint112,uint112)
           handler: handleSync

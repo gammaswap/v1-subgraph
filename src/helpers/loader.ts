@@ -3,9 +3,9 @@ import { PoolCreated } from '../types/GammaFactory/Factory';
 import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
-import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
+import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair, About } from '../types/schema';
-import { NETWORK, POOL_VIEWER, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
+import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
 import { getEthUsdValue } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
@@ -19,35 +19,10 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   // pool.protocol = protocol.id;
   pool.protocolId = BigInt.fromI32(event.params.protocolId);
 
-  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
-  const tokenMetadata = poolViewer.getTokensMetaData(event.params.tokens);
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
   pool.token0 = token0.id;
   pool.token1 = token1.id;
-
-  let networkName = NETWORK;
-
-  if (token0.name == "" || token0.symbol == "" || token0.decimals == BigInt.fromI32(0)) {
-    token0.name = tokenMetadata.get_names()[0];
-    if (networkName == "arbitrum-one" && pool.token0 == ARBITRUM_BRIDGE_USDC_TOKEN) {
-      token0.symbol = "USDC.e";
-    } else {
-      token0.symbol = tokenMetadata.get_symbols()[0];
-    }
-    token0.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[0]);
-    token0.save();
-  }
-  if (token1.name == "" || token1.symbol == "" || token1.decimals == BigInt.fromI32(0)) {
-    token1.name = tokenMetadata.get_names()[1];
-    if (networkName == "arbitrum-one" && pool.token1 == ARBITRUM_BRIDGE_USDC_TOKEN) {
-      token1.symbol = "USDC.e";
-    } else {
-      token1.symbol = tokenMetadata.get_symbols()[1];
-    }
-    token1.decimals = BigInt.fromI32(tokenMetadata.get_decimals()[1]);
-    token1.save();
-  }
 
   loadOrCreateProtocolToken(protocol.id, token0.id);
   loadOrCreateProtocolToken(protocol.id, token1.id);
@@ -247,9 +222,15 @@ export function loadOrCreateToken(id: string): Token {
   let token = Token.load(id);
   if (token == null) {
     token = new Token(id);
-    token.name = "";
-    token.symbol = "";
-    token.decimals = BigInt.fromI32(0);
+    const tokenContract = ERC20.bind(Address.fromString(id));
+    token.decimals = BigInt.fromString(tokenContract.decimals().toString());
+    token.name = tokenContract.name().trim();
+    token.symbol = tokenContract.symbol().trim();
+
+    if (NETWORK == "arbitrum-one" && token.id == ARBITRUM_BRIDGE_USDC_TOKEN) {
+      token.symbol = "USDC.e";
+    }
+
     token.priceETH = BigDecimal.fromString('0');
     token.priceUSD = BigDecimal.fromString('0');
     token.isDerived = false;

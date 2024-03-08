@@ -1,10 +1,10 @@
-import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
-import { PoolViewer } from '../types/templates/GammaPool/PoolViewer';
+import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance } from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
-import { ADDRESS_ZERO, POOL_VIEWER, DEFAULT_PROTOCOL_ID } from '../helpers/constants';
-import { updatePrices, updatePoolStats, updateLoanStats } from '../helpers/utils';
+import { ADDRESS_ZERO } from '../helpers/constants';
+import { updatePoolStats, updateLoanStats, updatePrices } from '../helpers/utils';
+import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
   const poolAddress = event.address;
@@ -15,11 +15,11 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
+  const poolContract = Pool.bind(event.address);
+  const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
+  const poolViewer = PoolViewer.bind(viewerAddress);
 
-  if (pool.protocolId == BigInt.fromI32(DEFAULT_PROTOCOL_ID)) {
-    updatePrices(poolAddress);
-  }
+  updatePrices(pool);
 
   const poolData = poolViewer.getLatestPoolData(poolAddress);
   pool.shortStrategy = poolData.shortStrategy;

@@ -8,9 +8,7 @@ export const WETH = '{{weth}}';
 
 export const POSITION_MANAGER = '{{positionManager}}';
 
-export const WETH_USDC_POOL = '{{wethUsdcPool}}';
-
-export const POOL_VIEWER = '{{poolViewer}}';
+export const WETH_USDC_PAIR = '{{wethUsdcPair}}';
 
 export const NETWORK = '{{network}}';
 
