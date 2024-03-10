@@ -58,6 +58,10 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
       token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
     }
+    token0.balanceETH = token0.balance.toBigDecimal();
+    token0.balanceUSD = token0.balanceETH.times(token0.priceUSD);
+    token1.balanceETH = token1.balance.toBigDecimal().times(token1.priceETH);
+    token1.balanceUSD = token1.balanceETH.times(token1.priceUSD);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
@@ -65,6 +69,10 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token0.priceETH = pairPrice.truncate(18);
       token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
     }
+    token1.balanceETH = token1.balance.toBigDecimal();
+    token1.balanceUSD = token1.balanceETH.times(token1.priceUSD);
+    token0.balanceETH = token0.balance.toBigDecimal().times(token0.priceETH);
+    token0.balanceUSD = token0.balanceETH.times(token0.priceUSD);
   } else if(token0.symbol.toLowerCase().trim().includes("usd")) {
     token0.priceUSD = BigDecimal.fromString('1');
     token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
@@ -72,6 +80,10 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token1.priceUSD = BigDecimal.fromString('1').div(pairPrice).truncate(6);
       token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
     }
+    token0.balanceUSD = token0.balance.toBigDecimal();
+    token0.balanceETH = token0.balanceUSD.div(token0.priceETH);
+    token1.balanceUSD = token1.balance.toBigDecimal().times(token1.priceUSD);
+    token1.balanceETH = token1.balanceUSD.div(token1.priceETH);
   } else if(token1.symbol.toLowerCase().trim().includes("usd")) {
     token1.priceUSD = BigDecimal.fromString('1');
     token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
@@ -79,6 +91,10 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token0.priceUSD = pairPrice.truncate(6);
       token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
     }
+    token1.balanceUSD = token1.balance.toBigDecimal();
+    token1.balanceETH = token1.balanceUSD.div(token1.priceETH);
+    token0.balanceUSD = token0.balance.toBigDecimal().times(token0.priceUSD);
+    token0.balanceETH = token0.balanceUSD.div(token0.priceETH);
   }
 }
 
