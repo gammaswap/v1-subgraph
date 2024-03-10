@@ -151,6 +151,11 @@ type GammaPool @entity {
   # Staking is active
   activeStaking: Boolean!
 
+  # Total amounts of token0 borrowed
+  borrowedBalance0: BigInt!
+  # Total amounts of token1 borrowed
+  borrowedBalance1: BigInt!
+
   block: BigInt!
   timestamp: BigInt!
 
@@ -281,6 +286,9 @@ type Token @entity {
   balance: BigInt!
   balanceUSD: BigDecimal!
   balanceETH: BigDecimal!
+  borrowedBalance: BigInt!
+  borrowedBalanceUSD: BigDecimal!
+  borrowedBalanceETH: BigDecimal!
   protocols: [ProtocolToken!] @derivedFrom(field: "token")
 }
 
@@ -524,6 +532,10 @@ type About @entity {
   id: ID! #random
   version: String!
   network: String!
+  totalDSBalanceUSD: BigDecimal!
+  totalDSBalanceETH: BigDecimal!
+  totalGSBalanceUSD: BigDecimal!
+  totalGSBalanceETH: BigDecimal!
   totalPools: BigInt!
   totalLoans: BigInt!
   totalActiveLoans: BigInt!

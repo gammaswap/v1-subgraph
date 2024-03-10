@@ -62,6 +62,21 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.balanceUSD = token0.balanceETH.times(token0.priceUSD);
     token1.balanceETH = token1.balance.toBigDecimal().times(token1.priceETH);
     token1.balanceUSD = token1.balanceETH.times(token1.priceUSD);
+
+    token0.dsBalanceETH = token0.dsBalance.toBigDecimal();
+    token0.dsBalanceUSD = token0.dsBalanceETH.times(token0.priceUSD);
+    token1.dsBalanceETH = token1.dsBalance.toBigDecimal().times(token1.priceETH);
+    token1.dsBalanceUSD = token1.dsBalanceETH.times(token1.priceUSD);
+
+    token0.gsBalanceETH = token0.gsBalance.toBigDecimal();
+    token0.gsBalanceUSD = token0.gsBalanceETH.times(token0.priceUSD);
+    token1.gsBalanceETH = token1.gsBalance.toBigDecimal().times(token1.priceETH);
+    token1.gsBalanceUSD = token1.gsBalanceETH.times(token1.priceUSD);
+
+    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal();
+    token0.borrowedBalanceUSD = token0.borrowedBalanceETH.times(token0.priceUSD);
+    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceETH.times(token1.priceUSD);
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
@@ -73,6 +88,21 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token1.balanceUSD = token1.balanceETH.times(token1.priceUSD);
     token0.balanceETH = token0.balance.toBigDecimal().times(token0.priceETH);
     token0.balanceUSD = token0.balanceETH.times(token0.priceUSD);
+
+    token1.dsBalanceETH = token1.dsBalance.toBigDecimal();
+    token1.dsBalanceUSD = token1.dsBalanceETH.times(token1.priceUSD);
+    token0.dsBalanceETH = token0.dsBalance.toBigDecimal().times(token0.priceETH);
+    token0.dsBalanceUSD = token0.dsBalanceETH.times(token0.priceUSD);
+
+    token1.gsBalanceETH = token1.gsBalance.toBigDecimal();
+    token1.gsBalanceUSD = token1.gsBalanceETH.times(token1.priceUSD);
+    token0.gsBalanceETH = token0.gsBalance.toBigDecimal().times(token0.priceETH);
+    token0.gsBalanceUSD = token0.gsBalanceETH.times(token0.priceUSD);
+
+    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal();
+    token1.borrowedBalanceUSD = token1.borrowedBalanceETH.times(token1.priceUSD);
+    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceETH.times(token0.priceUSD);
   } else if(token0.symbol.toLowerCase().trim().includes("usd")) {
     token0.priceUSD = BigDecimal.fromString('1');
     token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
@@ -84,6 +114,21 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.balanceETH = token0.balanceUSD.div(token0.priceETH);
     token1.balanceUSD = token1.balance.toBigDecimal().times(token1.priceUSD);
     token1.balanceETH = token1.balanceUSD.div(token1.priceETH);
+
+    token0.dsBalanceUSD = token0.dsBalance.toBigDecimal();
+    token0.dsBalanceETH = token0.dsBalanceUSD.div(token0.priceETH);
+    token1.dsBalanceUSD = token1.dsBalance.toBigDecimal().times(token1.priceUSD);
+    token1.dsBalanceETH = token1.dsBalanceUSD.div(token1.priceETH);
+
+    token0.gsBalanceUSD = token0.gsBalance.toBigDecimal();
+    token0.gsBalanceETH = token0.gsBalanceUSD.div(token0.priceETH);
+    token1.gsBalanceUSD = token1.gsBalance.toBigDecimal().times(token1.priceUSD);
+    token1.gsBalanceETH = token1.gsBalanceUSD.div(token1.priceETH);
+
+    token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal();
+    token0.borrowedBalanceETH = token0.borrowedBalanceUSD.div(token0.priceETH);
+    token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().times(token1.priceUSD);
+    token1.borrowedBalanceETH = token1.borrowedBalanceUSD.div(token1.priceETH);
   } else if(token1.symbol.toLowerCase().trim().includes("usd")) {
     token1.priceUSD = BigDecimal.fromString('1');
     token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
@@ -95,10 +140,24 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token1.balanceETH = token1.balanceUSD.div(token1.priceETH);
     token0.balanceUSD = token0.balance.toBigDecimal().times(token0.priceUSD);
     token0.balanceETH = token0.balanceUSD.div(token0.priceETH);
+
+    token1.dsBalanceUSD = token1.dsBalance.toBigDecimal();
+    token1.dsBalanceETH = token1.dsBalanceUSD.div(token1.priceETH);
+    token0.dsBalanceUSD = token0.dsBalance.toBigDecimal().times(token0.priceUSD);
+    token0.dsBalanceETH = token0.dsBalanceUSD.div(token0.priceETH);
+
+    token1.gsBalanceUSD = token1.gsBalance.toBigDecimal();
+    token1.gsBalanceETH = token1.gsBalanceUSD.div(token1.priceETH);
+    token0.gsBalanceUSD = token0.gsBalance.toBigDecimal().times(token0.priceUSD);
+    token0.gsBalanceETH = token0.gsBalanceUSD.div(token0.priceETH);
+
+    token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal();
+    token1.borrowedBalanceETH = token1.borrowedBalanceUSD.div(token1.priceETH);
+    token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().times(token0.priceUSD);
+    token0.borrowedBalanceETH = token0.borrowedBalanceUSD.div(token0.priceETH);
   }
 }
 
-// TODO: I'll update the totalTVL numbers here and the total borrowed numbers here (need to get previous borrowed tokens too
 export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool): void {
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
@@ -130,18 +189,18 @@ export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool): 
   const tokensInETH = allTokensInToken1.times(token1.priceETH).truncate(2);
   const tokensInUSD = allTokensInToken1.times(token1.priceUSD).truncate(2);
 
-  const prevTvlETH = pool.tvlETH;
-  const prevTvlUSD = pool.tvlUSD;
+  //const prevTvlETH = pool.tvlETH;
+  //const prevTvlUSD = pool.tvlUSD;
 
   pool.tvlETH = pool.lpBalanceETH.plus(tokensInETH);
   pool.tvlUSD = pool.lpBalanceUSD.plus(tokensInUSD);
 
-  const about = loadOrCreateAbout();
-  about.totalTvlETH = about.totalTvlETH.plus(pool.tvlETH).minus(prevTvlETH);
-  about.totalTvlUSD = about.totalTvlUSD.plus(pool.tvlUSD).minus(prevTvlUSD);
-  about.totalBorrowedETH = about.totalBorrowedETH.plus(pool.lpBorrowedBalanceETH).minus(prevBorrowedETH);
-  about.totalBorrowedUSD = about.totalBorrowedUSD.plus(pool.lpBorrowedBalanceUSD).minus(prevBorrowedUSD);
-  about.save();
+  //const about = loadOrCreateAbout();
+  //about.totalTvlETH = about.totalTvlETH.plus(pool.tvlETH).minus(prevTvlETH);
+  //about.totalTvlUSD = about.totalTvlUSD.plus(pool.tvlUSD).minus(prevTvlUSD);
+  //about.totalBorrowedETH = about.totalBorrowedETH.plus(pool.lpBorrowedBalanceETH).minus(prevBorrowedETH);
+  //about.totalBorrowedUSD = about.totalBorrowedUSD.plus(pool.lpBorrowedBalanceUSD).minus(prevBorrowedUSD);
+  //about.save();
 
   pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(pool.lastCfmmInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lastCfmmInToken0 = pool.lastCfmmInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
