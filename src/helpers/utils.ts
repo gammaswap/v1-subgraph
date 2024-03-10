@@ -15,91 +15,75 @@ export function oneEthInUsd(): BigDecimal {
   if (pair == null) return BigDecimal.fromString('0');
 
   const token0 = Token.load(pair.token0);
+  const token1 = Token.load(pair.token1);
 
-  if (token0 == null) return BigDecimal.fromString('0');
+  if (token0 == null || token1 == null) return BigDecimal.fromString('0');
 
-  let price = getPriceFromDSPair(pair);
+  let price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
 
   if(token0.symbol == 'USDC' && price.gt(BigDecimal.zero())) {
-      price = BigDecimal.fromString("1").div(price);
+    price = BigDecimal.fromString("1").div(price); // ensure price is always in terms of USD
   }
 
   return price;
 }
 
-export function getPriceFromDSPair(pair: DeltaSwapPair) : BigDecimal {
-  const token0 = Token.load(pair.token0);
-  const token1 = Token.load(pair.token1);
-
-  if (token0 == null || token1 == null) return BigDecimal.fromString('0');
-
+export function getPriceFromReserves(token0: Token, token1: Token, reserve0:BigInt, reserve1: BigInt) : BigDecimal {
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
 
-  const reserve0 = pair.reserve0.toBigDecimal().div(precision0);
-  const reserve1 = pair.reserve1.toBigDecimal().div(precision1);
+  const _reserve0 = reserve0.toBigDecimal().div(precision0);
+  const _reserve1 = reserve1.toBigDecimal().div(precision1);
 
-  if (reserve0.equals(BigDecimal.zero())) return BigDecimal.fromString('0');
-
-  return reserve1.div(reserve0);
-}
-
-export function updatePrices(pool: GammaPool): void {
-  const token0 = Token.load(pool.token0);
-  const token1 = Token.load(pool.token1);
-
-  if (token0 == null || token1 == null) return;
-
-  let poolPrice = BigDecimal.fromString('0');
-
-  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-
-  if (pool.protocolId.equals(BigInt.fromI32(DEFAULT_PROTOCOL_ID))) {
-    const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
-
-    if (pair == null) return;
-
-    poolPrice = getPriceFromDSPair(pair);
-    pool.lastPrice = BigInt.fromString(poolPrice.times(precision).truncate(0).toString())
-  } else {
-    const poolContract = Pool.bind(Address.fromBytes(pool.address));
-    pool.lastPrice = poolContract.getLastCFMMPrice();
-    poolPrice = pool.lastPrice.divDecimal(precision);
+  let price = BigDecimal.fromString('0');
+  if (_reserve0.gt(BigDecimal.zero())) {
+    price = _reserve1.div(_reserve0);
   }
 
-  if(poolPrice.gt(BigDecimal.zero())) {
-    updateTokenPrices(token0, token1, poolPrice);
-  }
-
-  pool.save();
+  return price;
 }
 
 export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDecimal): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, pairPrice.toString()]);
   const ethToUsd = oneEthInUsd();
 
+  token0.balance = token0.gsBalance.plus(token0.dsBalance);
+  token1.balance = token1.gsBalance.plus(token1.dsBalance);
+
+  // There needs to be a market against WETH or a USD token to get the value of a token
   if (token0.symbol == 'WETH') {
     token0.priceETH = BigDecimal.fromString('1');
     token0.priceUSD = ethToUsd.truncate(6);
-    token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
-    token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
+    if(pairPrice.gt(BigDecimal.zero())) {
+      token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
+      token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
+    }
   } else if (token1.symbol == 'WETH') {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
-    token0.priceETH = pairPrice.truncate(18);
-    token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
+    if(pairPrice.gt(BigDecimal.zero())) {
+      token0.priceETH = pairPrice.truncate(18);
+      token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
+    }
+  } else if(token0.symbol.toLowerCase().trim().includes("usd")) {
+    token0.priceUSD = BigDecimal.fromString('1');
+    token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
+    if(pairPrice.gt(BigDecimal.zero())) {
+      token1.priceUSD = BigDecimal.fromString('1').div(pairPrice).truncate(6);
+      token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
+    }
+  } else if(token1.symbol.toLowerCase().trim().includes("usd")) {
+    token1.priceUSD = BigDecimal.fromString('1');
+    token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
+    if(pairPrice.gt(BigDecimal.zero())) {
+      token0.priceUSD = pairPrice.truncate(6);
+      token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
+    }
   }
-
-  token0.save();
-  token1.save();
 }
 
-export function updatePoolStats(pool: GammaPool): void {
-  const token0 = Token.load(pool.token0);
-  const token1 = Token.load(pool.token1);
-
-  if (token0 == null || token1 == null) return;
-
+// TODO: I'll update the totalTVL numbers here and the total borrowed numbers here (need to get previous borrowed tokens too
+export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool): void {
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();
@@ -146,9 +130,7 @@ export function updatePoolStats(pool: GammaPool): void {
   pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(pool.lastCfmmInvariant.toBigDecimal()).times(sqrtPrice).truncate(token1.decimals.toI32());
   pool.lastCfmmInToken0 = pool.lastCfmmInToken1.div(pool.lastPrice.toBigDecimal()).times(precision1.toBigDecimal()).truncate(token0.decimals.toI32());
   pool.lastCfmmETH = pool.lastCfmmInToken0.times(token0.priceETH);
-  pool.lastCfmmUSD = pool.lastCfmmInToken0.times(token0.priceUSD).truncate(2);
-
-  pool.save();
+  pool.lastCfmmUSD = pool.lastCfmmInToken0.times(token0.priceUSD).truncate(2)
 }
 
 export function updateLoanStats(loan: Loan): void {

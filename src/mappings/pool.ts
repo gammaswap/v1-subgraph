@@ -1,9 +1,9 @@
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, PoolBalance } from '../types/schema';
+import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updatePrices } from '../helpers/utils';
+import {updatePoolStats, updateLoanStats, updateTokenPrices} from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -19,9 +19,16 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
   const poolViewer = PoolViewer.bind(viewerAddress);
 
-  updatePrices(pool);
-
   const poolData = poolViewer.getLatestPoolData(poolAddress);
+
+  const token0 = Token.load(pool.token0);
+  const token1 = Token.load(pool.token1);
+
+  if (token0 == null || token1 == null) return;
+
+  token0.gsBalance = token0.gsBalance.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
+  token1.gsBalance = token1.gsBalance.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
+
   pool.shortStrategy = poolData.shortStrategy;
   pool.borrowStrategy = poolData.borrowStrategy;
   pool.repayStrategy = poolData.repayStrategy;
@@ -62,9 +69,15 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
-  updatePoolStats(pool);
+  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  let poolPrice = pool.lastPrice.divDecimal(precision);
+
+  updateTokenPrices(token0, token1, poolPrice);
+  updatePoolStats(token0, token1, pool);
 
   pool.save();
+  token0.save();
+  token1.save();
 
   // Historical data
   createFiveMinPoolSnapshot(event, poolData);
