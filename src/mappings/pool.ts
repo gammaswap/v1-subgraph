@@ -3,7 +3,7 @@ import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } fr
 import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updateTokenPrices, decreaseAboutTotals, increaseAboutTotals } from '../helpers/utils';
+import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -26,9 +26,6 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   if (token0 == null || token1 == null) return;
 
-  token0.gsBalance = token0.gsBalance.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
-  token1.gsBalance = token1.gsBalance.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
-
   pool.shortStrategy = poolData.shortStrategy;
   pool.borrowStrategy = poolData.borrowStrategy;
   pool.repayStrategy = poolData.repayStrategy;
@@ -50,8 +47,6 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.lastPrice = poolData.lastPrice;
 
   pool.totalSupply = poolData.totalSupply;
-  pool.token0Balance = poolData.TOKEN_BALANCE[0];
-  pool.token1Balance = poolData.TOKEN_BALANCE[1];
   pool.reserve0Balance = poolData.CFMM_RESERVES[0];
   pool.reserve1Balance = poolData.CFMM_RESERVES[1];
   pool.borrowRate = poolData.borrowRate;
@@ -69,27 +64,22 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
-  const about = loadOrCreateAbout();
+  token0.gsBalance = token0.gsBalance.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
+  token1.gsBalance = token1.gsBalance.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
+  pool.token0Balance = poolData.TOKEN_BALANCE[0];
+  pool.token1Balance = poolData.TOKEN_BALANCE[1];
 
-  decreaseAboutTotals(about, token0, token1);
-
-  token0.borrowedBalance = token0.borrowedBalance.minus(pool.borrowedBalance0);
-  token1.borrowedBalance = token1.borrowedBalance.minus(pool.borrowedBalance1);
-
-  pool.borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
-  pool.borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
-
-  token0.borrowedBalance = token0.borrowedBalance.plus(pool.borrowedBalance0);
-  token1.borrowedBalance = token1.borrowedBalance.plus(pool.borrowedBalance1);
+  const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
+  const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
+  token0.borrowedBalance = token0.borrowedBalance.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+  token1.borrowedBalance = token1.borrowedBalance.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+  pool.borrowedBalance0 = borrowedBalance0;
+  pool.borrowedBalance1 = borrowedBalance1;
 
   const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
   let poolPrice = pool.lastPrice.divDecimal(precision);
 
   updateTokenPrices(token0, token1, poolPrice);
-
-  increaseAboutTotals(about, token0, token1);
-
-  about.save();
 
   updatePoolStats(token0, token1, pool);
 

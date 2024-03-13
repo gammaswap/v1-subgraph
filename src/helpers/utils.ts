@@ -2,6 +2,7 @@ import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { Pool } from '../types/templates/GammaPool/Pool';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
 import { WETH_USDC_PAIR, DEFAULT_PROTOCOL_ID } from './constants';
+import { loadOrCreateAbout } from "./loader";
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
   const precision = BigInt.fromI32(10).pow(<u8>decimals).toBigDecimal();
@@ -88,6 +89,11 @@ export function increaseAboutTotals(about: About, token0: Token, token1: Token):
 
 export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDecimal): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, pairPrice.toString()]);
+
+  const about = loadOrCreateAbout();
+
+  decreaseAboutTotals(about, token0, token1);
+
   const ethToUsd = oneEthInUsd();
 
   token0.balance = token0.gsBalance.plus(token0.dsBalance);
@@ -202,6 +208,10 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
     token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
   }
+
+  increaseAboutTotals(about, token0, token1);
+
+  about.save();
 }
 
 export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool): void {
