@@ -2,7 +2,7 @@ import { log } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { DeltaSwapPair } from '../types/schema';
-import { getPriceFromReserves, updateTokenPrices } from '../helpers/utils';
+import { decreaseAboutTotals, getPriceFromReserves, increaseAboutTotals, updateTokenPrices } from '../helpers/utils';
 import { loadOrCreateAbout } from "../helpers/loader";
 
 export function handleSync(event: Sync): void {
@@ -22,12 +22,8 @@ export function handleSync(event: Sync): void {
   }
 
   const about = loadOrCreateAbout();
-  about.totalTvlETH = about.totalTvlETH.minus(token0.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.minus(token1.balanceUSD);
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token0.dsBalanceUSD);
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token1.dsBalanceUSD);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token0.dsBalanceETH);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token1.dsBalanceETH);
+
+  decreaseAboutTotals(about, token0, token1);
 
   // subtract dsBalance from about
   token0.dsBalance = token0.dsBalance.minus(pair.reserve0).plus(event.params.reserve0);
@@ -43,13 +39,7 @@ export function handleSync(event: Sync): void {
 
   updateTokenPrices(token0, token1, price);
 
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token0.dsBalanceUSD);
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token1.dsBalanceUSD);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token0.dsBalanceETH);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token1.dsBalanceETH);
-
-  about.totalTvlETH = about.totalTvlETH.plus(token0.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.plus(token1.balanceUSD);
+  increaseAboutTotals(about, token0, token1);
 
   about.save();
   token0.save();

@@ -45,7 +45,8 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.lastCfmmTotalSupply = BigInt.fromI32(0);
   pool.lastFeeIndex = BigInt.fromI32(10).pow(18);
   pool.lastPrice = BigInt.fromI32(0);
-  
+  pool.borrowedBalance0 = BigInt.fromI32(0);
+  pool.borrowedBalance1 = BigInt.fromI32(0);
   pool.lpBalanceETH = BigDecimal.fromString('0');
   pool.lpBalanceUSD = BigDecimal.fromString('0');
   pool.lpBalanceInToken0 = BigDecimal.fromString('0');
@@ -233,6 +234,18 @@ export function loadOrCreateToken(id: string): Token {
 
     token.priceETH = BigDecimal.fromString('0');
     token.priceUSD = BigDecimal.fromString('0');
+    token.dsBalance = BigInt.fromString('0');
+    token.dsBalanceUSD = BigDecimal.fromString('0');
+    token.dsBalanceETH = BigDecimal.fromString('0');
+    token.gsBalance = BigInt.fromString('0');
+    token.gsBalanceUSD = BigDecimal.fromString('0');
+    token.gsBalanceETH = BigDecimal.fromString('0');
+    token.balance = BigInt.fromString('0');
+    token.balanceUSD = BigDecimal.fromString('0');
+    token.balanceETH = BigDecimal.fromString('0');
+    token.borrowedBalance = BigInt.fromString('0');
+    token.borrowedBalanceUSD = BigDecimal.fromString('0');
+    token.borrowedBalanceETH = BigDecimal.fromString('0');
     token.isDerived = false;
     token.save();
   }
@@ -619,6 +632,10 @@ export function loadOrCreateAbout(): About {
     instance.totalTvlUSD = BigDecimal.fromString('0');
     instance.totalBorrowedETH = BigDecimal.fromString('0');
     instance.totalBorrowedUSD = BigDecimal.fromString('0');
+    instance.totalDSBalanceUSD = BigDecimal.fromString('0');
+    instance.totalDSBalanceETH = BigDecimal.fromString('0');
+    instance.totalGSBalanceUSD = BigDecimal.fromString('0');
+    instance.totalGSBalanceETH = BigDecimal.fromString('0');
     instance.save();
   }
 

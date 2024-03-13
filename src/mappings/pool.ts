@@ -3,7 +3,7 @@ import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } fr
 import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
 import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
+import { updatePoolStats, updateLoanStats, updateTokenPrices, decreaseAboutTotals, increaseAboutTotals } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -71,13 +71,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   const about = loadOrCreateAbout();
 
-  about.totalTvlETH = about.totalTvlETH.minus(token0.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.minus(token1.balanceUSD);
-
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token0.gsBalanceUSD);
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token1.gsBalanceUSD);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token0.gsBalanceETH);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token1.gsBalanceETH);
+  decreaseAboutTotals(about, token0, token1);
 
   token0.borrowedBalance = token0.borrowedBalance.minus(pool.borrowedBalance0);
   token1.borrowedBalance = token1.borrowedBalance.minus(pool.borrowedBalance1);
@@ -88,28 +82,12 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   token0.borrowedBalance = token0.borrowedBalance.plus(pool.borrowedBalance0);
   token1.borrowedBalance = token1.borrowedBalance.plus(pool.borrowedBalance1);
 
-  about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token0.borrowedBalanceUSD);
-  about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token1.borrowedBalanceUSD);
-  about.totalBorrowedETH = about.totalBorrowedETH.minus(token0.borrowedBalanceETH);
-  about.totalBorrowedETH = about.totalBorrowedETH.minus(token1.borrowedBalanceETH);
-
   const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
   let poolPrice = pool.lastPrice.divDecimal(precision);
 
   updateTokenPrices(token0, token1, poolPrice);
 
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token0.gsBalanceUSD);
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token1.gsBalanceUSD);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token0.gsBalanceETH);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token1.gsBalanceETH);
-
-  about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token0.borrowedBalanceUSD);
-  about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token1.borrowedBalanceUSD);
-  about.totalBorrowedETH = about.totalBorrowedETH.plus(token0.borrowedBalanceETH);
-  about.totalBorrowedETH = about.totalBorrowedETH.plus(token1.borrowedBalanceETH);
-
-  about.totalTvlETH = about.totalTvlETH.plus(token0.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.plus(token1.balanceUSD);
+  increaseAboutTotals(about, token0, token1);
 
   about.save();
 
