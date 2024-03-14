@@ -4,7 +4,23 @@ import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
-import { GammaPool, GammaPoolTracer, Loan, LoanSnapshot, Liquidation, Token, Account, Protocol, ProtocolToken, FiveMinPoolSnapshot, HourlyPoolSnapshot, DailyPoolSnapshot, DeltaSwapPair, About } from '../types/schema';
+import {
+  GammaPool,
+  GammaPoolTracer,
+  Loan,
+  LoanSnapshot,
+  Liquidation,
+  Token,
+  Account,
+  Protocol,
+  ProtocolToken,
+  FiveMinPoolSnapshot,
+  HourlyPoolSnapshot,
+  DailyPoolSnapshot,
+  DeltaSwapPair,
+  About,
+  CollateralTokenBalance
+} from '../types/schema';
 import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
 import { getEthUsdValue } from './utils';
 
@@ -108,6 +124,8 @@ export function createLoan(id: string, event: LoanCreated): Loan {
     const account = loadOrCreateAccount(event.params.caller.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
     loan.pool = pool.id;
+    loan.token0 = pool.token0;
+    loan.token1 = pool.token1;
     loan.protocol = pool.protocolId.toString();
     loan.account = account.id;
     loan.rateIndex = BigInt.fromI32(0);
@@ -135,6 +153,21 @@ export function createLoan(id: string, event: LoanCreated): Loan {
   return loan;
 }
 
+export function loadOrCreateCollateralToken(poolId: string, tokenId: string, accountId: string): CollateralTokenBalance {
+  const collateralTokenId = poolId+"-"+tokenId+"-"+accountId;
+  let collateralTokenBalance = CollateralTokenBalance.load(collateralTokenId);
+  if (collateralTokenBalance == null) {
+    collateralTokenBalance = new CollateralTokenBalance(collateralTokenId);
+    collateralTokenBalance.account = accountId;
+    collateralTokenBalance.pool = poolId;
+    collateralTokenBalance.token = tokenId;
+    collateralTokenBalance.balance = BigInt.fromI32(0);
+    collateralTokenBalance.save();
+  }
+
+  return collateralTokenBalance;
+}
+
 export function transferLoanOwner(loanId: string, newOwner: string): void {
   const loan = Loan.load(loanId);
   if (loan == null) {
@@ -143,7 +176,26 @@ export function transferLoanOwner(loanId: string, newOwner: string): void {
   }
 
   const account = loadOrCreateAccount(newOwner);
+
+  // subtract from here
+  const fromCollateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
+  const fromCollateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  fromCollateralToken0.balance = fromCollateralToken0.balance.minus(loan.collateral0);
+  fromCollateralToken1.balance = fromCollateralToken1.balance.minus(loan.collateral1);
+  fromCollateralToken0.save();
+  fromCollateralToken1.save();
+
   loan.account = account.id;
+
+  // add to here
+  const toCollateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
+  const toCollateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  toCollateralToken0.balance = toCollateralToken0.balance.plus(loan.collateral0);
+  toCollateralToken1.balance = toCollateralToken1.balance.plus(loan.collateral1);
+  toCollateralToken0.save();
+  toCollateralToken1.save();
+
+  // add here
   loan.save();
 }
 

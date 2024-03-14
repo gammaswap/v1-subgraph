@@ -1,7 +1,17 @@
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
+import {
+  createLoan,
+  createLiquidation,
+  loadOrCreateAccount,
+  createFiveMinPoolSnapshot,
+  createHourlyPoolSnapshot,
+  createDailyPoolSnapshot,
+  createLoanSnapshot,
+  loadOrCreateAbout,
+  loadOrCreateCollateralToken
+} from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
 import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
@@ -115,6 +125,16 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.getLoanData(event.params.tokenId);
+
+  const collateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
+  const collateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+
+  // This might be a problem when it's a loan with a positive balance transferred to a new collateralToken
+  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
+  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  collateralToken0.save();
+  collateralToken1.save();
+
   loan.rateIndex = loanData.rateIndex;
   loan.initLiquidity = loanData.initLiquidity;
   loan.liquidity = loanData.liquidity;
