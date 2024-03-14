@@ -1,7 +1,6 @@
-import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
-import { Pool } from '../types/templates/GammaPool/Pool';
+import { log, BigInt, BigDecimal } from '@graphprotocol/graph-ts';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
-import { WETH_USDC_PAIR, DEFAULT_PROTOCOL_ID } from './constants';
+import { WETH_USDC_PAIR, USDC, USDT, WETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK } from './constants';
 import { loadOrCreateAbout } from "./loader";
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -87,6 +86,14 @@ export function increaseAboutTotals(about: About, token0: Token, token1: Token):
   about.totalTvlUSD = about.totalTvlUSD.plus(token1.balanceUSD);
 }
 
+export function isStableToken(token: Token): boolean {
+  const tokenAddress = token.id.toLowerCase();
+  if(NETWORK == 'arbitrum-one' && tokenAddress == ARBITRUM_BRIDGE_USDC_TOKEN) {
+    return true;
+  }
+  return tokenAddress == USDC || tokenAddress == USDT;
+}
+
 export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDecimal): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, pairPrice.toString()]);
 
@@ -103,7 +110,7 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
 
   // There needs to be a market against WETH or a USD token to get the value of a token
-  if (token0.symbol == 'WETH') {//TODO: Should check with acceptable address not symbol
+  if (token0.id.toLowerCase() == WETH) {
     token0.priceETH = BigDecimal.fromString('1');
     token0.priceUSD = ethToUsd.truncate(6);
     if(pairPrice.gt(BigDecimal.zero())) {
@@ -129,7 +136,7 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.borrowedBalanceUSD = token0.borrowedBalanceETH.times(token0.priceUSD).truncate(6);
     token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
     token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-  } else if (token1.symbol == 'WETH') {//TODO: Should check with acceptable address not symbol
+  } else if (token1.id.toLowerCase() == WETH) {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
     if(pairPrice.gt(BigDecimal.zero())) {
@@ -155,7 +162,7 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token1.borrowedBalanceUSD = token1.borrowedBalanceETH.times(token1.priceUSD).truncate(6);
     token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-  } else if(token0.symbol.toLowerCase().trim().includes("usd")) {//TODO: Should check with acceptable address not symbol
+  } else if(isStableToken(token0)) {
     token0.priceUSD = BigDecimal.fromString('1');
     token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
     if(pairPrice.gt(BigDecimal.zero())) {
@@ -181,7 +188,7 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
     token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-  } else if(token1.symbol.toLowerCase().trim().includes("usd")) {//TODO: Should check with acceptable address not symbol
+  } else if(isStableToken(token1)) {
     token1.priceUSD = BigDecimal.fromString('1');
     token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
     if(pairPrice.gt(BigDecimal.zero())) {
