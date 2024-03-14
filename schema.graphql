@@ -320,6 +320,14 @@ type CollateralTokenBalance @entity {
   balance: BigInt!
 }
 
+type TotalCollateralTokenBalance @entity {
+  # {tokenId}-{account}
+  id: ID!
+  token: Token!
+  account: Account!
+  balance: BigInt!
+}
+
 type Account @entity {
   # Account address
   id: ID!
@@ -327,6 +335,7 @@ type Account @entity {
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   poolBalances: [PoolBalance!] @derivedFrom(field: "account")
   collateralTokenBalances: [CollateralTokenBalance!] @derivedFrom(field: "account")
+  totalCollateralTokenBalances: [TotalCollateralTokenBalance!] @derivedFrom(field: "account")
 }
 
 """

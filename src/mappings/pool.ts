@@ -10,7 +10,8 @@ import {
   createDailyPoolSnapshot,
   createLoanSnapshot,
   loadOrCreateAbout,
-  loadOrCreateCollateralToken
+  loadOrCreateCollateralToken,
+  loadOrCreateTotalCollateralToken
 } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
 import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
@@ -128,12 +129,18 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 
   const collateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
   const collateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  const totalCollateralToken0 = loadOrCreateTotalCollateralToken(loan.token0, loan.account);
+  const totalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
 
   // This might be a problem when it's a loan with a positive balance transferred to a new collateralToken
   collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
   collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
+  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
   collateralToken0.save();
   collateralToken1.save();
+  totalCollateralToken0.save();
+  totalCollateralToken1.save();
 
   loan.rateIndex = loanData.rateIndex;
   loan.initLiquidity = loanData.initLiquidity;

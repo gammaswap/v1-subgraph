@@ -19,7 +19,8 @@ import {
   DailyPoolSnapshot,
   DeltaSwapPair,
   About,
-  CollateralTokenBalance
+  CollateralTokenBalance,
+  TotalCollateralTokenBalance
 } from '../types/schema';
 import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
 import { getEthUsdValue } from './utils';
@@ -168,6 +169,20 @@ export function loadOrCreateCollateralToken(poolId: string, tokenId: string, acc
   return collateralTokenBalance;
 }
 
+export function loadOrCreateTotalCollateralToken(tokenId: string, accountId: string): TotalCollateralTokenBalance {
+  const totalCollateralTokenId = tokenId+"-"+accountId;
+  let totalCollateralTokenBalance = TotalCollateralTokenBalance.load(totalCollateralTokenId);
+  if (totalCollateralTokenBalance == null) {
+    totalCollateralTokenBalance = new TotalCollateralTokenBalance(totalCollateralTokenId);
+    totalCollateralTokenBalance.account = accountId;
+    totalCollateralTokenBalance.token = tokenId;
+    totalCollateralTokenBalance.balance = BigInt.fromI32(0);
+    totalCollateralTokenBalance.save();
+  }
+
+  return totalCollateralTokenBalance;
+}
+
 export function transferLoanOwner(loanId: string, newOwner: string): void {
   const loan = Loan.load(loanId);
   if (loan == null) {
@@ -180,23 +195,37 @@ export function transferLoanOwner(loanId: string, newOwner: string): void {
   // subtract from here
   const fromCollateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
   const fromCollateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  const fromTotalCollateralToken0 = loadOrCreateTotalCollateralToken(loan.token0, loan.account);
+  const fromTotalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
+
   fromCollateralToken0.balance = fromCollateralToken0.balance.minus(loan.collateral0);
   fromCollateralToken1.balance = fromCollateralToken1.balance.minus(loan.collateral1);
+  fromTotalCollateralToken0.balance = fromTotalCollateralToken0.balance.minus(loan.collateral0);
+  fromTotalCollateralToken1.balance = fromTotalCollateralToken1.balance.minus(loan.collateral1);
+
   fromCollateralToken0.save();
   fromCollateralToken1.save();
+  fromTotalCollateralToken0.save();
+  fromTotalCollateralToken1.save();
 
   loan.account = account.id;
+  loan.save();
 
   // add to here
   const toCollateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
   const toCollateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  const toTotalCollateralToken0 = loadOrCreateTotalCollateralToken(loan.token0, loan.account);
+  const toTotalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
+
   toCollateralToken0.balance = toCollateralToken0.balance.plus(loan.collateral0);
   toCollateralToken1.balance = toCollateralToken1.balance.plus(loan.collateral1);
+  toTotalCollateralToken0.balance = toTotalCollateralToken0.balance.plus(loan.collateral0);
+  toTotalCollateralToken1.balance = toTotalCollateralToken1.balance.plus(loan.collateral1);
+
   toCollateralToken0.save();
   toCollateralToken1.save();
-
-  // add here
-  loan.save();
+  toTotalCollateralToken0.save();
+  toTotalCollateralToken1.save();
 }
 
 export function createLoanSnapshot(loan: Loan, event: LoanUpdated): LoanSnapshot {
