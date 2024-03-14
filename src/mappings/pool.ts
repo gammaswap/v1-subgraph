@@ -105,7 +105,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 }
 
 export function handleLoanCreate(event: LoanCreated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
+  const loanId = event.params.tokenId.toString();
   createLoan(loanId, event);
 
   const about = loadOrCreateAbout();
@@ -114,7 +114,7 @@ export function handleLoanCreate(event: LoanCreated): void {
 }
 
 export function handleLoanUpdate(event: LoanUpdated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
+  const loanId = event.params.tokenId.toString();
   const loan = Loan.load(loanId);
 
   if (loan == null) {
@@ -188,22 +188,17 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 }
 
 export function handleLiquidation(event: Liquidation): void {
-  const poolAddress = event.address;
-  const pool = GammaPool.load(poolAddress.toHexString());
-
-  if (pool) {
-    if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
-      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toString();
-      const loan = Loan.load(loanId);
-      if (loan == null) {
-        log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);
-        return;
-      }
-      // const liquidations = pool.liquidations;
-      // const sequence = liquidations ? liquidations.load().length : 0;
-      // const liquidationId = loanId + '-' + sequence.toString();
-      createLiquidation(loanId, event);
+  if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
+    const loanId = event.params.tokenId.toString();
+    const loan = Loan.load(loanId);
+    if (loan == null) {
+      log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);
+      return;
     }
+    // const liquidations = pool.liquidations;
+    // const sequence = liquidations ? liquidations.load().length : 0;
+    // const liquidationId = loanId + '-' + sequence.toString();
+    createLiquidation(loanId, event);
   }
 }
 

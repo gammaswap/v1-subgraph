@@ -274,7 +274,7 @@ export function createLoanSnapshot(loan: Loan, event: LoanUpdated): LoanSnapshot
 
 export function createLiquidation(id: string, event: LiquidationEvent): Liquidation {
   const liquidation = new Liquidation(id);
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
+  const loanId = event.params.tokenId.toString();
   
   liquidation.pool = event.address.toHexString();
   liquidation.loan = loanId;

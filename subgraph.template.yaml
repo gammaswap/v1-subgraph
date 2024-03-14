@@ -66,6 +66,8 @@ dataSources:
       eventHandlers:
         - event: CreateLoan(indexed address,indexed address,uint256,uint16)
           handler: handleLoanCreateFromPositionManager
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleLoanTransferFromPositionManager
   - name: StakingRouter
     kind: ethereum/contract
     network: {{network}}
