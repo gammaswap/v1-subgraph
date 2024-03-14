@@ -124,6 +124,7 @@ export function createLoan(id: string, event: LoanCreated): Loan {
   if (pool != null) {
     const account = loadOrCreateAccount(event.params.caller.toHexString()); // Make sure account exists
     loan.tokenId = event.params.tokenId;
+    loan.manager = Address.fromHexString(ADDRESS_ZERO);
     loan.pool = pool.id;
     loan.token0 = pool.token0;
     loan.token1 = pool.token1;
@@ -183,11 +184,15 @@ export function loadOrCreateTotalCollateralToken(tokenId: string, accountId: str
   return totalCollateralTokenBalance;
 }
 
-export function transferLoanOwner(loanId: string, newOwner: string): void {
+export function transferLoanOwner(loanId: string, newOwner: string, setManager: boolean, manager: Address): void {
   const loan = Loan.load(loanId);
   if (loan == null) {
     log.error("LOAN NOT AVAILABLE: {}", [loanId]);
     return;
+  }
+
+  if (setManager) {
+    loan.manager = manager;
   }
 
   const account = loadOrCreateAccount(newOwner);

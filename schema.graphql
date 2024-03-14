@@ -178,6 +178,8 @@ type Loan @entity {
   protocol: Protocol!
   # Owner of the loan
   account: Account!
+  # Manager of the loan
+  manager: Bytes!
   # Token0 of the loan
   token0: Token!
   # Token1 of the loan
