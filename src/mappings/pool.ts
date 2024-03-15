@@ -1,9 +1,20 @@
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, PoolBalance } from '../types/schema';
-import { createLoan, createLiquidation, loadOrCreateAccount, createFiveMinPoolSnapshot, createHourlyPoolSnapshot, createDailyPoolSnapshot, createLoanSnapshot, loadOrCreateAbout } from '../helpers/loader';
+import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
+import {
+  createLoan,
+  createLiquidation,
+  loadOrCreateAccount,
+  createFiveMinPoolSnapshot,
+  createHourlyPoolSnapshot,
+  createDailyPoolSnapshot,
+  createLoanSnapshot,
+  loadOrCreateAbout,
+  loadOrCreateCollateralToken,
+  loadOrCreateTotalCollateralToken
+} from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updatePrices } from '../helpers/utils';
+import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -19,9 +30,13 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
   const poolViewer = PoolViewer.bind(viewerAddress);
 
-  updatePrices(pool);
-
   const poolData = poolViewer.getLatestPoolData(poolAddress);
+
+  const token0 = Token.load(pool.token0);
+  const token1 = Token.load(pool.token1);
+
+  if (token0 == null || token1 == null) return;
+
   pool.shortStrategy = poolData.shortStrategy;
   pool.borrowStrategy = poolData.borrowStrategy;
   pool.repayStrategy = poolData.repayStrategy;
@@ -43,8 +58,6 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.lastPrice = poolData.lastPrice;
 
   pool.totalSupply = poolData.totalSupply;
-  pool.token0Balance = poolData.TOKEN_BALANCE[0];
-  pool.token1Balance = poolData.TOKEN_BALANCE[1];
   pool.reserve0Balance = poolData.CFMM_RESERVES[0];
   pool.reserve1Balance = poolData.CFMM_RESERVES[1];
   pool.borrowRate = poolData.borrowRate;
@@ -62,9 +75,28 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
-  updatePoolStats(pool);
+  token0.gsBalanceBN = token0.gsBalanceBN.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
+  token1.gsBalanceBN = token1.gsBalanceBN.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
+  pool.token0Balance = poolData.TOKEN_BALANCE[0];
+  pool.token1Balance = poolData.TOKEN_BALANCE[1];
+
+  const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
+  const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
+  token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+  token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+  pool.borrowedBalance0 = borrowedBalance0;
+  pool.borrowedBalance1 = borrowedBalance1;
+
+  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  let poolPrice = pool.lastPrice.divDecimal(precision);
+
+  updateTokenPrices(token0, token1, poolPrice);
+
+  updatePoolStats(token0, token1, pool);
 
   pool.save();
+  token0.save();
+  token1.save();
 
   // Historical data
   createFiveMinPoolSnapshot(event, poolData);
@@ -73,7 +105,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 }
 
 export function handleLoanCreate(event: LoanCreated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
+  const loanId = event.params.tokenId.toString();
   createLoan(loanId, event);
 
   const about = loadOrCreateAbout();
@@ -82,7 +114,7 @@ export function handleLoanCreate(event: LoanCreated): void {
 }
 
 export function handleLoanUpdate(event: LoanUpdated): void {
-  const loanId = event.address.toHexString() + '-' + event.params.tokenId.toString();
+  const loanId = event.params.tokenId.toString();
   const loan = Loan.load(loanId);
 
   if (loan == null) {
@@ -94,6 +126,22 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 
   const poolContract = Pool.bind(event.address);
   const loanData = poolContract.getLoanData(event.params.tokenId);
+
+  const collateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
+  const collateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
+  const totalCollateralToken0 = loadOrCreateTotalCollateralToken(loan.token0, loan.account);
+  const totalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
+
+  // This might be a problem when it's a loan with a positive balance transferred to a new collateralToken
+  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
+  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
+  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  collateralToken0.save();
+  collateralToken1.save();
+  totalCollateralToken0.save();
+  totalCollateralToken1.save();
+
   loan.rateIndex = loanData.rateIndex;
   loan.initLiquidity = loanData.initLiquidity;
   loan.liquidity = loanData.liquidity;
@@ -140,22 +188,17 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 }
 
 export function handleLiquidation(event: Liquidation): void {
-  const poolAddress = event.address;
-  const pool = GammaPool.load(poolAddress.toHexString());
-
-  if (pool) {
-    if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
-      const loanId = poolAddress.toHexString() + '-' + event.params.tokenId.toString();
-      const loan = Loan.load(loanId);
-      if (loan == null) {
-        log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);
-        return;
-      }
-      // const liquidations = pool.liquidations;
-      // const sequence = liquidations ? liquidations.load().length : 0;
-      // const liquidationId = loanId + '-' + sequence.toString();
-      createLiquidation(loanId, event);
+  if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
+    const loanId = event.params.tokenId.toString();
+    const loan = Loan.load(loanId);
+    if (loan == null) {
+      log.error("LIQUIDATION: LOAN NOT AVAILABLE: {}", [loanId]);
+      return;
     }
+    // const liquidations = pool.liquidations;
+    // const sequence = liquidations ? liquidations.load().length : 0;
+    // const liquidationId = loanId + '-' + sequence.toString();
+    createLiquidation(loanId, event);
   }
 }
 

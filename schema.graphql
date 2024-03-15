@@ -151,6 +151,11 @@ type GammaPool @entity {
   # Staking is active
   activeStaking: Boolean!
 
+  # Total amounts of token0 borrowed
+  borrowedBalance0: BigInt!
+  # Total amounts of token1 borrowed
+  borrowedBalance1: BigInt!
+
   block: BigInt!
   timestamp: BigInt!
 
@@ -173,6 +178,12 @@ type Loan @entity {
   protocol: Protocol!
   # Owner of the loan
   account: Account!
+  # Manager of the loan
+  manager: Bytes!
+  # Token0 of the loan
+  token0: Token!
+  # Token1 of the loan
+  token1: Token!
 
   """
   Loan attributes updated over time
@@ -272,6 +283,18 @@ type Token @entity {
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
   isDerived: Boolean!
+  dsBalanceBN: BigInt!
+  dsBalanceUSD: BigDecimal!
+  dsBalanceETH: BigDecimal!
+  gsBalanceBN: BigInt!
+  gsBalanceUSD: BigDecimal!
+  gsBalanceETH: BigDecimal!
+  balanceBN: BigInt!
+  balanceUSD: BigDecimal!
+  balanceETH: BigDecimal!
+  borrowedBalanceBN: BigInt!
+  borrowedBalanceUSD: BigDecimal!
+  borrowedBalanceETH: BigDecimal!
   protocols: [ProtocolToken!] @derivedFrom(field: "token")
 }
 
@@ -290,12 +313,31 @@ type PoolBalance @entity {
   initialTimestamp: BigInt!
 }
 
+type CollateralTokenBalance @entity {
+  # {PoolAddress}-{tokenId}-{account}
+  id: ID!
+  pool: GammaPool!
+  token: Token!
+  account: Account!
+  balance: BigInt!
+}
+
+type TotalCollateralTokenBalance @entity {
+  # {tokenId}-{account}
+  id: ID!
+  token: Token!
+  account: Account!
+  balance: BigInt!
+}
+
 type Account @entity {
   # Account address
   id: ID!
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   poolBalances: [PoolBalance!] @derivedFrom(field: "account")
+  collateralTokenBalances: [CollateralTokenBalance!] @derivedFrom(field: "account")
+  totalCollateralTokenBalances: [TotalCollateralTokenBalance!] @derivedFrom(field: "account")
 }
 
 """
@@ -515,6 +557,10 @@ type About @entity {
   id: ID! #random
   version: String!
   network: String!
+  totalDSBalanceUSD: BigDecimal!
+  totalDSBalanceETH: BigDecimal!
+  totalGSBalanceUSD: BigDecimal!
+  totalGSBalanceETH: BigDecimal!
   totalPools: BigInt!
   totalLoans: BigInt!
   totalActiveLoans: BigInt!

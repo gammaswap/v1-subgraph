@@ -4,13 +4,17 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
-export const WETH = '{{weth}}';
-
 export const POSITION_MANAGER = '{{positionManager}}';
 
 export const WETH_USDC_PAIR = '{{wethUsdcPair}}';
 
 export const NETWORK = '{{network}}';
+
+export const WETH = '{{weth}}';
+
+export const USDC = '{{usdc}}';
+
+export const USDT = '{{usdt}}';
 
 export const ARBITRUM_BRIDGE_USDC_TOKEN = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8';
 
