@@ -320,16 +320,16 @@ export function loadOrCreateToken(id: string): Token {
 
     token.priceETH = BigDecimal.fromString('0');
     token.priceUSD = BigDecimal.fromString('0');
-    token.dsBalance = BigInt.fromString('0');
+    token.dsBalanceBN = BigInt.fromString('0');
     token.dsBalanceUSD = BigDecimal.fromString('0');
     token.dsBalanceETH = BigDecimal.fromString('0');
-    token.gsBalance = BigInt.fromString('0');
+    token.gsBalanceBN = BigInt.fromString('0');
     token.gsBalanceUSD = BigDecimal.fromString('0');
     token.gsBalanceETH = BigDecimal.fromString('0');
-    token.balance = BigInt.fromString('0');
+    token.balanceBN = BigInt.fromString('0');
     token.balanceUSD = BigDecimal.fromString('0');
     token.balanceETH = BigDecimal.fromString('0');
-    token.borrowedBalance = BigInt.fromString('0');
+    token.borrowedBalanceBN = BigInt.fromString('0');
     token.borrowedBalanceUSD = BigDecimal.fromString('0');
     token.borrowedBalanceETH = BigDecimal.fromString('0');
     token.isDerived = false;

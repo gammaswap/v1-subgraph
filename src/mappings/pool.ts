@@ -75,15 +75,15 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
-  token0.gsBalance = token0.gsBalance.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
-  token1.gsBalance = token1.gsBalance.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
+  token0.gsBalanceBN = token0.gsBalanceBN.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
+  token1.gsBalanceBN = token1.gsBalanceBN.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
   pool.token0Balance = poolData.TOKEN_BALANCE[0];
   pool.token1Balance = poolData.TOKEN_BALANCE[1];
 
   const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
   const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
-  token0.borrowedBalance = token0.borrowedBalance.minus(pool.borrowedBalance0).plus(borrowedBalance0);
-  token1.borrowedBalance = token1.borrowedBalance.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+  token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+  token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
   pool.borrowedBalance0 = borrowedBalance0;
   pool.borrowedBalance1 = borrowedBalance1;
 

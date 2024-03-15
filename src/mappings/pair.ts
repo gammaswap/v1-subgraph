@@ -20,8 +20,8 @@ export function handleSync(event: Sync): void {
     return;
   }
 
-  token0.dsBalance = token0.dsBalance.minus(pair.reserve0).plus(event.params.reserve0);
-  token1.dsBalance = token1.dsBalance.minus(pair.reserve1).plus(event.params.reserve1);
+  token0.dsBalanceBN = token0.dsBalanceBN.minus(pair.reserve0).plus(event.params.reserve0);
+  token1.dsBalanceBN = token1.dsBalanceBN.minus(pair.reserve1).plus(event.params.reserve1);
 
   pair.reserve0 = event.params.reserve0;
   pair.reserve1 = event.params.reserve1;

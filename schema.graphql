@@ -283,16 +283,16 @@ type Token @entity {
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
   isDerived: Boolean!
-  dsBalance: BigInt!
+  dsBalanceBN: BigInt!
   dsBalanceUSD: BigDecimal!
   dsBalanceETH: BigDecimal!
-  gsBalance: BigInt!
+  gsBalanceBN: BigInt!
   gsBalanceUSD: BigDecimal!
   gsBalanceETH: BigDecimal!
-  balance: BigInt!
+  balanceBN: BigInt!
   balanceUSD: BigDecimal!
   balanceETH: BigDecimal!
-  borrowedBalance: BigInt!
+  borrowedBalanceBN: BigInt!
   borrowedBalanceUSD: BigDecimal!
   borrowedBalanceETH: BigDecimal!
   protocols: [ProtocolToken!] @derivedFrom(field: "token")

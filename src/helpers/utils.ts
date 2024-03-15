@@ -103,8 +103,8 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
 
   const ethToUsd = oneEthInUsd();
 
-  token0.balance = token0.gsBalance.plus(token0.dsBalance);
-  token1.balance = token1.gsBalance.plus(token1.dsBalance);
+  token0.balanceBN = token0.gsBalanceBN.plus(token0.dsBalanceBN);
+  token1.balanceBN = token1.gsBalanceBN.plus(token1.dsBalanceBN);
 
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
@@ -117,25 +117,25 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
       token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(6);
     }
-    token0.balanceETH = token0.balance.toBigDecimal().div(precision0).truncate(18);
+    token0.balanceETH = token0.balanceBN.toBigDecimal().div(precision0).truncate(18);
     token0.balanceUSD = token0.balanceETH.times(token0.priceUSD).truncate(6);
-    token1.balanceETH = token1.balance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.balanceUSD = token1.balance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.balanceUSD = token1.balanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
-    token0.dsBalanceETH = token0.dsBalance.toBigDecimal().div(precision0.truncate(18));
+    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().div(precision0.truncate(18));
     token0.dsBalanceUSD = token0.dsBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.dsBalanceETH = token1.dsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
-    token0.gsBalanceETH = token0.gsBalance.toBigDecimal().div(precision0).truncate(18);
+    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(18);
     token0.gsBalanceUSD = token0.gsBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.gsBalanceETH = token1.gsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
-    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().div(precision0).truncate(18);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().div(precision0).truncate(18);
     token0.borrowedBalanceUSD = token0.borrowedBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
   } else if (token1.id.toLowerCase() == WETH) {
     token1.priceETH = BigDecimal.fromString('1');
     token1.priceUSD = ethToUsd.truncate(6);
@@ -143,25 +143,25 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token0.priceETH = pairPrice.truncate(18);
       token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
     }
-    token1.balanceETH = token1.balance.toBigDecimal().div(precision1).truncate(18);
+    token1.balanceETH = token1.balanceBN.toBigDecimal().div(precision1).truncate(18);
     token1.balanceUSD = token1.balanceETH.times(token1.priceUSD).truncate(6);
-    token0.balanceETH = token0.balance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.balanceUSD = token0.balance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.balanceUSD = token0.balanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
-    token1.dsBalanceETH = token1.dsBalance.toBigDecimal().div(precision1).truncate(18);
+    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().div(precision1).truncate(18);
     token1.dsBalanceUSD = token1.dsBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.dsBalanceETH = token0.dsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.dsBalanceUSD = token0.dsBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
-    token1.gsBalanceETH = token1.gsBalance.toBigDecimal().div(precision1).truncate(18);
+    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(18);
     token1.gsBalanceUSD = token1.gsBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.gsBalanceETH = token0.gsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
-    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().div(precision1).truncate(18);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().div(precision1).truncate(18);
     token1.borrowedBalanceUSD = token1.borrowedBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
   } else if(isStableToken(token0)) {
     token0.priceUSD = BigDecimal.fromString('1');
     token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
@@ -169,25 +169,25 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token1.priceUSD = BigDecimal.fromString('1').div(pairPrice).truncate(6);
       token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
     }
-    token0.balanceUSD = token0.balance.toBigDecimal().div(precision0).truncate(6);
-    token0.balanceETH = token0.balance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.balanceUSD = token1.balance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.balanceETH = token1.balance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.balanceUSD = token0.balanceBN.toBigDecimal().div(precision0).truncate(6);
+    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.balanceUSD = token1.balanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
 
-    token0.dsBalanceUSD = token0.dsBalance.toBigDecimal().div(precision0).truncate(6);
-    token0.dsBalanceETH = token0.dsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.dsBalanceETH = token1.dsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().div(precision0).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
 
-    token0.gsBalanceUSD = token0.gsBalance.toBigDecimal().div(precision0).truncate(6);
-    token0.gsBalanceETH = token0.gsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.gsBalanceETH = token1.gsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
 
-    token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().div(precision0).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().div(precision0).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
   } else if(isStableToken(token1)) {
     token1.priceUSD = BigDecimal.fromString('1');
     token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
@@ -195,25 +195,25 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
       token0.priceUSD = pairPrice.truncate(6);
       token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
     }
-    token1.balanceUSD = token1.balance.toBigDecimal().div(precision1).truncate(6);
-    token1.balanceETH = token1.balance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.balanceUSD = token0.balance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.balanceETH = token0.balance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.balanceUSD = token1.balanceBN.toBigDecimal().div(precision1).truncate(6);
+    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.balanceUSD = token0.balanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
 
-    token1.dsBalanceUSD = token1.dsBalance.toBigDecimal().div(precision1).truncate(6);
-    token1.dsBalanceETH = token1.dsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.dsBalanceUSD = token0.dsBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.dsBalanceETH = token0.dsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().div(precision1).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
 
-    token1.gsBalanceUSD = token1.gsBalance.toBigDecimal().div(precision1).truncate(6);
-    token1.gsBalanceETH = token1.gsBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.gsBalanceETH = token0.gsBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
 
-    token1.borrowedBalanceUSD = token1.borrowedBalance.toBigDecimal().div(precision1).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalance.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalance.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalance.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().div(precision1).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
   }
 
   increaseAboutTotals(about, token0, token1);
