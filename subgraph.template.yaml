@@ -129,6 +129,10 @@ templates:
           file: ./abis/IGammaPool.json
         - name: PoolViewer
           file: ./abis/IPoolViewer.json
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: PoolUpdated(uint256,uint256,uint40,uint80,uint256,uint128,uint128,uint128[],indexed uint8)
           handler: handlePoolUpdate
