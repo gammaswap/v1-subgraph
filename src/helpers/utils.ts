@@ -1,7 +1,7 @@
 import {log, BigInt, BigDecimal, Address} from '@graphprotocol/graph-ts';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
 import { DeltaSwapPair as Pair } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
-import { WETH_USDC_PAIR, USDC, USDT, WETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO } from './constants';
+import { WETH_USDC_PAIR, USDC, USDT, WETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO, WETH_USDC_UNI_PAIR } from './constants';
 import { loadOrCreateAbout, loadOrCreateToken } from "./loader";
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
@@ -15,37 +15,32 @@ export function oneEthInUsd(): BigDecimal {
   let token1Address = ADDRESS_ZERO;
   let reserve0 = BigInt.fromI32(0);
   let reserve1 = BigInt.fromI32(0);
-  let isForeignPair = false;
+  let tryUniPair = true;
 
-  if(WETH_USDC_PAIR != ADDRESS_ZERO) {
-    const pair = DeltaSwapPair.load(WETH_USDC_PAIR);
-    if (pair == null) {
-      const pairContract = Pair.bind(Address.fromString(WETH_USDC_PAIR)); // assumes an UniV2 style pool exists before GammaPoolFactory
+  const pair = DeltaSwapPair.load(WETH_USDC_PAIR);
+  if(pair != null) {
+    reserve0 = pair.reserve0;
+    reserve1 = pair.reserve1;
+    token0Address = pair.token0;
+    token1Address = pair.token1;
+    tryUniPair = false;
+  } else if(WETH_USDC_UNI_PAIR != ADDRESS_ZERO) {
+    const pairContract = Pair.bind(Address.fromString(WETH_USDC_UNI_PAIR)); // assumes an UniV2 style pool exists before GammaPoolFactory
 
-      const reserves = pairContract.getReserves();
-      reserve0 = reserves.getReserve0();
-      reserve1 = reserves.getReserve1();
+    const reserves = pairContract.getReserves();
+    reserve0 = reserves.getReserve0();
+    reserve1 = reserves.getReserve1();
 
-      if (reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return BigDecimal.fromString('0');
+    if (reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return BigDecimal.fromString('0');
 
-      token0Address = pairContract.token0().toHexString();
-      token1Address = pairContract.token1().toHexString();
-
-      if(token0Address == ADDRESS_ZERO || token1Address == ADDRESS_ZERO) return BigDecimal.fromString('0');
-
-      isForeignPair = true;
-    } else {
-      reserve0 = pair.reserve0;
-      reserve1 = pair.reserve1;
-      token0Address = pair.token0;
-      token1Address = pair.token1;
-    }
-  } else {
-    return BigDecimal.fromString('0');
+    token0Address = pairContract.token0().toHexString();
+    token1Address = pairContract.token1().toHexString();
   }
 
-  const token0 = isForeignPair ? loadOrCreateToken(token0Address) : Token.load(token0Address);
-  const token1 = isForeignPair ? loadOrCreateToken(token1Address) : Token.load(token1Address);
+  if(token0Address == ADDRESS_ZERO || token1Address == ADDRESS_ZERO || reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return BigDecimal.fromString('0');
+
+  const token0 = tryUniPair ? loadOrCreateToken(token0Address) : Token.load(token0Address);
+  const token1 = tryUniPair ? loadOrCreateToken(token1Address) : Token.load(token1Address);
 
   if (token0 == null || token1 == null) return BigDecimal.fromString('0');
 

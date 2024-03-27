@@ -6,6 +6,8 @@ export const MAX_UINT = '0xfffffffffffffffffffffffffffffffffffffffffffffffffffff
 
 export const POSITION_MANAGER = '{{positionManager}}';
 
+export const WETH_USDC_UNI_PAIR = '{{wethUsdcUniPair}}';
+
 export const WETH_USDC_PAIR = '{{wethUsdcPair}}';
 
 export const NETWORK = '{{network}}';
