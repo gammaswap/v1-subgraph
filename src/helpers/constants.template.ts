@@ -14,6 +14,8 @@ export const NETWORK = '{{network}}';
 
 export const WETH = '{{weth}}';
 
+export const WEETH = '{{weeth}}';
+
 export const USDC = '{{usdc}}';
 
 export const USDT = '{{usdt}}';
