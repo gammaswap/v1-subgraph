@@ -41,4 +41,13 @@ program
     exec(`graph deploy --product hosted-service ${graph_uri} subgraph.${network}.yaml`);
   })
 
+program
+  .command('launch')
+  .argument('<graph_uri>')
+  .argument('<network>')
+  .action(async (graph_uri: string, network: string) =>
+  {
+    exec(`graph deploy --studio ${graph_uri} subgraph.${network}.yaml`);
+  })
+
 program.parse();

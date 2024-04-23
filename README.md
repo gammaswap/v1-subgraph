@@ -9,6 +9,12 @@
 4. Run "graph auth --product hosted-service 'ACCESS_TOKEN'" (get ACCESS_TOKEN from https://thegraph.com)
 5. Run "yarn deploy:arbitrum"
 
+*If authenticating to studio run the following
+
+graph auth --studio 'ACCESS_TOKEN'
+
+*The deployment script for base mainnet uses launch instead of the deploy command to deploy to graph studio
+
 ### Process for updating Arbitrum Subgraph
 
 After confident changes in test environments are safe in the subgraph and UI (e.g. arbitrumSepolia), do the following
