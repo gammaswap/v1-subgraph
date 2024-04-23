@@ -14,7 +14,7 @@
     "deploy:arbitrum": "yarn deploy gammaswap/gammaswap-v1-arbitrum arbitrum",
     "deploy:arbitrum-dev": "yarn deploy gammaswap/gammaswap-v1-arbitrum-dev arbitrum",
     "deploy:arbitrum-oct23": "yarn deploy gammaswap/gammaswap-v1-arbitrum-oct23 arbitrum-oct23",
-    "deploy:base": "yarn deploy gammaswap/gammaswap-v1-base base",
+    "deploy:base": "yarn launch gammaswap-v1-base base",
     "deploy:base-dev": "yarn deploy gammaswap/gammaswap-v1-base-dev base",
     "deploy:basesepolia": "yarn deploy gammaswap/gammaswap-v1-basesepolia base-sepolia",
     "deploy:basesepolia-dev": "yarn deploy gammaswap/gammaswap-v1-basesepolia-dev base-sepolia",
