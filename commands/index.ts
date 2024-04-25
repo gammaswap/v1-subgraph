@@ -42,7 +42,7 @@ program
   })
 
 program
-  .command('launch')
+  .command('studio')
   .argument('<graph_uri>')
   .argument('<network>')
   .action(async (graph_uri: string, network: string) =>

@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, PoolBalance, Token} from '../types/schema';
+import { GammaPool, Loan, PoolBalance, Token, DeltaSwapPair } from '../types/schema';
 import {
   createLoan,
   createLiquidation,
@@ -86,6 +86,23 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
   pool.borrowedBalance0 = borrowedBalance0;
   pool.borrowedBalance1 = borrowedBalance1;
+
+  // Since the Sync events come before PoolUpdate events, Sync events will update with an incorrect lpBalance value
+  // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
+  // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
+  const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
+  if (pair != null) {
+    const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
+    const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
+
+    if(pair.protocol != BigInt.fromString('3')) {
+      token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
+      token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
+    }
+
+    pool.lpReserve0 = poolReserve0;
+    pool.lpReserve1 = poolReserve1;
+  }
 
   const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
   let poolPrice = pool.lastPrice.divDecimal(precision);

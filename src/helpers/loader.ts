@@ -4,6 +4,7 @@ import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
+import { DeltaSwapPair as DeltaSwapPairSource } from "../types/templates";
 import {
   GammaPool,
   GammaPoolTracer,
@@ -88,6 +89,8 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.token1Balance = BigInt.fromI32(0);
   pool.reserve0Balance = BigInt.fromI32(0);
   pool.reserve1Balance = BigInt.fromI32(0);
+  pool.lpReserve0 = BigInt.fromI32(0);
+  pool.lpReserve1 = BigInt.fromI32(0);
   pool.borrowRate = BigInt.fromI32(0);
   pool.supplyRate = BigInt.fromI32(0);
   pool.utilizationRate = BigInt.fromI32(0);
@@ -105,6 +108,8 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.timestamp = event.block.timestamp;
 
   pool.save();
+
+  createPairFromPool(pool);
 
   return pool;
 }
@@ -320,6 +325,9 @@ export function loadOrCreateToken(id: string): Token {
 
     token.priceETH = BigDecimal.fromString('0');
     token.priceUSD = BigDecimal.fromString('0');
+    token.lpBalanceBN = BigInt.fromString('0');
+    token.lpBalanceUSD = BigDecimal.fromString('0');
+    token.lpBalanceETH = BigDecimal.fromString('0');
     token.dsBalanceBN = BigInt.fromString('0');
     token.dsBalanceUSD = BigDecimal.fromString('0');
     token.dsBalanceETH = BigDecimal.fromString('0');
@@ -362,17 +370,42 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
   return protocolToken;
 }
 
-export function createPair(event: PairCreated): void {
+export function createPairFromPool(pool: GammaPool): void {
+  const id = pool.cfmm.toHexString();
+  let pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    pair = new DeltaSwapPair(id);
+    const token0 = loadOrCreateToken(pool.token0);
+    const token1 = loadOrCreateToken(pool.token1);
+    const pairContract = ERC20.bind(Address.fromString(id));
+    pair.totalSupply = pairContract.totalSupply();
+    pair.token0 = token0.id;
+    pair.token1 = token1.id;
+    pair.reserve0 = BigInt.fromI32(0);
+    pair.reserve1 = BigInt.fromI32(0);
+    pair.protocol = pool.protocolId;
+    pair.pool = pool.id;
+    pair.save();
+
+    DeltaSwapPairSource.create(Address.fromBytes(pool.cfmm));
+  }
+}
+
+export function createPair(event: PairCreated, protocol: string): void {
   const id = event.params.pair.toHexString();
   let pair = DeltaSwapPair.load(id);
   if (pair == null) {
     pair = new DeltaSwapPair(id);
     const token0 = loadOrCreateToken(event.params.token0.toHexString());
     const token1 = loadOrCreateToken(event.params.token1.toHexString());
+    const pairContract = ERC20.bind(Address.fromString(id));
+    pair.totalSupply = pairContract.totalSupply();
     pair.token0 = token0.id;
     pair.token1 = token1.id;
     pair.reserve0 = BigInt.fromI32(0);
     pair.reserve1 = BigInt.fromI32(0);
+    pair.protocol = BigInt.fromString(protocol);
+    pair.pool = ADDRESS_ZERO;
     pair.save();
   }
 }
@@ -718,6 +751,8 @@ export function loadOrCreateAbout(): About {
     instance.totalTvlUSD = BigDecimal.fromString('0');
     instance.totalBorrowedETH = BigDecimal.fromString('0');
     instance.totalBorrowedUSD = BigDecimal.fromString('0');
+    instance.totalLPBalanceUSD = BigDecimal.fromString('0');
+    instance.totalLPBalanceETH = BigDecimal.fromString('0');
     instance.totalDSBalanceUSD = BigDecimal.fromString('0');
     instance.totalDSBalanceETH = BigDecimal.fromString('0');
     instance.totalGSBalanceUSD = BigDecimal.fromString('0');

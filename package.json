@@ -1,6 +1,6 @@
 {
   "name": "gammaswap-subgraph",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,19 +8,21 @@
     "codegen": "node -r ts-node/register commands/index.ts codegen",
     "build": "node -r ts-node/register commands/index.ts build",
     "deploy": "node -r ts-node/register commands/index.ts deploy",
+    "studio": "node -r ts-node/register commands/index.ts studio",
     "deploy:arbsepolia": "yarn deploy gammaswap/gammaswap-v1-arbsepolia arbitrum-sepolia",
     "deploy:arbsepolia-dev": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-dev arbitrum-sepolia",
     "deploy:arbsepolia-oct23": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-oct23 arbitrum-sepolia-oct23",
     "deploy:arbitrum": "yarn deploy gammaswap/gammaswap-v1-arbitrum arbitrum",
     "deploy:arbitrum-dev": "yarn deploy gammaswap/gammaswap-v1-arbitrum-dev arbitrum",
     "deploy:arbitrum-oct23": "yarn deploy gammaswap/gammaswap-v1-arbitrum-oct23 arbitrum-oct23",
-    "deploy:base": "yarn launch gammaswap-v1-base base",
     "deploy:base-dev": "yarn deploy gammaswap/gammaswap-v1-base-dev base",
     "deploy:basesepolia": "yarn deploy gammaswap/gammaswap-v1-basesepolia base-sepolia",
     "deploy:basesepolia-dev": "yarn deploy gammaswap/gammaswap-v1-basesepolia-dev base-sepolia",
     "deploy:sepolia": "yarn deploy gammaswap/gammaswap-v1-sepolia sepolia",
     "deploy:sepolia-dev": "yarn deploy gammaswap/gammaswap-v1-sepolia-dev sepolia",
-    "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia"
+    "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia",
+    "studio:base-dev": "yarn studio gammaswap-v1-base-dev base",
+    "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia"
   },
   "keywords": [],
   "author": "Simon Mall",
