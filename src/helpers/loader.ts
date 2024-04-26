@@ -377,8 +377,7 @@ export function createPairFromPool(pool: GammaPool): void {
     pair = new DeltaSwapPair(id);
     const token0 = loadOrCreateToken(pool.token0);
     const token1 = loadOrCreateToken(pool.token1);
-    const pairContract = ERC20.bind(Address.fromString(id));
-    pair.totalSupply = pairContract.totalSupply();
+    pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
     pair.reserve0 = BigInt.fromI32(0);
@@ -398,8 +397,7 @@ export function createPair(event: PairCreated, protocol: string): void {
     pair = new DeltaSwapPair(id);
     const token0 = loadOrCreateToken(event.params.token0.toHexString());
     const token1 = loadOrCreateToken(event.params.token1.toHexString());
-    const pairContract = ERC20.bind(Address.fromString(id));
-    pair.totalSupply = pairContract.totalSupply();
+    pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
     pair.reserve0 = BigInt.fromI32(0);

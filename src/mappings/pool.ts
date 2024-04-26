@@ -91,7 +91,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
   // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
   const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
-  if (pair != null) {
+  if (pair != null && pair.totalSupply.gt(BigInt.zero())) {
     const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
     const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
 

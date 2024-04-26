@@ -1,13 +1,15 @@
-import { BigInt, log } from '@graphprotocol/graph-ts';
+import { Address, BigInt, log } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync, Transfer } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
+import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { DeltaSwapPair, GammaPool } from '../types/schema';
 import { getPriceFromReserves, updateTokenPrices } from '../helpers/utils';
 import { ADDRESS_ZERO } from "../helpers/constants";
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
-  const pair = DeltaSwapPair.load(event.address.toHexString());
+  const id = event.address.toHexString();
+  const pair = DeltaSwapPair.load(id);
   if (pair == null) {
     log.error("DeltaSwap Pair Unavailable: {}", [event.address.toHexString()]);
     return;
@@ -28,8 +30,13 @@ export function handleSync(event: Sync): void {
     token1.lpBalanceBN = token1.lpBalanceBN.minus(pair.reserve1).plus(event.params.reserve1);
   }
 
+  if(pair.totalSupply.equals(BigInt.zero())) {
+    const pairContract = ERC20.bind(Address.fromString(id));
+    pair.totalSupply = pairContract.totalSupply();
+  }
+
   const pool = GammaPool.load(pair.pool);
-  if (pool != null) {
+  if (pool != null && pair.totalSupply.gt(BigInt.zero())) {
     const poolReserve0 = pool.lpBalance.times(event.params.reserve0).div(pair.totalSupply);
     const poolReserve1 = pool.lpBalance.times(event.params.reserve1).div(pair.totalSupply);
 
@@ -60,6 +67,7 @@ export function handleSync(event: Sync): void {
 
 export function handleTransfer(event: Transfer): void {
   log.warning("Transfer Event: {}", [event.address.toHexString()]);
+  const id = event.address.toHexString();
   const pair = DeltaSwapPair.load(event.address.toHexString());
   if (pair == null) {
     log.error("DeltaSwap Pair Unavailable: {}", [event.address.toHexString()]);
@@ -74,11 +82,15 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  if(event.params.from.toHexString() == ADDRESS_ZERO) {
-    pair.totalSupply = pair.totalSupply.plus(event.params.value);
-    pair.save();
-  } else if(event.params.to.toHexString() == ADDRESS_ZERO){
-    pair.totalSupply = pair.totalSupply.minus(event.params.value);
-    pair.save();
+  if(pair.totalSupply.gt(BigInt.zero())) {
+    const from = event.params.from.toHexString();
+    const to = event.params.to.toHexString();
+    if(from == ADDRESS_ZERO) { // from zero is always a mint
+      pair.totalSupply = pair.totalSupply.plus(event.params.value);
+      pair.save();
+    } else if(to == ADDRESS_ZERO && from == id){ // from pair to zero is always burn
+      pair.totalSupply = pair.totalSupply.minus(event.params.value);
+      pair.save();
+    }
   }
 }
