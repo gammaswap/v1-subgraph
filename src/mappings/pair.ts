@@ -1,9 +1,9 @@
-import { Address, BigInt, log } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { Sync, Transfer } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { DeltaSwapPair, GammaPool } from '../types/schema';
-import { getPriceFromReserves, updateTokenPrices } from '../helpers/utils';
+import { getPriceFromReserves, updatePoolStats, updateTokenPrices } from '../helpers/utils';
 import { ADDRESS_ZERO } from "../helpers/constants";
 
 export function handleSync(event: Sync): void {
@@ -36,7 +36,8 @@ export function handleSync(event: Sync): void {
   }
 
   const pool = GammaPool.load(pair.pool);
-  if (pool != null && pair.totalSupply.gt(BigInt.zero())) {
+  const hasFloat = pair.totalSupply.gt(BigInt.zero());
+  if (pool != null && hasFloat) {
     const poolReserve0 = pool.lpBalance.times(event.params.reserve0).div(pair.totalSupply);
     const poolReserve1 = pool.lpBalance.times(event.params.reserve1).div(pair.totalSupply);
 
@@ -59,7 +60,34 @@ export function handleSync(event: Sync): void {
 
   let price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
 
+  if(pool!=null && hasFloat) {
+    pool.lastCfmmInvariant = pair.reserve0.times(pair.reserve1).sqrt();
+    pool.lastCfmmTotalSupply = pair.totalSupply;
+
+    const borrowedBalance0 = pool.lpBorrowedBalance.times(pair.reserve0).div(pool.lastCfmmTotalSupply);
+    const borrowedBalance1 = pool.lpBorrowedBalance.times(pair.reserve1).div(pool.lastCfmmTotalSupply);
+    token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+    token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+    pool.borrowedBalance0 = borrowedBalance0;
+    pool.borrowedBalance1 = borrowedBalance1;
+  }
+
   updateTokenPrices(token0, token1, price);
+
+  const hasPrice = price.gt(BigDecimal.zero());
+  if(pool != null && hasPrice) {
+    const precision = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+    const lastPrice = pair.reserve1.times(precision).div(pair.reserve0);
+
+    if(lastPrice.gt(BigInt.zero()) && pool.lastCfmmTotalSupply.gt(BigInt.zero())) {
+      pool.lastPrice = lastPrice;
+      updatePoolStats(token0, token1, pool);
+    }
+  }
+
+  if(pool != null) {
+    pool.save();
+  }
 
   token0.save();
   token1.save();
