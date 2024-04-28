@@ -1,0 +1,41 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: GammaFactory
+    network: base
+    source:
+      address: "0xfd513630f697a9c1731f196185fb9eba6eaac20b"
+      abi: GammaFactory
+      startBlock: 12475877
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - FeeUpdate
+        - OwnershipTransferStarted
+        - OwnershipTransferred
+        - PoolCreated
+        - PoolParamsUpdate
+        - RateParamsUpdate
+      abis:
+        - name: GammaFactory
+          file: ./abis/GammaFactory.json
+      eventHandlers:
+        - event: FeeUpdate(indexed address,indexed address,uint16,uint16,bool)
+          handler: handleFeeUpdate
+        - event: OwnershipTransferStarted(indexed address,indexed address)
+          handler: handleOwnershipTransferStarted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PoolCreated(indexed address,indexed address,indexed uint16,address,address[],uint256)
+          handler: handlePoolCreated
+        - event: PoolParamsUpdate(indexed address,uint16,uint8,uint8,uint8,uint8,uint16,uint8,uint8,uint72)
+          handler: handlePoolParamsUpdate
+        - event: RateParamsUpdate(indexed address,bytes,bool)
+          handler: handleRateParamsUpdate
+      file: ./src/gamma-factory.ts
