@@ -380,6 +380,7 @@ export function createPairFromPool(pool: GammaPool): void {
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
+    pair.timestamp = BigInt.fromI32(0);
     pair.reserve0 = BigInt.fromI32(0);
     pair.reserve1 = BigInt.fromI32(0);
     pair.protocol = pool.protocolId;
@@ -400,6 +401,7 @@ export function createPair(event: PairCreated, protocol: string): void {
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
+    pair.timestamp = BigInt.fromI32(0);
     pair.reserve0 = BigInt.fromI32(0);
     pair.reserve1 = BigInt.fromI32(0);
     pair.protocol = BigInt.fromString(protocol);

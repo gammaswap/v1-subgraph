@@ -9,6 +9,7 @@
     "build": "node -r ts-node/register commands/index.ts build",
     "deploy": "node -r ts-node/register commands/index.ts deploy",
     "studio": "node -r ts-node/register commands/index.ts studio",
+    "goldsky": "node -r ts-node/register commands/index.ts goldsky",
     "deploy:arbsepolia": "yarn deploy gammaswap/gammaswap-v1-arbsepolia arbitrum-sepolia",
     "deploy:arbsepolia-dev": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-dev arbitrum-sepolia",
     "deploy:arbsepolia-oct23": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-oct23 arbitrum-sepolia-oct23",
@@ -22,14 +23,15 @@
     "deploy:sepolia-dev": "yarn deploy gammaswap/gammaswap-v1-sepolia-dev sepolia",
     "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia",
     "studio:base-dev": "yarn studio gammaswap-v1-base-dev base",
-    "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia"
+    "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia",
+    "goldsky:base": "yarn goldsky gammaswap-v1-base base"
   },
   "keywords": [],
   "author": "Simon Mall",
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.69.1",
-    "@graphprotocol/graph-ts": "^0.34.0",
+    "@graphprotocol/graph-cli": "^0.71.0",
+    "@graphprotocol/graph-ts": "^0.35.1",
     "@types/node": "^20.11.16",
     "@types/shelljs": "^0.8.15",
     "commander": "^12.0.0",

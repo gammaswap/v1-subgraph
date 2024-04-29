@@ -2,6 +2,7 @@
   "network": "sepolia",
   "startBlock": "5219485",
   "dsStartBlock": "0",
+  "throttleSeconds": "300",
   "factory": "0xa65d90ac1eb85a6740e24439d1a99c663583a909",
   "dsFactory": "0x0000000000000000000000000000000000000000",
   "positionManager": "0xff535a587e8ed6392f1efc83e1e6b4248cd7efe7",

@@ -50,4 +50,15 @@ program
     exec(`graph deploy --studio ${graph_uri} subgraph.${network}.yaml`);
   })
 
+program
+    .command('goldsky')
+    .argument('<graph_uri>')
+    .argument('<network>')
+    .action(async (graph_uri: string, network: string) =>
+    {
+      exec(`cp subgraph.${network}.yaml subgraph.yaml\n
+        goldsky subgraph deploy ${graph_uri}/${version} --path .\n
+        rm subgraph.yaml`);
+    })
+
 program.parse();

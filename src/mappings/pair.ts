@@ -4,7 +4,7 @@ import { Sync, Transfer } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { DeltaSwapPair, GammaPool } from '../types/schema';
 import { getPriceFromReserves, updatePoolStats, updateTokenPrices } from '../helpers/utils';
-import { ADDRESS_ZERO } from "../helpers/constants";
+import { ADDRESS_ZERO, THROTTLE_SECONDS } from "../helpers/constants";
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
@@ -14,6 +14,15 @@ export function handleSync(event: Sync): void {
     log.error("DeltaSwap Pair Unavailable: {}", [event.address.toHexString()]);
     return;
   }
+
+  const throttleSeconds = BigInt.fromString(THROTTLE_SECONDS);
+
+  // throttle Non DS Pairs
+  if(pair.protocol != BigInt.fromString('3') && pair.timestamp.gt(event.block.timestamp.minus(throttleSeconds))) {
+    return;
+  }
+
+  pair.timestamp = event.block.timestamp;
 
   const token0 = Token.load(pair.token0);
   const token1 = Token.load(pair.token1);
