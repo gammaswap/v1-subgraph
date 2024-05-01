@@ -2,6 +2,7 @@
   "network": "base",
   "startBlock": "12475877",
   "dsStartBlock": "0",
+  "throttleSeconds": "300",
   "factory": "0xfd513630f697a9c1731f196185fb9eba6eaac20b",
   "dsFactory": "0x0000000000000000000000000000000000000000",
   "positionManager": "0x7135ba051fcba0d3bde77add0601d8b69c91ece1",

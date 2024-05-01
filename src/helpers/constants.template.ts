@@ -30,4 +30,6 @@ export const BN_GS = '{{bnGS}}';
 
 export const DEFAULT_PROTOCOL_ID = 3;
 
+export const THROTTLE_SECONDS = '{{throttleSeconds}}';
+
 export const VERSION = 'VERSION_PLACEHOLDER';

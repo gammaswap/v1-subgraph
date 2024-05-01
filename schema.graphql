@@ -156,6 +156,11 @@ type GammaPool @entity {
   # Total amounts of token1 borrowed
   borrowedBalance1: BigInt!
 
+  # token0 amount in CFMM
+  lpReserve0: BigInt!
+  # token1 amount in CFMM
+  lpReserve1: BigInt!
+
   block: BigInt!
   timestamp: BigInt!
 
@@ -283,6 +288,9 @@ type Token @entity {
   priceETH: BigDecimal!
   priceUSD: BigDecimal!
   isDerived: Boolean!
+  lpBalanceBN: BigInt!
+  lpBalanceUSD: BigDecimal!
+  lpBalanceETH: BigDecimal!
   dsBalanceBN: BigInt!
   dsBalanceUSD: BigDecimal!
   dsBalanceETH: BigDecimal!
@@ -548,6 +556,11 @@ type DeltaSwapPair @entity {
   token1: Token!
   reserve0: BigInt!
   reserve1: BigInt!
+  protocol: BigInt!
+  totalSupply: BigInt!
+  pool: GammaPool!
+  timestamp: BigInt!
+  startBlock: BigInt!
 }
 
 """
@@ -557,6 +570,8 @@ type About @entity {
   id: ID! #random
   version: String!
   network: String!
+  totalLPBalanceUSD: BigDecimal!
+  totalLPBalanceETH: BigDecimal!
   totalDSBalanceUSD: BigDecimal!
   totalDSBalanceETH: BigDecimal!
   totalGSBalanceUSD: BigDecimal!

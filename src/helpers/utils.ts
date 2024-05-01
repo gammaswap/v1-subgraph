@@ -74,6 +74,11 @@ export function decreaseAboutTotals(about: About, token0: Token, token1: Token):
   about.totalTvlUSD = about.totalTvlUSD.minus(token0.balanceUSD);
   about.totalTvlUSD = about.totalTvlUSD.minus(token1.balanceUSD);
 
+  about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token0.lpBalanceUSD);
+  about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token1.lpBalanceUSD);
+  about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token0.lpBalanceETH);
+  about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token1.lpBalanceETH);
+
   about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token0.dsBalanceUSD);
   about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token1.dsBalanceUSD);
   about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token0.dsBalanceETH);
@@ -91,6 +96,11 @@ export function decreaseAboutTotals(about: About, token0: Token, token1: Token):
 }
 
 export function increaseAboutTotals(about: About, token0: Token, token1: Token): void {
+  about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token0.lpBalanceUSD);
+  about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token1.lpBalanceUSD);
+  about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token0.lpBalanceETH);
+  about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token1.lpBalanceETH);
+
   about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token0.dsBalanceUSD);
   about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token1.dsBalanceUSD);
   about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token0.dsBalanceETH);
@@ -129,8 +139,8 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
 
   const ethToUsd = oneEthInUsd();
 
-  token0.balanceBN = token0.gsBalanceBN.plus(token0.dsBalanceBN);
-  token1.balanceBN = token1.gsBalanceBN.plus(token1.dsBalanceBN);
+  token0.balanceBN = token0.gsBalanceBN.plus(token0.lpBalanceBN);
+  token1.balanceBN = token1.gsBalanceBN.plus(token1.lpBalanceBN);
 
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
@@ -152,6 +162,11 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.dsBalanceUSD = token0.dsBalanceETH.times(token0.priceUSD).truncate(6);
     token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
     token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+
+    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().div(precision0.truncate(18));
+    token0.lpBalanceUSD = token0.lpBalanceETH.times(token0.priceUSD).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
     token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(18);
     token0.gsBalanceUSD = token0.gsBalanceETH.times(token0.priceUSD).truncate(6);
@@ -179,6 +194,11 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
+    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().div(precision1).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceETH.times(token1.priceUSD).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+
     token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(18);
     token1.gsBalanceUSD = token1.gsBalanceETH.times(token1.priceUSD).truncate(6);
     token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
@@ -204,6 +224,11 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
     token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+
+    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().div(precision0).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
 
     token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(6);
     token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
@@ -231,6 +256,11 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
     token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
 
+    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().div(precision1).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+
     token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(6);
     token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
     token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
@@ -251,6 +281,9 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
     token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
+    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+
     token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
     token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
@@ -266,6 +299,9 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
 
     token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+
+    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
     token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
     token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
