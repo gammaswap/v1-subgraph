@@ -364,6 +364,7 @@ type Account @entity {
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   poolBalances: [PoolBalance!] @derivedFrom(field: "account")
+  stakedBalances: [StakedBalance!] @derivedFrom(field: "account")
   collateralTokenBalances: [CollateralTokenBalance!] @derivedFrom(field: "account")
   totalCollateralTokenBalances: [TotalCollateralTokenBalance!] @derivedFrom(field: "account")
 }
