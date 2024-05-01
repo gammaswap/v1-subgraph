@@ -560,6 +560,7 @@ type DeltaSwapPair @entity {
   totalSupply: BigInt!
   pool: GammaPool!
   timestamp: BigInt!
+  startBlock: BigInt!
 }
 
 """

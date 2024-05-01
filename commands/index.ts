@@ -51,14 +51,23 @@ program
   })
 
 program
-    .command('goldsky')
-    .argument('<graph_uri>')
-    .argument('<network>')
-    .action(async (graph_uri: string, network: string) =>
-    {
-      exec(`cp subgraph.${network}.yaml subgraph.yaml\n
-        goldsky subgraph deploy ${graph_uri}/${version} --path .\n
-        rm subgraph.yaml`);
-    })
+  .command('goldsky')
+  .argument('<graph_uri>')
+  .argument('<network>')
+  .action(async (graph_uri: string, network: string) =>
+  {
+    exec(`cp subgraph.${network}.yaml subgraph.yaml\n
+      goldsky subgraph deploy ${graph_uri}/${version} --path .\n
+      rm subgraph.yaml`);
+  })
+
+program
+  .command('goldtag')
+  .argument('<graph_uri>')
+  .argument('<tag_name>')
+  .action(async (graph_uri: string, tag_name: string) =>
+  {
+    exec(`goldsky subgraph tag create ${graph_uri}/${version} --tag ${tag_name}`);
+  })
 
 program.parse();

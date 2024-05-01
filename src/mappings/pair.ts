@@ -42,6 +42,7 @@ export function handleSync(event: Sync): void {
   if(pair.totalSupply.equals(BigInt.zero())) {
     const pairContract = ERC20.bind(Address.fromString(id));
     pair.totalSupply = pairContract.totalSupply();
+    pair.startBlock = event.block.number;
   }
 
   const pool = GammaPool.load(pair.pool);
@@ -119,7 +120,7 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  if(pair.totalSupply.gt(BigInt.zero())) {
+  if(event.block.number.gt(pair.startBlock) && pair.totalSupply.gt(BigInt.zero())) {
     const from = event.params.from.toHexString();
     const to = event.params.to.toHexString();
     if(from == ADDRESS_ZERO) { // from zero is always a mint

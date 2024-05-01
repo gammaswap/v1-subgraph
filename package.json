@@ -10,6 +10,7 @@
     "deploy": "node -r ts-node/register commands/index.ts deploy",
     "studio": "node -r ts-node/register commands/index.ts studio",
     "goldsky": "node -r ts-node/register commands/index.ts goldsky",
+    "goldtag": "node -r ts-node/register commands/index.ts goldtag",
     "deploy:arbsepolia": "yarn deploy gammaswap/gammaswap-v1-arbsepolia arbitrum-sepolia",
     "deploy:arbsepolia-dev": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-dev arbitrum-sepolia",
     "deploy:arbsepolia-oct23": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-oct23 arbitrum-sepolia-oct23",
@@ -24,7 +25,10 @@
     "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia",
     "studio:base-dev": "yarn studio gammaswap-v1-base-dev base",
     "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia",
-    "goldsky:base": "yarn goldsky gammaswap-v1-base base"
+    "goldsky:arbitrum": "yarn goldsky gammaswap-v1-arbitrum arbitrum",
+    "goldsky:base": "yarn goldsky gammaswap-v1-base base",
+    "goldtag:arbitrum": "yarn goldtag gammaswap-v1-arbitrum prod",
+    "goldtag:base": "yarn goldtag gammaswap-v1-base prod"
   },
   "keywords": [],
   "author": "Simon Mall",
