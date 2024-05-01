@@ -238,7 +238,7 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
     } else {
       poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceFrom.balanceUSD = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      poolBalanceFrom.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
     }
     poolBalanceFrom.save();
   }

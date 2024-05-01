@@ -1,4 +1,4 @@
-import {log, BigInt, BigDecimal, Address} from '@graphprotocol/graph-ts';
+import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
 import { DeltaSwapPair as Pair } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { WETH_USDC_PAIR, USDC, USDT, WETH, WEETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO, WETH_USDC_UNI_PAIR } from './constants';
