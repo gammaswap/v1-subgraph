@@ -27,7 +27,7 @@ export function handleStake(event: Stake): void {
 export function handleUnstake(event: Unstake): void {
     const rewardTrackerId = event.address.toHexString();
     const accountId = event.params._account.toHexString();
-    let stakedBalance = loadStakedBalance(rewardTrackerId, accountId);
+    let stakedBalance = loadStakedBalance(accountId, rewardTrackerId);
     if(stakedBalance != null) {
         const amount = event.params._amount;
         const depositTokenAddress = event.params._depositToken.toHexString();
