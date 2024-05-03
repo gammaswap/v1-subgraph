@@ -11,7 +11,6 @@
     "studio": "node -r ts-node/register commands/index.ts studio",
     "goldsky": "node -r ts-node/register commands/index.ts goldsky",
     "goldtag": "node -r ts-node/register commands/index.ts goldtag",
-    "update": "node -r ts-node/register commands/index.ts update",
     "deploy:arbsepolia": "yarn deploy gammaswap/gammaswap-v1-arbsepolia arbitrum-sepolia",
     "deploy:arbsepolia-dev": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-dev arbitrum-sepolia",
     "deploy:arbsepolia-oct23": "yarn deploy gammaswap/gammaswap-v1-arbsepolia-oct23 arbitrum-sepolia-oct23",
