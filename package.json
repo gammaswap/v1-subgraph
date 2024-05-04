@@ -1,6 +1,6 @@
 {
   "name": "gammaswap-subgraph",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,8 +26,10 @@
     "studio:base-dev": "yarn studio gammaswap-v1-base-dev base",
     "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia",
     "goldsky:arbitrum": "yarn goldsky gammaswap-v1-arbitrum arbitrum",
+    "goldsky:arbsepolia": "yarn goldsky gammaswap-v1-arbsepolia arbitrum-sepolia",
     "goldsky:base": "yarn goldsky gammaswap-v1-base base",
     "goldtag:arbitrum": "yarn goldtag gammaswap-v1-arbitrum prod",
+    "goldtag:arbsepolia": "yarn goldtag gammaswap-v1-arbsepolia prod",
     "goldtag:base": "yarn goldtag gammaswap-v1-base prod"
   },
   "keywords": [],

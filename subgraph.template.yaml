@@ -88,6 +88,8 @@ dataSources:
       abis:
         - name: IStakingRouter
           file: ./abis/staking/IStakingRouter.json
+        - name: RewardDistributor
+          file: ./abis/staking/RewardDistributor.json
       eventHandlers:
         - event: CoreTrackerCreated(address,address,address,address,address,address,address)
           handler: handleCoreTrackerCreate

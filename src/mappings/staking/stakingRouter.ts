@@ -1,9 +1,8 @@
-import { log, Address } from '@graphprotocol/graph-ts';
+import { log } from '@graphprotocol/graph-ts';
 import {
   RewardTracker as RewardTrackerDataSource,
   RewardDistributor as RewardDistributorDataSource
 } from '../../types/templates';
-import { RewardTracker } from '../../types/templates/RewardTracker/RewardTracker';
 import { RewardDistributor } from '../../types/templates/RewardDistributor/RewardDistributor';
 import {
   CoreTrackerCreated,
@@ -52,7 +51,9 @@ export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   RewardTrackerDataSource.create(event.params.rewardTracker);
   RewardDistributorDataSource.create(event.params.rewardDistributor);
 
-  createRewardDistributor(event.params.rewardDistributor, ES_GS, false);
+  const distributorContract = RewardDistributor.bind(event.params.rewardDistributor); // assumes an UniV2 style pool exists before GammaPoolFactory
+  const rewardTokenAddress = distributorContract.rewardToken().toHexString();
+  createRewardDistributor(event.params.rewardDistributor, rewardTokenAddress, false);
   createRewardTracker(poolAddress, event.params.rewardTracker, event.params.rewardDistributor, [poolAddress], false);
 }
 

@@ -23,3 +23,35 @@ in order making sure each step is successful
 1. Update gammaswap-v1-arbitrum-dev
 2. Test main branch of UI against gammaswap-v1-arbitrum-dev
 3. Deploy to gammaswap-v1-arbitrum
+
+### Goldsky Commands
+
+deploy a subgraph:
+
+`goldsky subgraph deploy <nameAndVersion>`
+
+delete a subgraph: 
+
+`goldsky subgraph delete <nameAndVersion>`
+
+update a subgraph:
+
+`goldsky subgraph update <nameAndVersion>`
+
+show logs of a subgraph:
+
+`goldsky subgraph log <nameAndVersion>`
+
+create a subgraph tag:
+
+`goldsky subgraph tag create <nameAndVersion> --tag <tagName>`
+
+delete a subgraph tag:
+
+`goldsky subgraph tag delete <nameAndVersion> --tag <tagName>`
+
+list subgraphs:
+
+`goldsky subgraph list <nameAndVersion>`
+
+Source: https://docs.goldsky.com/reference/cli

@@ -321,6 +321,26 @@ type PoolBalance @entity {
   initialTimestamp: BigInt!
 }
 
+type StakedBalance @entity {
+  # {RewardTracker}-{account}
+  id: ID!
+  rewardTracker: RewardTracker!
+  account: Account!
+  # Shares of the rewardTracker
+  balance: BigInt!
+  depositTokens: [Bytes!]
+  depositBalances: [BigInt!]
+  # Only for Pool and esGS and GS deposits. EsGS and GS are treated as if they were the same, hence no need to distinguish here
+  depositBalanceETH: BigDecimal!
+  depositBalanceUSD: BigDecimal!
+  # when it's GS staking, this is null, when Pool staking it's the deposit token
+  pool: GammaPool
+  # Block number at which initial deposit was made
+  initialBlock: BigInt!
+  # Timestamp at which initial deposit was made
+  initialTimestamp: BigInt!
+}
+
 type CollateralTokenBalance @entity {
   # {PoolAddress}-{tokenId}-{account}
   id: ID!
@@ -344,6 +364,7 @@ type Account @entity {
   loans: [Loan!] @derivedFrom(field: "account")
   liquidations: [Liquidation!] @derivedFrom(field: "liquidator")
   poolBalances: [PoolBalance!] @derivedFrom(field: "account")
+  stakedBalances: [StakedBalance!] @derivedFrom(field: "account")
   collateralTokenBalances: [CollateralTokenBalance!] @derivedFrom(field: "account")
   totalCollateralTokenBalances: [TotalCollateralTokenBalance!] @derivedFrom(field: "account")
 }
