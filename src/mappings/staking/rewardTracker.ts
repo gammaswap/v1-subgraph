@@ -2,6 +2,8 @@ import { DepositTokenSet, Stake, Unstake, RewardsUpdate, UserRewardsUpdate, Clai
 import { BigInt } from "@graphprotocol/graph-ts";
 import { loadStakedBalance } from "../../helpers/staking/loader";
 import { updateStakedBalances } from "../../helpers/staking/utils";
+import { PoolAndStakedBalance } from "../../types/schema";
+import { ADDRESS_ZERO } from "../../helpers/constants";
 
 export function handleDepositTokenSet(event: DepositTokenSet): void {
   
@@ -21,6 +23,21 @@ export function handleStake(event: Stake): void {
         stakedBalance.balance = stakedBalance.balance.plus(amount);
         updateStakedBalances(stakedBalance, amount, depositTokenAddress, true);
         stakedBalance.save();
+
+        if (accountId != ADDRESS_ZERO && stakedBalance.pool != null) {
+            const poolAddress = stakedBalance.pool!;
+            const id = poolAddress + '-' + accountId;
+            let poolAndStakeBalanceTo = PoolAndStakedBalance.load(id);
+            if (poolAndStakeBalanceTo == null) {
+                poolAndStakeBalanceTo = new PoolAndStakedBalance(id);
+                poolAndStakeBalanceTo.pool = poolAddress;
+                poolAndStakeBalanceTo.account = accountId;
+                poolAndStakeBalanceTo.balance = BigInt.fromI32(0);
+                poolAndStakeBalanceTo.isRewardTracker = stakedBalance.isRewardTracker;
+            }
+            poolAndStakeBalanceTo.balance = poolAndStakeBalanceTo.balance.plus(amount);
+            poolAndStakeBalanceTo.save();
+        }
     }
 }
 
@@ -34,6 +51,15 @@ export function handleUnstake(event: Unstake): void {
         stakedBalance.balance = stakedBalance.balance.minus(amount);
         updateStakedBalances(stakedBalance, amount, depositTokenAddress, false);
         stakedBalance.save();
+
+        if(stakedBalance.pool != null) {
+            const id = stakedBalance.pool! + '-' + accountId;
+            let poolAndStakeBalanceFrom = PoolAndStakedBalance.load(id);
+            if (poolAndStakeBalanceFrom) {
+                poolAndStakeBalanceFrom.balance = poolAndStakeBalanceFrom.balance.minus(amount);
+                poolAndStakeBalanceFrom.save();
+            }
+        }
     }
 }
 

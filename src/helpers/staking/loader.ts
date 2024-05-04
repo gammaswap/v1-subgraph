@@ -45,6 +45,7 @@ export function loadStakedBalance(accountId: string, rewardTrackerId: string): S
       stakedBalance.account = accountId;
       stakedBalance.pool = rewardTracker.gsPool;
       stakedBalance.balance = BigInt.fromI32(0);
+      stakedBalance.isRewardTracker = RewardTracker.load(accountId) != null;
 
       const depositTokens = rewardTracker.depositTokens;
       if(depositTokens != null) {

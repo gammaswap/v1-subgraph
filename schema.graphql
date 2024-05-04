@@ -319,6 +319,7 @@ type PoolBalance @entity {
   initialBlock: BigInt!
   # Timestamp at which initial deposit was made
   initialTimestamp: BigInt!
+  isRewardTracker: Boolean!
 }
 
 type StakedBalance @entity {
@@ -339,6 +340,16 @@ type StakedBalance @entity {
   initialBlock: BigInt!
   # Timestamp at which initial deposit was made
   initialTimestamp: BigInt!
+  isRewardTracker: Boolean!
+}
+
+type PoolAndStakedBalance @entity {
+  # {PoolAddress}-{account}
+  id: ID!
+  pool: GammaPool!
+  account: Account!
+  balance: BigInt!
+  isRewardTracker: Boolean!
 }
 
 type CollateralTokenBalance @entity {
