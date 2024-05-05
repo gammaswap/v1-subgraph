@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
-import { GammaPool, Loan, PoolBalance, Token, DeltaSwapPair } from '../types/schema';
+import { GammaPool, Loan, PoolBalance, Token, DeltaSwapPair, PoolAndStakedBalance, RewardTracker } from '../types/schema';
 import {
   createLoan,
   createLiquidation,
@@ -230,17 +230,25 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   const id1 = pool.id + '-' + fromAccount.id;
   const id2 = pool.id + '-' + toAccount.id;
 
-  let poolBalanceFrom = PoolBalance.load(id1);
-  if (poolBalanceFrom && fromAccount.id != ADDRESS_ZERO) {
-    poolBalanceFrom.balance = poolBalanceFrom.balance.minus(event.params.amount);
-    if (pool.totalSupply == BigInt.fromI32(0)) {
-      poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
-      poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
-    } else {
-      poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceFrom.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+  if (fromAccount.id != ADDRESS_ZERO) {
+    let poolBalanceFrom = PoolBalance.load(id1);
+    if (poolBalanceFrom) {
+      poolBalanceFrom.balance = poolBalanceFrom.balance.minus(event.params.amount);
+      if (pool.totalSupply == BigInt.fromI32(0)) {
+        poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
+        poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
+      } else {
+        poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+        poolBalanceFrom.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      }
+      poolBalanceFrom.save();
     }
-    poolBalanceFrom.save();
+
+    let poolAndStakeBalanceFrom = PoolAndStakedBalance.load(id1);
+    if (poolAndStakeBalanceFrom) {
+      poolAndStakeBalanceFrom.balance = poolAndStakeBalanceFrom.balance.minus(event.params.amount);
+      poolAndStakeBalanceFrom.save();
+    }
   }
 
   let poolBalanceTo = PoolBalance.load(id2);
@@ -255,6 +263,7 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
       poolBalanceTo.initialBlock = event.block.number;
       poolBalanceTo.initialTimestamp = event.block.timestamp;
+      poolBalanceTo.isRewardTracker = RewardTracker.load(toAccount.id) != null;
     }
     poolBalanceTo.balance = poolBalanceTo.balance.plus(event.params.amount);
     if (pool.totalSupply == BigInt.fromI32(0)) {
@@ -265,5 +274,16 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
     }
     poolBalanceTo.save();
+
+    let poolAndStakeBalanceTo = PoolAndStakedBalance.load(id2);
+    if (poolAndStakeBalanceTo == null) {
+      poolAndStakeBalanceTo = new PoolAndStakedBalance(id2);
+      poolAndStakeBalanceTo.pool = pool.id;
+      poolAndStakeBalanceTo.account = toAccount.id;
+      poolAndStakeBalanceTo.balance = BigInt.fromI32(0);
+      poolAndStakeBalanceTo.isRewardTracker = poolBalanceTo.isRewardTracker;
+    }
+    poolAndStakeBalanceTo.balance = poolAndStakeBalanceTo.balance.plus(event.params.amount);
+    poolAndStakeBalanceTo.save();
   }
 }
