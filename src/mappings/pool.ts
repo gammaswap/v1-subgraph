@@ -80,18 +80,18 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   pool.token0Balance = poolData.TOKEN_BALANCE[0];
   pool.token1Balance = poolData.TOKEN_BALANCE[1];
 
-  const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
-  const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
-  token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
-  token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
-  pool.borrowedBalance0 = borrowedBalance0;
-  pool.borrowedBalance1 = borrowedBalance1;
-
   // Since the Sync events come before PoolUpdate events, Sync events will update with an incorrect lpBalance value
   // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
   // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
   const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
   if (pair != null && pair.totalSupply.gt(BigInt.zero())) {
+    const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
+    const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
+    token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+    token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+    pool.borrowedBalance0 = borrowedBalance0;
+    pool.borrowedBalance1 = borrowedBalance1;
+
     const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
     const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
 
@@ -109,7 +109,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
   updateTokenPrices(token0, token1, poolPrice);
 
-  updatePoolStats(token0, token1, pool);
+  if(pair != null && pair.totalSupply.gt(BigInt.zero())) {
+    updatePoolStats(token0, token1, pool, pair);
+  }
 
   pool.save();
   token0.save();

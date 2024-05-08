@@ -15,6 +15,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "InvalidRestrictedToken",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -295,7 +300,23 @@
     "type": "event"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_shouldClaimRewards",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_shouldClaimFee",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_shouldClaimVesting",
+        "type": "bool"
+      }
+    ],
     "name": "claim",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -307,6 +328,21 @@
         "internalType": "address",
         "name": "_gsPool",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "_shouldClaimRewards",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_shouldClaimVesting",
+        "type": "bool"
       }
     ],
     "name": "claimPool",
@@ -361,6 +397,11 @@
       },
       {
         "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "_account",
         "type": "address"
       }
@@ -374,6 +415,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_poolVestingPeriod",
+        "type": "uint256"
+      }
+    ],
+    "name": "setPoolVestingPeriod",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -395,6 +449,16 @@
       {
         "internalType": "address",
         "name": "_gsPool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_claimableToken",
         "type": "address"
       }
     ],
@@ -527,6 +591,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -547,6 +616,11 @@
       {
         "internalType": "address",
         "name": "_gsPool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
         "type": "address"
       },
       {
@@ -648,6 +722,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -668,6 +747,11 @@
       {
         "internalType": "address",
         "name": "_gsPool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
         "type": "address"
       },
       {
@@ -697,8 +781,26 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "vestEsGsb",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_gsPool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
         "type": "address"
       },
       {
@@ -707,20 +809,7 @@
         "type": "uint256"
       }
     ],
-    "name": "vestEsGsForPool",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "vestEsGsb",
+    "name": "vestEsTokenForPool",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -733,21 +822,26 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_gsPool",
-        "type": "address"
-      }
-    ],
-    "name": "withdrawEsGsForPool",
+    "inputs": [],
+    "name": "withdrawEsGsb",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "withdrawEsGsb",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_gsPool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawEsTokenForPool",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
