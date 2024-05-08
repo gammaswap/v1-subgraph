@@ -71,11 +71,8 @@ export function handleSync(event: Sync): void {
   let price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
 
   if(pool!=null && hasFloat) {
-    pool.lastCfmmInvariant = pair.reserve0.times(pair.reserve1).sqrt();
-    pool.lastCfmmTotalSupply = pair.totalSupply;
-
-    const borrowedBalance0 = pool.lpBorrowedBalance.times(pair.reserve0).div(pool.lastCfmmTotalSupply);
-    const borrowedBalance1 = pool.lpBorrowedBalance.times(pair.reserve1).div(pool.lastCfmmTotalSupply);
+    const borrowedBalance0 = pool.lpBorrowedBalance.times(pair.reserve0).div(pair.totalSupply);
+    const borrowedBalance1 = pool.lpBorrowedBalance.times(pair.reserve1).div(pair.totalSupply);
     token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
     token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
     pool.borrowedBalance0 = borrowedBalance0;
@@ -85,14 +82,8 @@ export function handleSync(event: Sync): void {
   updateTokenPrices(token0, token1, price);
 
   const hasPrice = price.gt(BigDecimal.zero());
-  if(pool != null && hasPrice) {
-    const precision = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
-    const lastPrice = pair.reserve1.times(precision).div(pair.reserve0);
-
-    if(lastPrice.gt(BigInt.zero()) && pool.lastCfmmTotalSupply.gt(BigInt.zero())) {
-      pool.lastPrice = lastPrice;
-      updatePoolStats(token0, token1, pool);
-    }
+  if(pool != null && hasPrice && hasFloat) {
+    updatePoolStats(token0, token1, pool, pair);
   }
 
   if(pool != null) {
