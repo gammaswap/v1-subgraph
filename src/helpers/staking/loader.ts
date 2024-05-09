@@ -44,7 +44,7 @@ export function createEscrowToken(poolAddress: string, escrowTokenAddress: strin
     escrowToken.address = Address.fromString(escrowTokenAddress);
     escrowToken.claimableToken = claimableTokenAddress;
 
-    const esTokenContract = ERC20.bind(escrowToken.address);
+    const esTokenContract = ERC20.bind(Address.fromString(escrowTokenAddress));
 
     escrowToken.name = esTokenContract.name().trim();
     escrowToken.symbol = esTokenContract.symbol().trim();
