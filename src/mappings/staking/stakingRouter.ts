@@ -48,6 +48,7 @@ export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   pool.hasStakingTrackers = true;
   pool.save();
 
+  //event.params.vester;
   RewardTrackerDataSource.create(event.params.rewardTracker);
   RewardDistributorDataSource.create(event.params.rewardDistributor);
 
