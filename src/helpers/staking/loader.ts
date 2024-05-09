@@ -1,5 +1,6 @@
 import { Address, BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts';
-import { RewardTracker, RewardDistributor, StakedBalance } from '../../types/schema';
+import { RewardTracker, RewardDistributor, StakedBalance, EscrowToken } from '../../types/schema';
+import { ERC20 } from "../../types/StakingRouter/ERC20";
 
 export function createRewardTracker(gsPool: string, tracker: Address, distributor: Address, depositTokens: string[], isFeeTracker: boolean): RewardTracker {
   const rewardTracker = new RewardTracker(tracker.toHexString());
@@ -32,6 +33,25 @@ export function createRewardDistributor(distributor: Address, rewardTokenAddress
 
   rewardDistributor.save();
   return rewardDistributor;
+}
+
+export function createEscrowToken(poolAddress: string, escrowTokenAddress: string, claimableTokenAddress: string): void {
+  const id = poolAddress + '-' + escrowTokenAddress;
+  let escrowToken = EscrowToken.load(id);
+  if(escrowToken == null) {
+    const escrowToken = new EscrowToken(id);
+    escrowToken.pool = poolAddress;
+    escrowToken.address = Address.fromString(escrowTokenAddress);
+    escrowToken.claimableToken = claimableTokenAddress;
+
+    const esTokenContract = ERC20.bind(escrowToken.address);
+
+    escrowToken.name = esTokenContract.name().trim();
+    escrowToken.symbol = esTokenContract.symbol().trim();
+    escrowToken.decimals = BigInt.fromString(esTokenContract.decimals().toString());
+
+    escrowToken.save();
+  }
 }
 
 export function loadStakedBalance(accountId: string, rewardTrackerId: string): StakedBalance | null {

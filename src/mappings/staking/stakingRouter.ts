@@ -4,6 +4,7 @@ import {
   RewardDistributor as RewardDistributorDataSource
 } from '../../types/templates';
 import { RewardDistributor } from '../../types/templates/RewardDistributor/RewardDistributor';
+import { Vester } from '../../types/StakingRouter/Vester';
 import {
   CoreTrackerCreated,
   CoreTrackerUpdated,
@@ -14,7 +15,7 @@ import {
   UnstakedGs,
   UnstakedLp
 } from '../../types/StakingRouter/IStakingRouter';
-import { createRewardTracker, createRewardDistributor } from '../../helpers/staking/loader';
+import {createRewardTracker, createRewardDistributor, createEscrowToken} from '../../helpers/staking/loader';
 import { WETH, GS, ES_GS, BN_GS } from '../../helpers/constants';
 import { GammaPool } from '../../types/schema';
 
@@ -48,12 +49,14 @@ export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   pool.hasStakingTrackers = true;
   pool.save();
 
-  //event.params.vester;
   RewardTrackerDataSource.create(event.params.rewardTracker);
   RewardDistributorDataSource.create(event.params.rewardDistributor);
 
-  const distributorContract = RewardDistributor.bind(event.params.rewardDistributor); // assumes an UniV2 style pool exists before GammaPoolFactory
+  const distributorContract = RewardDistributor.bind(event.params.rewardDistributor);
   const rewardTokenAddress = distributorContract.rewardToken().toHexString();
+  const vesterContract = Vester.bind(event.params.vester);
+  const claimableTokenAddress = vesterContract.claimableToken().toHexString();
+  createEscrowToken(pool.id, rewardTokenAddress, claimableTokenAddress);
   createRewardDistributor(event.params.rewardDistributor, rewardTokenAddress, false);
   createRewardTracker(poolAddress, event.params.rewardTracker, event.params.rewardDistributor, [poolAddress], false);
 }

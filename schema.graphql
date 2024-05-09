@@ -282,9 +282,10 @@ type Liquidation @entity {
 }
 
 type EscrowToken @entity {
-  # Token address
+  # {PoolAddress}-{esToken}
   id: ID!
   pool: GammaPool!
+  # esToken address
   address: Bytes!
   name: String!
   symbol: String!
