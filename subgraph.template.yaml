@@ -90,6 +90,10 @@ dataSources:
           file: ./abis/staking/IStakingRouter.json
         - name: RewardDistributor
           file: ./abis/staking/RewardDistributor.json
+        - name: Vester
+          file: ./abis/staking/Vester.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: CoreTrackerCreated(address,address,address,address,address,address,address)
           handler: handleCoreTrackerCreate

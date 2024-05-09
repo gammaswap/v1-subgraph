@@ -1,6 +1,6 @@
 {
   "name": "gammaswap-subgraph",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -34,6 +34,7 @@
   },
   "keywords": [],
   "author": "Simon Mall",
+  "contributors": ["Daniel D. Alcarraz (https://github.com/0xDanr)"],
   "license": "MIT",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.71.0",
