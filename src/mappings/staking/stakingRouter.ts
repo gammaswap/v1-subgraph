@@ -15,7 +15,7 @@ import {
   UnstakedGs,
   UnstakedLp
 } from '../../types/StakingRouter/IStakingRouter';
-import {createRewardTracker, createRewardDistributor, createEscrowToken} from '../../helpers/staking/loader';
+import { createRewardTracker, createRewardDistributor, createEscrowToken } from '../../helpers/staking/loader';
 import { WETH, GS, ES_GS, BN_GS } from '../../helpers/constants';
 import { GammaPool } from '../../types/schema';
 
