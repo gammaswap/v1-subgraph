@@ -24,6 +24,11 @@ in order making sure each step is successful
 2. Test main branch of UI against gammaswap-v1-arbitrum-dev
 3. Deploy to gammaswap-v1-arbitrum
 
+### Versioning
+
+If only updating configurations, then bump to next minor version. If also updating subgraph source code, ABIs or yaml
+templates, then bump to next major version
+
 ### Goldsky Commands
 
 deploy a subgraph:
