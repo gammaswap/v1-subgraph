@@ -1,5 +1,5 @@
 import { log } from '@graphprotocol/graph-ts';
-import { BonusMultiplierChange, Distribute, StatusChange, TokensPerIntervalChange } from '../../types/templates/RewardDistributor/RewardDistributor';
+import { BonusMultiplierChange, Distribute, StatusChange, TokensPerIntervalChange } from '../../types/templates/RewardDistributor/IRewardDistributor';
 import { GammaPool, RewardDistributor, RewardTracker } from '../../types/schema';
 
 export function handleDistribute(event: Distribute): void {
