@@ -1,4 +1,4 @@
-import { DepositTokenSet, Stake, Unstake, RewardsUpdate, UserRewardsUpdate, Claim } from '../../types/templates/RewardTracker/RewardTracker'
+import { DepositTokenSet, Stake, Unstake, RewardsUpdate, UserRewardsUpdate, Claim } from '../../types/templates/RewardTracker/IRewardTracker'
 import { BigInt } from "@graphprotocol/graph-ts";
 import { loadStakedBalance } from "../../helpers/staking/loader";
 import { updateStakedBalances } from "../../helpers/staking/utils";

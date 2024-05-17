@@ -20,6 +20,11 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "StakingContractsAlreadySet",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {

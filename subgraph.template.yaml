@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -88,10 +88,10 @@ dataSources:
       abis:
         - name: IStakingRouter
           file: ./abis/staking/IStakingRouter.json
-        - name: RewardDistributor
-          file: ./abis/staking/RewardDistributor.json
-        - name: Vester
-          file: ./abis/staking/Vester.json
+        - name: IRewardDistributor
+          file: ./abis/staking/IRewardDistributor.json
+        - name: IVester
+          file: ./abis/staking/IVester.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
@@ -156,7 +156,7 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: RewardTracker
+      abi: IRewardTracker
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -165,8 +165,8 @@ templates:
       entities:
         - RewardTracker
       abis:
-        - name: RewardTracker
-          file: ./abis/staking/RewardTracker.json
+        - name: IRewardTracker
+          file: ./abis/staking/IRewardTracker.json
       eventHandlers:
         - event: DepositTokenSet(indexed address,bool)
           handler: handleDepositTokenSet
@@ -184,7 +184,7 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: RewardDistributor
+      abi: IRewardDistributor
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -193,8 +193,8 @@ templates:
       entities:
         - RewardDistributor
       abis:
-        - name: RewardDistributor
-          file: ./abis/staking/RewardDistributor.json
+        - name: IRewardDistributor
+          file: ./abis/staking/IRewardDistributor.json
       eventHandlers:
         - event: Distribute(uint256)
           handler: handleDistribute

@@ -3,8 +3,8 @@ import {
   RewardTracker as RewardTrackerDataSource,
   RewardDistributor as RewardDistributorDataSource
 } from '../../types/templates';
-import { RewardDistributor } from '../../types/templates/RewardDistributor/RewardDistributor';
-import { Vester } from '../../types/StakingRouter/Vester';
+import { IRewardDistributor } from '../../types/templates/RewardDistributor/IRewardDistributor';
+import { IVester } from '../../types/StakingRouter/IVester';
 import {
   CoreTrackerCreated,
   CoreTrackerUpdated,
@@ -52,9 +52,9 @@ export function handlePoolTrackerCreate(event: PoolTrackerCreated): void {
   RewardTrackerDataSource.create(event.params.rewardTracker);
   RewardDistributorDataSource.create(event.params.rewardDistributor);
 
-  const distributorContract = RewardDistributor.bind(event.params.rewardDistributor);
+  const distributorContract = IRewardDistributor.bind(event.params.rewardDistributor);
   const rewardTokenAddress = distributorContract.rewardToken().toHexString();
-  const vesterContract = Vester.bind(event.params.vester);
+  const vesterContract = IVester.bind(event.params.vester);
   const claimableTokenAddress = vesterContract.claimableToken().toHexString();
   createEscrowToken(pool.id, rewardTokenAddress, claimableTokenAddress);
   createRewardDistributor(event.params.rewardDistributor, rewardTokenAddress, false);
