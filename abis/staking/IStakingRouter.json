@@ -6,6 +6,11 @@
   },
   {
     "inputs": [],
+    "name": "GSTokensAlreadySet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidConstructor",
     "type": "error"
   },
@@ -17,6 +22,16 @@
   {
     "inputs": [],
     "name": "InvalidRestrictedToken",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MissingBeaconProxyFactory",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MissingGSTokenParameter",
     "type": "error"
   },
   {
@@ -305,6 +320,19 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "bnGs",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bool",
@@ -376,6 +404,90 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "coreTracker",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "rewardTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "rewardDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "loanRewardTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "loanRewardDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "bonusTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "bonusDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "feeTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "feeDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "vester",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "loanVester",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "esGs",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "esGsb",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -391,6 +503,19 @@
     "name": "execute",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeRewardToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -417,6 +542,139 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "gs",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_loanTrackerFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_rewardTrackerFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeTrackerFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_rewardDistributorFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_bonusDistributorFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_vesterFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_vesterNoReserveFactory",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_gs",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esGs",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_esGsb",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_bnGs",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeRewardToken",
+        "type": "address"
+      }
+    ],
+    "name": "initializeGSTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "esToken",
+        "type": "address"
+      }
+    ],
+    "name": "poolTrackers",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "rewardTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "rewardDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "loanRewardTracker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "loanRewardDistributor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "vester",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

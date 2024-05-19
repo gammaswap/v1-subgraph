@@ -259,6 +259,49 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_symbol",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_vestingDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_esToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_pairToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_claimableToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_rewardTracker",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "maxWithdrawableAmount",
     "outputs": [
