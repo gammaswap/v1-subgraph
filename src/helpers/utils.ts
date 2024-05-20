@@ -291,7 +291,7 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
     token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
   } else if (token1.id.toLowerCase() == WEETH) {
     if(pairPrice.gt(BigDecimal.zero())) {
-      token0.priceETH = pairPrice.div(token1.priceETH).truncate(18);
+      token0.priceETH = pairPrice.times(token1.priceETH).truncate(18);
       token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(6);
     }
     token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
