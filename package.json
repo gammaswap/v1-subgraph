@@ -28,10 +28,12 @@
     "goldsky:arbitrum": "yarn goldsky gammaswap-v1-arbitrum arbitrum",
     "goldsky:arbsepolia": "yarn goldsky gammaswap-v1-arbsepolia arbitrum-sepolia",
     "goldsky:base": "yarn goldsky gammaswap-v1-base base",
+    "goldsky:mainnet": "yarn goldsky gammaswap-v1-mainnet mainnet",
     "goldsky:sepolia": "yarn goldsky gammaswap-v1-sepolia sepolia",
     "goldtag:arbitrum": "yarn goldtag gammaswap-v1-arbitrum prod",
     "goldtag:arbsepolia": "yarn goldtag gammaswap-v1-arbsepolia prod",
     "goldtag:base": "yarn goldtag gammaswap-v1-base prod",
+    "goldtag:mainnet": "yarn goldtag gammaswap-v1-mainnet prod",
     "goldtag:sepolia": "yarn goldtag gammaswap-v1-sepolia prod"
   },
   "keywords": [],
