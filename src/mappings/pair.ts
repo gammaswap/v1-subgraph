@@ -32,6 +32,11 @@ export function handleSync(event: Sync): void {
     return;
   }
 
+  if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
+    log.error("DeltaSwap Sync: Tokens Decimals are Zero", []);
+    return;
+  }
+
   if(pair.protocol == BigInt.fromString('3')) {
     token0.dsBalanceBN = token0.dsBalanceBN.minus(pair.reserve0).plus(event.params.reserve0);
     token1.dsBalanceBN = token1.dsBalanceBN.minus(pair.reserve1).plus(event.params.reserve1);
@@ -108,6 +113,11 @@ export function handleTransfer(event: Transfer): void {
 
   if (token0 == null || token1 == null) {
     log.error("DeltaSwap Sync: Tokens Unavailable", []);
+    return;
+  }
+
+  if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
+    log.error("DeltaSwap Sync: Tokens Decimals are Zero", []);
     return;
   }
 

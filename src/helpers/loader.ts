@@ -1,9 +1,9 @@
-import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
+import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
-import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
+import { ITokenMetaData } from '../types/templates/DeltaSwapPair/ITokenMetaData';
 import { DeltaSwapPair as DeltaSwapPairSource } from "../types/templates";
 import {
   GammaPool,
@@ -23,7 +23,7 @@ import {
   CollateralTokenBalance,
   TotalCollateralTokenBalance
 } from '../types/schema';
-import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
+import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION, POOL_VIEWER } from './constants';
 import { getEthUsdValue } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
@@ -314,10 +314,37 @@ export function loadOrCreateToken(id: string): Token {
   let token = Token.load(id);
   if (token == null) {
     token = new Token(id);
-    const tokenContract = ERC20.bind(Address.fromString(id));
-    token.decimals = BigInt.fromString(tokenContract.decimals().toString());
-    token.name = tokenContract.name().trim();
-    token.symbol = tokenContract.symbol().trim();
+    const tokenMetaData = ITokenMetaData.bind(Address.fromString(POOL_VIEWER));
+
+    const tokenAddress = Address.fromString(id);
+    let decimals = BigInt.fromString("0");
+    let name = "";
+    let symbol = "";
+
+    const decimalsResult = tokenMetaData.try_getTokenDecimals(tokenAddress);
+    if(!decimalsResult.reverted) {
+      decimals = BigInt.fromString(decimalsResult.value.toString());
+    } else {
+      log.error("Failed to get decimals for token {}", [id]);
+    }
+
+    const nameResult = tokenMetaData.try_getTokenName(tokenAddress);
+    if(!nameResult.reverted) {
+      name = nameResult.value.toString().trim();
+    } else {
+      log.error("Failed to get name for token {}", [id]);
+    }
+
+    const symbolResult = tokenMetaData.try_getTokenSymbol(tokenAddress);
+    if(!symbolResult.reverted) {
+      symbol = symbolResult.value.toString().trim();
+    } else {
+      log.error("Failed to get symbol for token {}", [id]);
+    }
+
+    token.name = name;
+    token.symbol = symbol;
+    token.decimals = decimals;
 
     if (NETWORK == "arbitrum-one" && token.id == ARBITRUM_BRIDGE_USDC_TOKEN) {
       token.symbol = "USDC.e";

@@ -6,6 +6,7 @@
   "factory": "0x3af4224c0a53bed3334b67dcacb727703e17ee03",
   "dsFactory": "0xe61b9a318544220d0a28ba724d575d201cbe2b2a",
   "positionManager": "0xbcc44cd00cef8ba55c71ada0fd8ee51b58d48da8",
+  "poolViewer": "0x968191b3816f62fcdd82111ed3f01a7b66f5f7c9",
   "wethUsdcPair": "0x0000000000000000000000000000000000000000",
   "wethUsdcUniPair": "0xb549cb08bc1f2b8069cdc561e2918fac61867d9c",
   "weth": "0x9911aaeb4c728d1ee5c49964332c720da03fd536",

@@ -20,6 +20,8 @@ export const USDC = '{{usdc}}';
 
 export const USDT = '{{usdt}}';
 
+export const POOL_VIEWER = '{{poolViewer}}';
+
 export const ARBITRUM_BRIDGE_USDC_TOKEN = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8';
 
 export const GS = '{{GS}}';
