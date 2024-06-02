@@ -1,4 +1,4 @@
-import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts';
+import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
 import { Pool, PoolUpdated, LoanCreated, LoanUpdated, Liquidation, Transfer } from '../types/templates/GammaPool/Pool';
 import { GammaPool, Loan, PoolBalance, Token, DeltaSwapPair, PoolAndStakedBalance, RewardTracker } from '../types/schema';
 import {
@@ -13,7 +13,7 @@ import {
   loadOrCreateCollateralToken,
   loadOrCreateTotalCollateralToken
 } from '../helpers/loader';
-import { ADDRESS_ZERO, POOL_VIEWER, NETWORK } from '../helpers/constants';
+import { ADDRESS_ZERO } from '../helpers/constants';
 import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
@@ -34,10 +34,6 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const poolContract = Pool.bind(event.address);
   const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
   let poolViewer = PoolViewer.bind(viewerAddress);
-
-  if(NETWORK == "mainnet") {
-    poolViewer = PoolViewer.bind(Address.fromString(POOL_VIEWER));
-  }
 
   const poolDataResult = poolViewer.try_getLatestPoolData(poolAddress);
   if(!poolDataResult.reverted) {

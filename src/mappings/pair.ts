@@ -28,12 +28,12 @@ export function handleSync(event: Sync): void {
   const token1 = Token.load(pair.token1);
 
   if (token0 == null || token1 == null) {
-    log.error("DeltaSwap Sync: Tokens Unavailable", []);
+    log.error("DeltaSwap Sync: Tokens Unavailable for pair {}", [id]);
     return;
   }
 
   if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
-    log.error("DeltaSwap Sync: Tokens Decimals are Zero", []);
+    log.error("DeltaSwap Sync: Tokens Decimals are Zero for pair {}", [id]);
     return;
   }
 
@@ -112,12 +112,12 @@ export function handleTransfer(event: Transfer): void {
   const token1 = Token.load(pair.token1);
 
   if (token0 == null || token1 == null) {
-    log.error("DeltaSwap Sync: Tokens Unavailable", []);
+    log.error("DeltaSwap Sync: Tokens Unavailable for pair {}", [id]);
     return;
   }
 
   if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
-    log.error("DeltaSwap Sync: Tokens Decimals are Zero", []);
+    log.error("DeltaSwap Sync: Tokens Decimals are Zero for pair {}", [id]);
     return;
   }
 
