@@ -42,7 +42,7 @@ export function oneEthInUsd(): BigDecimal {
   const token0 = tryUniPair ? loadOrCreateToken(token0Address) : Token.load(token0Address);
   const token1 = tryUniPair ? loadOrCreateToken(token1Address) : Token.load(token1Address);
 
-  if (token0 == null || token1 == null) return BigDecimal.fromString('0');
+  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return BigDecimal.fromString('0');
 
   let price = getPriceFromReserves(token0, token1, reserve0, reserve1);
 
@@ -362,7 +362,7 @@ export function updateLoanStats(loan: Loan): void {
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
-  if (token0 == null || token1 == null) return;
+  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return;
 
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();

@@ -26,101 +26,107 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     return;
   }
 
-  const poolContract = Pool.bind(event.address);
-  const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
-  const poolViewer = PoolViewer.bind(viewerAddress);
-
-  const poolData = poolViewer.getLatestPoolData(poolAddress);
-
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
-  if (token0 == null || token1 == null) return;
+  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return;
 
-  pool.shortStrategy = poolData.shortStrategy;
-  pool.borrowStrategy = poolData.borrowStrategy;
-  pool.repayStrategy = poolData.repayStrategy;
-  pool.rebalanceStrategy = poolData.rebalanceStrategy;
-  pool.singleLiquidationStrategy = poolData.singleLiquidationStrategy;
-  pool.batchLiquidationStrategy = poolData.batchLiquidationStrategy;
+  const poolContract = Pool.bind(event.address);
+  const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
+  let poolViewer = PoolViewer.bind(viewerAddress);
 
-  pool.lpBalance = poolData.LP_TOKEN_BALANCE;
-  pool.lpBorrowedBalance = poolData.LP_TOKEN_BORROWED;
-  pool.lpBorrowedBalancePlusInterest = poolData.LP_TOKEN_BORROWED_PLUS_INTEREST;
-  pool.lpInvariant = poolData.LP_INVARIANT;
-  pool.lpBorrowedInvariant = poolData.BORROWED_INVARIANT;
+  const poolDataResult = poolViewer.try_getLatestPoolData(poolAddress);
+  if(!poolDataResult.reverted) {
+    const poolData = poolDataResult.value;
 
-  pool.accFeeIndex = poolData.accFeeIndex;
-  pool.lastCfmmFeeIndex = poolData.lastCFMMFeeIndex;
-  pool.lastCfmmInvariant = poolData.lastCFMMInvariant;
-  pool.lastCfmmTotalSupply = poolData.lastCFMMTotalSupply;
-  pool.lastFeeIndex = poolData.lastFeeIndex;
-  pool.lastPrice = poolData.lastPrice;
+    pool.shortStrategy = poolData.shortStrategy;
+    pool.borrowStrategy = poolData.borrowStrategy;
+    pool.repayStrategy = poolData.repayStrategy;
+    pool.rebalanceStrategy = poolData.rebalanceStrategy;
+    pool.singleLiquidationStrategy = poolData.singleLiquidationStrategy;
+    pool.batchLiquidationStrategy = poolData.batchLiquidationStrategy;
 
-  pool.totalSupply = poolData.totalSupply;
-  pool.reserve0Balance = poolData.CFMM_RESERVES[0];
-  pool.reserve1Balance = poolData.CFMM_RESERVES[1];
-  pool.borrowRate = poolData.borrowRate;
-  pool.supplyRate = poolData.supplyRate;
-  pool.utilizationRate = poolData.utilizationRate;
-  pool.emaUtilRate = poolData.emaUtilRate;
-  pool.emaMultiplier = poolData.emaMultiplier;
-  pool.minUtilRate1 = poolData.minUtilRate1;
-  pool.minUtilRate2 = poolData.minUtilRate2;
-  pool.feeDivisor = poolData.feeDivisor;
-  pool.origFee = poolData.origFee;
-  pool.ltvThreshold = BigInt.fromI32(poolData.ltvThreshold);
-  pool.liquidationFee = BigInt.fromI32(poolData.liquidationFee);
+    pool.lpBalance = poolData.LP_TOKEN_BALANCE;
+    pool.lpBorrowedBalance = poolData.LP_TOKEN_BORROWED;
+    pool.lpBorrowedBalancePlusInterest = poolData.LP_TOKEN_BORROWED_PLUS_INTEREST;
+    pool.lpInvariant = poolData.LP_INVARIANT;
+    pool.lpBorrowedInvariant = poolData.BORROWED_INVARIANT;
 
-  pool.block = event.block.number;
-  pool.timestamp = event.block.timestamp;
+    pool.accFeeIndex = poolData.accFeeIndex;
+    pool.lastCfmmFeeIndex = poolData.lastCFMMFeeIndex;
+    pool.lastCfmmInvariant = poolData.lastCFMMInvariant;
+    pool.lastCfmmTotalSupply = poolData.lastCFMMTotalSupply;
+    pool.lastFeeIndex = poolData.lastFeeIndex;
+    pool.lastPrice = poolData.lastPrice;
 
-  token0.gsBalanceBN = token0.gsBalanceBN.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
-  token1.gsBalanceBN = token1.gsBalanceBN.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
-  pool.token0Balance = poolData.TOKEN_BALANCE[0];
-  pool.token1Balance = poolData.TOKEN_BALANCE[1];
+    pool.totalSupply = poolData.totalSupply;
+    pool.reserve0Balance = poolData.CFMM_RESERVES[0];
+    pool.reserve1Balance = poolData.CFMM_RESERVES[1];
+    pool.borrowRate = poolData.borrowRate;
+    pool.supplyRate = poolData.supplyRate;
+    pool.utilizationRate = poolData.utilizationRate;
+    pool.emaUtilRate = poolData.emaUtilRate;
+    pool.emaMultiplier = poolData.emaMultiplier;
+    pool.minUtilRate1 = poolData.minUtilRate1;
+    pool.minUtilRate2 = poolData.minUtilRate2;
+    pool.feeDivisor = poolData.feeDivisor;
+    pool.origFee = poolData.origFee;
+    pool.ltvThreshold = BigInt.fromI32(poolData.ltvThreshold);
+    pool.liquidationFee = BigInt.fromI32(poolData.liquidationFee);
 
-  // Since the Sync events come before PoolUpdate events, Sync events will update with an incorrect lpBalance value
-  // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
-  // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
-  const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
-  if (pair != null && pair.totalSupply.gt(BigInt.zero())) {
-    const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
-    const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
-    token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
-    token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
-    pool.borrowedBalance0 = borrowedBalance0;
-    pool.borrowedBalance1 = borrowedBalance1;
+    pool.block = event.block.number;
+    pool.timestamp = event.block.timestamp;
 
-    const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
-    const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
+    token0.gsBalanceBN = token0.gsBalanceBN.minus(pool.token0Balance).plus(poolData.TOKEN_BALANCE[0]);
+    token1.gsBalanceBN = token1.gsBalanceBN.minus(pool.token1Balance).plus(poolData.TOKEN_BALANCE[1]);
+    pool.token0Balance = poolData.TOKEN_BALANCE[0];
+    pool.token1Balance = poolData.TOKEN_BALANCE[1];
 
-    if(pair.protocol != BigInt.fromString('3')) {
-      token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
-      token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
+    // Since the Sync events come before PoolUpdate events, Sync events will update with an incorrect lpBalance value
+    // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
+    // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
+    const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
+    if (pair != null && pair.totalSupply.gt(BigInt.zero())) {
+      const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
+      const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
+      token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+      token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+      pool.borrowedBalance0 = borrowedBalance0;
+      pool.borrowedBalance1 = borrowedBalance1;
+
+      const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
+      const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
+
+      if(pair.protocol != BigInt.fromString('3')) {
+        token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
+        token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
+      }
+
+      pool.lpReserve0 = poolReserve0;
+      pool.lpReserve1 = poolReserve1;
     }
 
-    pool.lpReserve0 = poolReserve0;
-    pool.lpReserve1 = poolReserve1;
+    const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+    let poolPrice = pool.lastPrice.divDecimal(precision);
+
+    updateTokenPrices(token0, token1, poolPrice);
+
+    if(pair != null && pair.totalSupply.gt(BigInt.zero())) {
+      updatePoolStats(token0, token1, pool, pair);
+    }
+
+    pool.save();
+    token0.save();
+    token1.save();
+
+    // Historical data
+    createFiveMinPoolSnapshot(event, poolData);
+    createHourlyPoolSnapshot(event, poolData);
+    createDailyPoolSnapshot(event, poolData);
+
+  } else {
+    log.error("Failed to get Latest Pool Data for pool {}", [poolAddress.toHexString()]);
   }
-
-  const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-  let poolPrice = pool.lastPrice.divDecimal(precision);
-
-  updateTokenPrices(token0, token1, poolPrice);
-
-  if(pair != null && pair.totalSupply.gt(BigInt.zero())) {
-    updatePoolStats(token0, token1, pool, pair);
-  }
-
-  pool.save();
-  token0.save();
-  token1.save();
-
-  // Historical data
-  createFiveMinPoolSnapshot(event, poolData);
-  createHourlyPoolSnapshot(event, poolData);
-  createDailyPoolSnapshot(event, poolData);
 }
 
 export function handleLoanCreate(event: LoanCreated): void {

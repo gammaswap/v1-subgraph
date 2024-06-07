@@ -4,6 +4,7 @@ import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
+import { ERC20b } from '../types/templates/DeltaSwapPair/ERC20b';
 import { DeltaSwapPair as DeltaSwapPairSource } from "../types/templates";
 import {
   GammaPool,
@@ -314,10 +315,64 @@ export function loadOrCreateToken(id: string): Token {
   let token = Token.load(id);
   if (token == null) {
     token = new Token(id);
-    const tokenContract = ERC20.bind(Address.fromString(id));
-    token.decimals = BigInt.fromString(tokenContract.decimals().toString());
-    token.name = tokenContract.name().trim();
-    token.symbol = tokenContract.symbol().trim();
+    const tokenAddress = Address.fromString(id);
+
+    const tokenContract = ERC20.bind(tokenAddress);
+    const tokenContract2 = ERC20b.bind(tokenAddress);
+
+    let decimals = BigInt.fromString("0");
+    let name = "";
+    let symbol = "";
+
+    const decimalsResult = tokenContract.try_decimals();
+    if(!decimalsResult.reverted) {
+      decimals = BigInt.fromString(decimalsResult.value.toString());
+    } else {
+      log.error("1 Failed to get decimals for token {}", [id]);
+      const decimalsResult2 = tokenContract2.try_decimals();
+      if(!decimalsResult2.reverted) {
+        decimals = BigInt.fromString(decimalsResult2.value.toString());
+      } else {
+        log.error("2 Failed to get decimals for token {}", [id]);
+      }
+    }
+
+    if(decimals.gt(BigInt.zero()) && (decimals.gt(BigInt.fromString("18")) || decimals.lt(BigInt.fromString("6"))
+        || decimals.mod(BigInt.fromString("2")).gt(BigInt.zero()))) {
+      log.error("Token {} decimal value {} not supported", [id, decimals.toString()]);
+      decimals = BigInt.zero();
+    }
+
+    const nameResult = tokenContract.try_name();
+    if(!nameResult.reverted) {
+      name = nameResult.value.toString().trim();
+    } else {
+      log.error("1 Failed to get name for token {}", [id]);
+      const nameResult2 = tokenContract2.try_name();
+      if(!nameResult2.reverted) {
+        name = nameResult2.value.toString().trim();
+      } else {
+        log.error("2 Failed to get name for token {}", [id]);
+      }
+
+    }
+
+    const symbolResult = tokenContract.try_symbol();
+    if(!symbolResult.reverted) {
+      symbol = symbolResult.value.toString().trim();
+    } else {
+      log.error("1 Failed to get symbol for token {}", [id]);
+      const symbolResult2 = tokenContract2.try_symbol();
+      if(!symbolResult2.reverted) {
+        symbol = symbolResult2.value.toString().trim();
+      } else {
+        log.error("2 Failed to get symbol for token {}", [id]);
+      }
+    }
+
+    token.name = name;
+    token.symbol = symbol;
+    token.decimals = decimals;
 
     if (NETWORK == "arbitrum-one" && token.id == ARBITRUM_BRIDGE_USDC_TOKEN) {
       token.symbol = "USDC.e";
