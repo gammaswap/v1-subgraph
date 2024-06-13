@@ -4,6 +4,7 @@ import { loadStakedBalance } from "../../helpers/staking/loader";
 import { updateStakedBalances } from "../../helpers/staking/utils";
 import { PoolAndStakedBalance } from "../../types/schema";
 import { ADDRESS_ZERO } from "../../helpers/constants";
+import { loadOrCreateAccount } from "../../helpers/loader";
 
 export function handleDepositTokenSet(event: DepositTokenSet): void {
   
@@ -12,7 +13,10 @@ export function handleDepositTokenSet(event: DepositTokenSet): void {
 export function handleStake(event: Stake): void {
     const rewardTrackerId = event.address.toHexString();
     const accountId = event.params._account.toHexString();
-    let stakedBalance = loadStakedBalance(accountId, rewardTrackerId);
+
+    const account = loadOrCreateAccount(accountId);
+
+    let stakedBalance = loadStakedBalance(account.id, rewardTrackerId);
     if(stakedBalance != null) {
         const amount = event.params._amount;
         const depositTokenAddress = event.params._depositToken.toHexString();
@@ -44,7 +48,10 @@ export function handleStake(event: Stake): void {
 export function handleUnstake(event: Unstake): void {
     const rewardTrackerId = event.address.toHexString();
     const accountId = event.params._account.toHexString();
-    let stakedBalance = loadStakedBalance(accountId, rewardTrackerId);
+
+    const account = loadOrCreateAccount(accountId);
+
+    let stakedBalance = loadStakedBalance(account.id, rewardTrackerId);
     if(stakedBalance != null) {
         const amount = event.params._amount;
         const depositTokenAddress = event.params._depositToken.toHexString();
