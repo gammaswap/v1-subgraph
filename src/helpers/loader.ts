@@ -25,11 +25,11 @@ import {
   TotalCollateralTokenBalance
 } from '../types/schema';
 import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
-import { getEthUsdValue } from './utils';
+import { getEthUsdValue, isTokenValid } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
-export function createPool(id: string, event: PoolCreated): GammaPool {
+export function createPool(id: string, event: PoolCreated): boolean {
   const protocol = loadOrCreateProtocol(event.params.protocolId.toString());
 
   const pool = new GammaPool(id);
@@ -40,6 +40,12 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
 
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
+
+  if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) {
+    log.error("Invalid Tokens: Failed to create pool {}", [id]);
+    return false;
+  }
+
   pool.token0 = token0.id;
   pool.token1 = token1.id;
 
@@ -108,11 +114,14 @@ export function createPool(id: string, event: PoolCreated): GammaPool {
   pool.block = event.block.number;
   pool.timestamp = event.block.timestamp;
 
+
+  if(!createPairFromPool(pool)) {
+    return false;
+  }
+
   pool.save();
 
-  createPairFromPool(pool);
-
-  return pool;
+  return true;
 }
 
 export function createPoolTracer(id: string): GammaPoolTracer {
@@ -337,12 +346,6 @@ export function loadOrCreateToken(id: string): Token {
       }
     }
 
-    if(decimals.gt(BigInt.zero()) && (decimals.gt(BigInt.fromString("18")) || decimals.lt(BigInt.fromString("6"))
-        || decimals.mod(BigInt.fromString("2")).gt(BigInt.zero()))) {
-      log.error("Token {} decimal value {} not supported", [id, decimals.toString()]);
-      decimals = BigInt.zero();
-    }
-
     const nameResult = tokenContract.try_name();
     if(!nameResult.reverted) {
       name = nameResult.value.toString().trim();
@@ -373,6 +376,10 @@ export function loadOrCreateToken(id: string): Token {
     token.name = name;
     token.symbol = symbol;
     token.decimals = decimals;
+
+    if(!isTokenValid(token)) {
+      log.error("Token {} decimal value {} not supported", [id, decimals.toString()]);
+    }
 
     if (NETWORK == "arbitrum-one" && token.id == ARBITRUM_BRIDGE_USDC_TOKEN) {
       token.symbol = "USDC.e";
@@ -425,13 +432,19 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
   return protocolToken;
 }
 
-export function createPairFromPool(pool: GammaPool): void {
+export function createPairFromPool(pool: GammaPool): boolean {
   const id = pool.cfmm.toHexString();
   let pair = DeltaSwapPair.load(id);
   if (pair == null) {
     pair = new DeltaSwapPair(id);
     const token0 = loadOrCreateToken(pool.token0);
     const token1 = loadOrCreateToken(pool.token1);
+
+    if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) {
+      log.error("Invalid Tokens: Failed to create Pair {} from pool {}", [id, pool.id]);
+      return false;
+    }
+
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
@@ -445,15 +458,22 @@ export function createPairFromPool(pool: GammaPool): void {
 
     DeltaSwapPairSource.create(Address.fromBytes(pool.cfmm));
   }
+  return true;
 }
 
-export function createPair(event: PairCreated, protocol: string): void {
+export function createPair(event: PairCreated, protocol: string): boolean {
   const id = event.params.pair.toHexString();
   let pair = DeltaSwapPair.load(id);
   if (pair == null) {
     pair = new DeltaSwapPair(id);
     const token0 = loadOrCreateToken(event.params.token0.toHexString());
     const token1 = loadOrCreateToken(event.params.token1.toHexString());
+
+    if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) {
+      log.error("Invalid Tokens: Failed to create Pair {}", [id]);
+      return false;
+    }
+
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
@@ -465,6 +485,7 @@ export function createPair(event: PairCreated, protocol: string): void {
     pair.pool = ADDRESS_ZERO;
     pair.save();
   }
+  return true;
 }
 
 export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): FiveMinPoolSnapshot {

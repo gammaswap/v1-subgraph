@@ -2,11 +2,17 @@ import { PoolCreated } from '../types/GammaFactory/Factory';
 import { GammaPool as GammaPoolDataSource } from '../types/templates';
 import { createPool, createPoolTracer } from '../helpers/loader';
 import { loadOrCreateAbout } from '../helpers/loader';
-import { BigInt } from '@graphprotocol/graph-ts';
+import { BigInt, log } from '@graphprotocol/graph-ts';
 
 export function handlePoolCreate(event: PoolCreated): void {
-  createPool(event.params.pool.toHexString(), event);
-  createPoolTracer(event.params.pool.toHexString());
+  const id = event.params.pool.toHexString();
+  const poolCreated = createPool(id, event);
+  if(!poolCreated) {
+    log.error("Failed to create pool {}", [id]);
+    return;
+  }
+
+  createPoolTracer(id);
 
   GammaPoolDataSource.create(event.params.pool);
 

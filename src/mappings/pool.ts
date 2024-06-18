@@ -14,7 +14,7 @@ import {
   loadOrCreateTotalCollateralToken
 } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updateTokenPrices } from '../helpers/utils';
+import { updatePoolStats, updateLoanStats, updateTokenPrices, isTokenValid } from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -29,7 +29,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
-  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return;
+  if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) return;
 
   const poolContract = Pool.bind(event.address);
   const viewerAddress = poolContract.viewer(); // Get PoolViewer from GammaPool
@@ -84,9 +84,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
 
     // Since the Sync events come before PoolUpdate events, Sync events will update with an incorrect lpBalance value
     // Therefore this will correct the lpReserve0 and lpReserve1 using the correct lpBalance value
-    // Protocol 3 will always be right so no need to update the token lpBalanceBN here for protocol 3
+    // Protocol 3 lpBalanceBN is updated in pair.ts so no need to update the token lpBalanceBN here for protocol 3
     const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
     if (pair != null && pair.totalSupply.gt(BigInt.zero())) {
+      // PoolUpdated events come after a sync function call, so reserveBalance should match cfmm's getReserves()
       const borrowedBalance0 = pool.lpBorrowedBalance.times(pool.reserve0Balance).div(pool.lastCfmmTotalSupply);
       const borrowedBalance1 = pool.lpBorrowedBalance.times(pool.reserve1Balance).div(pool.lastCfmmTotalSupply);
       token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
@@ -97,10 +98,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
       const poolReserve0 = pool.lpBalance.times(pair.reserve0).div(pair.totalSupply);
       const poolReserve1 = pool.lpBalance.times(pair.reserve1).div(pair.totalSupply);
 
-      if(pair.protocol != BigInt.fromString('3')) {
-        token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
-        token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
-      }
+      token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
+      token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
 
       pool.lpReserve0 = poolReserve0;
       pool.lpReserve1 = poolReserve1;

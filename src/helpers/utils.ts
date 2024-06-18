@@ -1,13 +1,19 @@
 import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
 import { DeltaSwapPair as Pair } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
-import { WETH_USDC_PAIR, USDC, USDT, WETH, WEETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO, WETH_USDC_UNI_PAIR } from './constants';
+import { WETH_USDC_PAIR, USDC, USDT, WETH, WEETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO,
+  WETH_USDC_UNI_PAIR, TRACKED_TOKENS } from './constants';
 import { loadOrCreateAbout, loadOrCreateToken } from "./loader";
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
   const precision = BigInt.fromI32(10).pow(<u8>decimals).toBigDecimal();
 
   return value.divDecimal(precision);
+}
+
+export function isTokenValid(token: Token): boolean {
+  return token.decimals.ge(BigInt.fromString("6")) && token.decimals.le(BigInt.fromString("18"))
+      && token.decimals.mod(BigInt.fromString("2")).equals(BigInt.zero());
 }
 
 export function oneEthInUsd(): BigDecimal {
@@ -42,7 +48,7 @@ export function oneEthInUsd(): BigDecimal {
   const token0 = tryUniPair ? loadOrCreateToken(token0Address) : Token.load(token0Address);
   const token1 = tryUniPair ? loadOrCreateToken(token1Address) : Token.load(token1Address);
 
-  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return BigDecimal.fromString('0');
+  if (token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) return BigDecimal.fromString('0');
 
   let price = getPriceFromReserves(token0, token1, reserve0, reserve1);
 
@@ -69,57 +75,75 @@ export function getPriceFromReserves(token0: Token, token1: Token, reserve0:BigI
 }
 
 export function decreaseAboutTotals(about: About, token0: Token, token1: Token): void {
-  about.totalTvlETH = about.totalTvlETH.minus(token0.balanceETH);
-  about.totalTvlETH = about.totalTvlETH.minus(token1.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.minus(token0.balanceUSD);
-  about.totalTvlUSD = about.totalTvlUSD.minus(token1.balanceUSD);
+  if((!TRACKED_TOKENS || TRACKED_TOKENS.length == 0) || TRACKED_TOKENS.includes(token0.id)) {
+    about.totalTvlETH = about.totalTvlETH.minus(token0.balanceETH);
+    about.totalTvlUSD = about.totalTvlUSD.minus(token0.balanceUSD);
 
-  about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token0.lpBalanceUSD);
-  about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token1.lpBalanceUSD);
-  about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token0.lpBalanceETH);
-  about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token1.lpBalanceETH);
+    about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token0.lpBalanceUSD);
+    about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token0.lpBalanceETH);
 
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token0.dsBalanceUSD);
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token1.dsBalanceUSD);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token0.dsBalanceETH);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token1.dsBalanceETH);
+    about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token0.dsBalanceUSD);
+    about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token0.dsBalanceETH);
 
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token0.gsBalanceUSD);
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token1.gsBalanceUSD);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token0.gsBalanceETH);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token1.gsBalanceETH);
+    about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token0.gsBalanceUSD);
+    about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token0.gsBalanceETH);
 
-  about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token0.borrowedBalanceUSD);
-  about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token1.borrowedBalanceUSD);
-  about.totalBorrowedETH = about.totalBorrowedETH.minus(token0.borrowedBalanceETH);
-  about.totalBorrowedETH = about.totalBorrowedETH.minus(token1.borrowedBalanceETH);
+    about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token0.borrowedBalanceUSD);
+    about.totalBorrowedETH = about.totalBorrowedETH.minus(token0.borrowedBalanceETH);
+  }
+
+  if((!TRACKED_TOKENS || TRACKED_TOKENS.length == 0) || TRACKED_TOKENS.includes(token1.id)) {
+    about.totalTvlETH = about.totalTvlETH.minus(token1.balanceETH);
+    about.totalTvlUSD = about.totalTvlUSD.minus(token1.balanceUSD);
+
+    about.totalLPBalanceUSD = about.totalLPBalanceUSD.minus(token1.lpBalanceUSD);
+    about.totalLPBalanceETH = about.totalLPBalanceETH.minus(token1.lpBalanceETH);
+
+    about.totalDSBalanceUSD = about.totalDSBalanceUSD.minus(token1.dsBalanceUSD);
+    about.totalDSBalanceETH = about.totalDSBalanceETH.minus(token1.dsBalanceETH);
+
+    about.totalGSBalanceUSD = about.totalGSBalanceUSD.minus(token1.gsBalanceUSD);
+    about.totalGSBalanceETH = about.totalGSBalanceETH.minus(token1.gsBalanceETH);
+
+    about.totalBorrowedUSD = about.totalBorrowedUSD.minus(token1.borrowedBalanceUSD);
+    about.totalBorrowedETH = about.totalBorrowedETH.minus(token1.borrowedBalanceETH);
+  }
 }
 
 export function increaseAboutTotals(about: About, token0: Token, token1: Token): void {
-  about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token0.lpBalanceUSD);
-  about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token1.lpBalanceUSD);
-  about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token0.lpBalanceETH);
-  about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token1.lpBalanceETH);
+  if((!TRACKED_TOKENS || TRACKED_TOKENS.length == 0) || TRACKED_TOKENS.includes(token0.id)) {
+    about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token0.lpBalanceUSD);
+    about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token0.lpBalanceETH);
 
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token0.dsBalanceUSD);
-  about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token1.dsBalanceUSD);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token0.dsBalanceETH);
-  about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token1.dsBalanceETH);
+    about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token0.dsBalanceUSD);
+    about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token0.dsBalanceETH);
 
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token0.gsBalanceUSD);
-  about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token1.gsBalanceUSD);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token0.gsBalanceETH);
-  about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token1.gsBalanceETH);
+    about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token0.gsBalanceUSD);
+    about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token0.gsBalanceETH);
 
-  about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token0.borrowedBalanceUSD);
-  about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token1.borrowedBalanceUSD);
-  about.totalBorrowedETH = about.totalBorrowedETH.plus(token0.borrowedBalanceETH);
-  about.totalBorrowedETH = about.totalBorrowedETH.plus(token1.borrowedBalanceETH);
+    about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token0.borrowedBalanceUSD);
+    about.totalBorrowedETH = about.totalBorrowedETH.plus(token0.borrowedBalanceETH);
 
-  about.totalTvlETH = about.totalTvlETH.plus(token0.balanceETH);
-  about.totalTvlETH = about.totalTvlETH.plus(token1.balanceETH);
-  about.totalTvlUSD = about.totalTvlUSD.plus(token0.balanceUSD);
-  about.totalTvlUSD = about.totalTvlUSD.plus(token1.balanceUSD);
+    about.totalTvlETH = about.totalTvlETH.plus(token0.balanceETH);
+    about.totalTvlUSD = about.totalTvlUSD.plus(token0.balanceUSD);
+  }
+
+  if((!TRACKED_TOKENS || TRACKED_TOKENS.length == 0) || TRACKED_TOKENS.includes(token1.id)) {
+    about.totalLPBalanceUSD = about.totalLPBalanceUSD.plus(token1.lpBalanceUSD);
+    about.totalLPBalanceETH = about.totalLPBalanceETH.plus(token1.lpBalanceETH);
+
+    about.totalDSBalanceUSD = about.totalDSBalanceUSD.plus(token1.dsBalanceUSD);
+    about.totalDSBalanceETH = about.totalDSBalanceETH.plus(token1.dsBalanceETH);
+
+    about.totalGSBalanceUSD = about.totalGSBalanceUSD.plus(token1.gsBalanceUSD);
+    about.totalGSBalanceETH = about.totalGSBalanceETH.plus(token1.gsBalanceETH);
+
+    about.totalBorrowedUSD = about.totalBorrowedUSD.plus(token1.borrowedBalanceUSD);
+    about.totalBorrowedETH = about.totalBorrowedETH.plus(token1.borrowedBalanceETH);
+
+    about.totalTvlETH = about.totalTvlETH.plus(token1.balanceETH);
+    about.totalTvlUSD = about.totalTvlUSD.plus(token1.balanceUSD);
+  }
 }
 
 export function isStableToken(token: Token): boolean {
@@ -362,7 +386,7 @@ export function updateLoanStats(loan: Loan): void {
   const token0 = Token.load(pool.token0);
   const token1 = Token.load(pool.token1);
 
-  if (token0 == null || token1 == null || token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) return;
+  if (token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) return;
 
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const invariantPrecision = BigInt.fromI32(10).pow(<u8>token0.decimals.plus(token1.decimals).toI32()).sqrt().toBigDecimal();

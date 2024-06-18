@@ -4,7 +4,7 @@ import { Sync, Transfer } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { DeltaSwapPair, GammaPool } from '../types/schema';
 import { getPriceFromReserves, updatePoolStats, updateTokenPrices } from '../helpers/utils';
-import { ADDRESS_ZERO, THROTTLE_SECONDS } from "../helpers/constants";
+import { ADDRESS_ZERO, THROTTLE_SECONDS, THROTTLE_THRESHOLD } from "../helpers/constants";
 
 export function handleSync(event: Sync): void {
   log.warning("Sync Event: {}", [event.address.toHexString()]);
@@ -15,10 +15,22 @@ export function handleSync(event: Sync): void {
     return;
   }
 
+  const throttleThreshold = BigInt.fromString(THROTTLE_THRESHOLD || "0");
   const throttleSeconds = BigInt.fromString(THROTTLE_SECONDS);
 
+  const _100 = BigInt.fromString("100");
+  const hiNum = _100.plus(throttleThreshold);
+  const loNum = throttleThreshold.gt(_100) ? BigInt.zero() : _100.minus(throttleThreshold);
+  const upperBound0 = pair.reserve0.times(hiNum).div(_100);
+  const upperBound1 = pair.reserve1.times(hiNum).div(_100);
+  const lowerBound0 = pair.reserve0.times(loNum).div(_100);
+  const lowerBound1 = pair.reserve1.times(loNum).div(_100);
+  const ignoreThrottle = event.params.reserve0.lt(lowerBound0) || event.params.reserve1.lt(lowerBound1) ||
+      event.params.reserve0.gt(upperBound0) || event.params.reserve1.gt(upperBound1)
+
   // throttle Non DS Pairs
-  if(pair.protocol != BigInt.fromString('3') && pair.timestamp.gt(event.block.timestamp.minus(throttleSeconds))) {
+  if(pair.protocol != BigInt.fromString('3') && (pair.timestamp.gt(event.block.timestamp.minus(throttleSeconds))
+    && !ignoreThrottle)) {
     return;
   }
 
@@ -40,8 +52,6 @@ export function handleSync(event: Sync): void {
   if(pair.protocol == BigInt.fromString('3')) {
     token0.dsBalanceBN = token0.dsBalanceBN.minus(pair.reserve0).plus(event.params.reserve0);
     token1.dsBalanceBN = token1.dsBalanceBN.minus(pair.reserve1).plus(event.params.reserve1);
-    token0.lpBalanceBN = token0.lpBalanceBN.minus(pair.reserve0).plus(event.params.reserve0);
-    token1.lpBalanceBN = token1.lpBalanceBN.minus(pair.reserve1).plus(event.params.reserve1);
   }
 
   if(pair.totalSupply.equals(BigInt.zero())) {
@@ -56,10 +66,8 @@ export function handleSync(event: Sync): void {
     const poolReserve0 = pool.lpBalance.times(event.params.reserve0).div(pair.totalSupply);
     const poolReserve1 = pool.lpBalance.times(event.params.reserve1).div(pair.totalSupply);
 
-    if(pair.protocol != BigInt.fromString('3')) {
-      token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
-      token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
-    }
+    token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
+    token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
 
     // Sync events update the pool lpReserves without a PoolUpdate event.
     // So still need to go through here for protocol 3

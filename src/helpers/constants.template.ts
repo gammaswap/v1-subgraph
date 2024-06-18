@@ -32,4 +32,8 @@ export const DEFAULT_PROTOCOL_ID = 3;
 
 export const THROTTLE_SECONDS = '{{throttleSeconds}}';
 
+export const THROTTLE_THRESHOLD = '{{throttleThreshold}}';
+
+export const TRACKED_TOKENS = '{{#trackedTokens}}{{address}},{{/trackedTokens}}';
+
 export const VERSION = 'VERSION_PLACEHOLDER';
