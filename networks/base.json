@@ -3,6 +3,7 @@
   "startBlock": "12475877",
   "dsStartBlock": "14455515",
   "throttleSeconds": "300",
+  "throttleThreshold": "5",
   "factory": "0xfd513630f697a9c1731f196185fb9eba6eaac20b",
   "dsFactory": "0x9a9a171c69cc811dc6b59bb2f9990e34a22fc971",
   "positionManager": "0x7135ba051fcba0d3bde77add0601d8b69c91ece1",
