@@ -121,6 +121,38 @@ dataSources:
           handler: handleLpUnstake
         # - event: UnstakedLoan(address,address,uint256)
         #   handler: handleLoanUnstake
+  - name: UniversalRouter
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      address: "{{universalRouter}}"
+      abi: UniversalRouter
+      startBlock: {{routerStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/router.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: UniversalRouter
+          file: ./abis/IUniversalRouter.json
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: AeroPool
+          file: ./abis/IAeroPool.json
+        - name: AeroCLPool
+          file: ./abis/IAeroCLPool.json
+        - name: UniswapV3Pool
+          file: ./abis/IUniswapV3Pool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20b
+          file: ./abis/ERC20b.json
+      eventHandlers:
+        - event: TrackPair(indexed address,address,address,uint24,address)
+          handler: handleTrackPair
 templates:
   - name: GammaPool
     kind: ethereum/contract
@@ -236,3 +268,77 @@ templates:
           handler: handleSync
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+  - name: AeroPool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: AeroPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pair.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: AeroPool
+          file: ./abis/IAeroPool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20b
+          file: ./abis/ERC20b.json
+      eventHandlers:
+        - event: Sync(uint256,uint256)
+          handler: handleAeroSync
+        #- event: Transfer(indexed address,indexed address,uint256)
+        #  handler: handleAeroTransfer
+  - name: AeroCLPool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: AeroCLPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pair.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: AeroCLPool
+          file: ./abis/IAeroCLPool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20b
+          file: ./abis/ERC20b.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleAeroCLSwap
+  - name: UniswapV3Pool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: UniswapV3Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pair.ts
+      entities:
+        - DeltaSwapPair
+      abis:
+        - name: DeltaSwapPair
+          file: ./abis/IDeltaSwapPair.json
+        - name: UniswapV3Pool
+          file: ./abis/IUniswapV3Pool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20b
+          file: ./abis/ERC20b.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleUniV3Swap

@@ -1,9 +1,24 @@
 import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts';
 import { DeltaSwapPair, GammaPool, Loan, Token, About } from '../types/schema';
 import { DeltaSwapPair as Pair } from '../types/templates/DeltaSwapPair/DeltaSwapPair';
-import { WETH_USDC_PAIR, USDC, USDT, WETH, WEETH, ARBITRUM_BRIDGE_USDC_TOKEN, NETWORK, ADDRESS_ZERO,
-  WETH_USDC_UNI_PAIR, TRACKED_TOKENS } from './constants';
+import {
+  WETH_USDC_PAIR,
+  USDC,
+  USDT,
+  WETH,
+  WEETH,
+  ARBITRUM_BRIDGE_USDC_TOKEN,
+  NETWORK,
+  ADDRESS_ZERO,
+  WETH_USDC_UNI_PAIR,
+  TRACKED_TOKENS,
+  THROTTLE_THRESHOLD,
+  THROTTLE_SECONDS,
+  TRACKED_THROTTLE_THRESHOLD,
+  TRACKED_THROTTLE_SECONDS
+} from './constants';
 import { loadOrCreateAbout, loadOrCreateToken } from "./loader";
+import { ERC20 } from "../types/templates/DeltaSwapPair/ERC20";
 
 export function convertToBigDecimal(value: BigInt, decimals: number = 18): BigDecimal {
   const precision = BigInt.fromI32(10).pow(<u8>decimals).toBigDecimal();
@@ -413,4 +428,239 @@ export function getEthUsdValue(token0: Token, token1: Token, invariant: BigInt, 
     return invariantInToken1.times(token1.priceETH);
   }
   return invariantInToken1.times(token1.priceUSD).truncate(2);
+}
+
+export function updatePairStats(token0: Token, token1: Token, pair: DeltaSwapPair): void {
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+
+  const reserve0Decimal = pair.reserve0.toBigDecimal().div(precision0);
+  const reserve1Decimal = pair.reserve1.toBigDecimal().div(precision1);
+
+  const zero = BigDecimal.zero();
+
+  if(token0.priceUSD.gt(zero) && token1.priceUSD.gt(zero)) {
+    const reserve0USD = reserve0Decimal.times(token0.priceUSD).truncate(6);
+    const reserve1USD = reserve1Decimal.times(token1.priceUSD).truncate(6);
+    pair.liquidityUSD = reserve0USD.plus(reserve1USD);
+  }
+
+  if(token0.priceETH.gt(zero) && token1.priceETH.gt(zero)) {
+    const reserve0ETH = reserve0Decimal.times(token0.priceETH).truncate(18);
+    const reserve1ETH = reserve1Decimal.times(token1.priceETH).truncate(18);
+    pair.liquidityETH = reserve0ETH.plus(reserve1ETH);
+  }
+}
+
+export function shouldUpdate(isTracked: boolean, timestamp: BigInt, reserve0: BigInt, reserve1: BigInt, newTimestamp: BigInt, newReserve0: BigInt, newReserve1: BigInt): boolean {
+  const throttleThreshold = BigInt.fromString((isTracked ? TRACKED_THROTTLE_THRESHOLD : THROTTLE_THRESHOLD) || "0");
+  const throttleSeconds = BigInt.fromString((isTracked ? TRACKED_THROTTLE_SECONDS : THROTTLE_SECONDS) || "0");
+
+  const _100 = BigInt.fromString("100");
+  const hiNum = _100.plus(throttleThreshold);
+  const loNum = throttleThreshold.gt(_100) ? BigInt.zero() : _100.minus(throttleThreshold);
+  const upperBound0 = reserve0.times(hiNum).div(_100);
+  const upperBound1 = reserve1.times(hiNum).div(_100);
+  const lowerBound0 = reserve0.times(loNum).div(_100);
+  const lowerBound1 = reserve1.times(loNum).div(_100);
+  const ignoreThrottle = newReserve0.lt(lowerBound0) || newReserve1.lt(lowerBound1) ||
+      newReserve0.gt(upperBound0) || newReserve1.gt(upperBound1)
+
+  return timestamp.gt(newTimestamp.minus(throttleSeconds)) && !ignoreThrottle;
+}
+
+export function shouldUpdateV3(pair: DeltaSwapPair, token0: Token, newTimestamp: BigInt, newLiquidity: BigInt, newSqrtPriceX96: BigInt): boolean {
+  const throttleThreshold = BigInt.fromString(TRACKED_THROTTLE_THRESHOLD || "0");
+  const throttleSeconds = BigInt.fromString(TRACKED_THROTTLE_SECONDS || "0");
+
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+
+  const x96 = BigInt.fromI32(2).pow(<u8>BigInt.fromI32(96).toI32());
+  const precision0Sqrt = precision0.sqrt();
+
+  const sqrtPrice = pair.sqrtPriceX96.times(precision0Sqrt).div(x96);
+  const price = sqrtPrice.times(sqrtPrice);
+
+  const newSqrtPrice = newSqrtPriceX96.times(precision0Sqrt).div(x96);
+  const newPrice = newSqrtPrice.times(newSqrtPrice);
+
+  const _100 = BigInt.fromString("100");
+  const hiNum = _100.plus(throttleThreshold);
+  const loNum = throttleThreshold.gt(_100) ? BigInt.zero() : _100.minus(throttleThreshold);
+  const liqUpperBound = pair.liquidity.times(hiNum).div(_100);
+  const liqLowerBound = pair.liquidity.times(loNum).div(_100);
+  const priceUpperBound = price.times(hiNum).div(_100);
+  const priceLowerBound = price.times(loNum).div(_100);
+  const ignoreThrottle = newLiquidity.lt(liqLowerBound) || newLiquidity.gt(liqUpperBound) ||
+      newPrice.lt(priceLowerBound) || newPrice.gt(priceUpperBound)
+
+  return pair.timestamp.gt(newTimestamp.minus(throttleSeconds)) && !ignoreThrottle;
+}
+
+export function updatePairFromSync(id: string, timestamp: BigInt, blockNumber: BigInt, reserve0: BigInt, reserve1: BigInt) : void {
+  const pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    log.error("DeltaSwap Pair Unavailable: {}", [id]);
+    return;
+  }
+
+  if(pair.protocol != BigInt.fromString('3')) {
+    if(shouldUpdate(pair.isTracked, pair.timestamp, pair.reserve0, pair.reserve1, timestamp, reserve0, reserve1)) {
+      return;
+    }
+  }
+
+  pair.timestamp = timestamp;
+
+  const token0 = Token.load(pair.token0);
+  const token1 = Token.load(pair.token1);
+
+  if (token0 == null || token1 == null) {
+    log.error("DeltaSwap Sync: Tokens Unavailable for pair {}", [id]);
+    return;
+  }
+
+  if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
+    log.error("DeltaSwap Sync: Tokens Decimals are Zero for pair {}", [id]);
+    return;
+  }
+
+  if(pair.protocol == BigInt.fromString('3')) {
+    token0.dsBalanceBN = token0.dsBalanceBN.minus(pair.reserve0).plus(reserve0);
+    token1.dsBalanceBN = token1.dsBalanceBN.minus(pair.reserve1).plus(reserve1);
+  }
+
+  if(pair.totalSupply.equals(BigInt.zero())) {
+    const pairContract = ERC20.bind(Address.fromString(id));
+    pair.totalSupply = pairContract.totalSupply();
+    pair.startBlock = blockNumber;
+  }
+
+  const pool = GammaPool.load(pair.pool);
+  const hasFloat = pair.totalSupply.gt(BigInt.zero());
+  if (pool != null && hasFloat) {
+    const poolReserve0 = pool.lpBalance.times(reserve0).div(pair.totalSupply);
+    const poolReserve1 = pool.lpBalance.times(reserve1).div(pair.totalSupply);
+
+    token0.lpBalanceBN = token0.lpBalanceBN.minus(pool.lpReserve0).plus(poolReserve0);
+    token1.lpBalanceBN = token1.lpBalanceBN.minus(pool.lpReserve1).plus(poolReserve1);
+
+    // Sync events update the pool lpReserves without a PoolUpdate event.
+    // So still need to go through here for protocol 3
+    // Sync events are always emitted with PoolUpdate events
+    pool.lpReserve0 = poolReserve0;
+    pool.lpReserve1 = poolReserve1;
+    pool.save();
+  }
+
+  pair.reserve0 = reserve0;
+  pair.reserve1 = reserve1;
+
+  let price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
+
+  if(pool!=null && hasFloat) {
+    const borrowedBalance0 = pool.lpBorrowedBalance.times(pair.reserve0).div(pair.totalSupply);
+    const borrowedBalance1 = pool.lpBorrowedBalance.times(pair.reserve1).div(pair.totalSupply);
+    token0.borrowedBalanceBN = token0.borrowedBalanceBN.minus(pool.borrowedBalance0).plus(borrowedBalance0);
+    token1.borrowedBalanceBN = token1.borrowedBalanceBN.minus(pool.borrowedBalance1).plus(borrowedBalance1);
+    pool.borrowedBalance0 = borrowedBalance0;
+    pool.borrowedBalance1 = borrowedBalance1;
+  }
+
+  updateTokenPrices(token0, token1, price);
+  updatePairStats(token0, token1, pair);
+
+  pair.save();
+
+  const hasPrice = price.gt(BigDecimal.zero());
+  if(pool != null && hasPrice && hasFloat) {
+    updatePoolStats(token0, token1, pool, pair);
+  }
+
+  if(pool != null) {
+    pool.save();
+  }
+
+  token0.save();
+  token1.save();
+}
+
+export function updatePairFromV3Swap(id: string, timestamp: BigInt, liquidity: BigInt, sqrtPriceX96: BigInt) : void {
+  const pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    log.error("UniswapV3 Pair Unavailable: {}", [id]);
+    return;
+  }
+
+  const token0 = Token.load(pair.token0);
+  const token1 = Token.load(pair.token1);
+
+  if (token0 == null || token1 == null) {
+    log.error("UniswapV3 Sync: Tokens Unavailable for pair {}", [id]);
+    return;
+  }
+
+  if (token0.decimals == BigInt.zero() || token1.decimals == BigInt.zero()) {
+    log.error("UniswapV3 Sync: Tokens Decimals are Zero for pair {}", [id]);
+    return;
+  }
+
+  if(shouldUpdateV3(pair, token0, timestamp, liquidity, sqrtPriceX96)) {
+    return;
+  }
+
+  pair.timestamp = timestamp;
+
+  const token0Address = Address.fromString(pair.token0);
+  const token0Contract = ERC20.bind(token0Address);
+  const token1Address = Address.fromString(pair.token1);
+  const token1Contract = ERC20.bind(token1Address);
+  const ammAddress = Address.fromString(id);
+
+  const newReserves0 = token0Contract.try_balanceOf(ammAddress);
+  if(newReserves0.reverted) {
+    log.error("0 Failed to get balance of token {} in pair {}", [pair.token0, id]);
+    return;
+  }
+
+  const newReserves1 = token1Contract.try_balanceOf(ammAddress);
+  if(newReserves1.reverted) {
+    log.error("1 Failed to get balance of token {} in pair {}", [pair.token1, id]);
+    return;
+  }
+
+  pair.liquidity = liquidity;
+  pair.sqrtPriceX96 = sqrtPriceX96;
+
+  updateTokenAndPairReserves(pair, token0, token1, newReserves0.value, newReserves1.value, sqrtPriceX96);
+}
+
+export function updateTokenAndPairReserves(pair: DeltaSwapPair, token0: Token, token1: Token, newReserves0: BigInt, newReserves1: BigInt, sqrtPriceX96: BigInt) : void {
+  pair.reserve0 = newReserves0;
+  pair.reserve1 = newReserves1;
+
+  let price = BigDecimal.zero();
+
+  if(sqrtPriceX96.gt(BigInt.zero())) {
+    price = decodePrice(sqrtPriceX96, token0, token1);
+  }
+
+  if(price.equals(BigDecimal.zero())) {
+    price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
+  }
+
+  updateTokenPrices(token0, token1, price);
+  updatePairStats(token0, token1, pair);
+
+  pair.save();
+  token0.save();
+  token1.save();
+}
+
+export function decodePrice(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal {
+  const x96 = BigInt.fromI32(2).pow(96);
+  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const sqrtPrice = sqrtPriceX96.times(precision0.sqrt()).div(x96);
+  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  return sqrtPrice.times(sqrtPrice).toBigDecimal().div(precision1);
 }

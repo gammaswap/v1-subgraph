@@ -5,7 +5,12 @@ import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated 
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { ERC20b } from '../types/templates/DeltaSwapPair/ERC20b';
-import { DeltaSwapPair as DeltaSwapPairSource } from "../types/templates";
+import {
+  DeltaSwapPair as DeltaSwapPairSource,
+  AeroPool as AeroPoolSource,
+  AeroCLPool as AeroCLPoolSource,
+  UniswapV3Pool as UniswapV3PoolSource
+} from "../types/templates";
 import {
   GammaPool,
   GammaPoolTracer,
@@ -432,6 +437,50 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
   return protocolToken;
 }
 
+export function createPairFromRouter(id: string, token0Addr: string, token1Addr: string, protocol: string, fee: BigInt): boolean {
+  let pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    pair = new DeltaSwapPair(id);
+    const token0 = loadOrCreateToken(token0Addr);
+    const token1 = loadOrCreateToken(token1Addr);
+
+    if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) {
+      log.error("Invalid Tokens: Failed to create Pair {} from router", [id]);
+      return false;
+    }
+
+    pair.totalSupply = BigInt.fromI32(0);
+    pair.token0 = token0.id;
+    pair.token1 = token1.id;
+    pair.timestamp = BigInt.fromI32(0);
+    pair.startBlock = BigInt.fromI32(0);
+    pair.reserve0 = BigInt.fromI32(0);
+    pair.reserve1 = BigInt.fromI32(0);
+    pair.protocol = BigInt.fromString(protocol);
+    pair.pool = ADDRESS_ZERO;
+    // V3 pools
+    pair.fee = fee;
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = true;
+    pair.save();
+
+    if(pair.protocol.ge(BigInt.fromI32(1)) && pair.protocol.lt(BigInt.fromI32(3))) {
+      DeltaSwapPairSource.create(Address.fromString(id));
+    } else if(pair.protocol.ge(BigInt.fromI32(4)) && pair.protocol.le(BigInt.fromI32(5))){ // Aerodrome Stable & NonStable
+      AeroPoolSource.create(Address.fromString(id));
+    } else if(pair.protocol.equals(BigInt.fromI32(6))) { // UniswapV3
+      UniswapV3PoolSource.create(Address.fromString(id));
+    } else if(pair.protocol.equals(BigInt.fromI32(7))) { // AerodromeCL
+      AeroCLPoolSource.create(Address.fromString(id));
+    }
+  }
+  return true;
+}
+
 export function createPairFromPool(pool: GammaPool): boolean {
   const id = pool.cfmm.toHexString();
   let pair = DeltaSwapPair.load(id);
@@ -454,9 +503,20 @@ export function createPairFromPool(pool: GammaPool): boolean {
     pair.reserve1 = BigInt.fromI32(0);
     pair.protocol = pool.protocolId;
     pair.pool = pool.id;
+    // V3 pools
+    pair.fee = BigInt.fromI32(0);
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = false;
     pair.save();
 
     DeltaSwapPairSource.create(Address.fromBytes(pool.cfmm));
+  } else if(pair.isTracked) {
+    pair.isTracked = false;
+    pair.save();
   }
   return true;
 }
@@ -483,6 +543,14 @@ export function createPair(event: PairCreated, protocol: string): boolean {
     pair.reserve1 = BigInt.fromI32(0);
     pair.protocol = BigInt.fromString(protocol);
     pair.pool = ADDRESS_ZERO;
+    // V3 pools
+    pair.fee = BigInt.fromI32(0);
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = false;
     pair.save();
   }
   return true;

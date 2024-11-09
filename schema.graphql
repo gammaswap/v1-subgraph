@@ -604,9 +604,17 @@ type DeltaSwapPair @entity {
   reserve1: BigInt!
   protocol: BigInt!
   totalSupply: BigInt!
-  pool: GammaPool!
+  pool: GammaPool! # if no GammaPool, it's tracked
   timestamp: BigInt!
   startBlock: BigInt!
+  # for V3 pools
+  fee: BigInt!
+  sqrtPriceX96: BigInt!
+  liquidity: BigInt!
+  # for router
+  liquidityUSD: BigDecimal!
+  liquidityETH: BigDecimal!
+  isTracked: Boolean!
 }
 
 """
