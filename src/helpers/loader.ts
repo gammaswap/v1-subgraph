@@ -462,11 +462,16 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
     pair.fee = fee;
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
     pair.isTracked = true;
     pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsTracked = about.totalPairsTracked.plus(BigInt.fromI32(1));
+    about.save();
 
     if(pair.protocol.ge(BigInt.fromI32(1)) && pair.protocol.lt(BigInt.fromI32(3))) {
       DeltaSwapPairSource.create(Address.fromString(id));
@@ -507,6 +512,7 @@ export function createPairFromPool(pool: GammaPool): boolean {
     pair.fee = BigInt.fromI32(0);
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
@@ -517,6 +523,10 @@ export function createPairFromPool(pool: GammaPool): boolean {
   } else if(pair.isTracked) {
     pair.isTracked = false;
     pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsTracked = about.totalPairsTracked.minus(BigInt.fromI32(1));
+    about.save();
   }
   return true;
 }
@@ -547,11 +557,16 @@ export function createPair(event: PairCreated, protocol: string): boolean {
     pair.fee = BigInt.fromI32(0);
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
     pair.isTracked = false;
     pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalDSPairs = about.totalDSPairs.plus(BigInt.fromI32(1));
+    about.save();
   }
   return true;
 }
@@ -891,6 +906,8 @@ export function loadOrCreateAbout(): About {
     instance.version = VERSION;
     instance.network = NETWORK;
     instance.totalPools = BigInt.fromI32(0);
+    instance.totalDSPairs = BigInt.fromI32(0);
+    instance.totalPairsTracked = BigInt.fromI32(0);
     instance.totalLoans = BigInt.fromI32(0);
     instance.totalActiveLoans = BigInt.fromI32(0);
     instance.totalTvlETH = BigDecimal.fromString('0');

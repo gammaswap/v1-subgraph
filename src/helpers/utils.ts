@@ -469,11 +469,11 @@ export function shouldUpdate(isTracked: boolean, timestamp: BigInt, reserve0: Bi
   return timestamp.gt(newTimestamp.minus(throttleSeconds)) && !ignoreThrottle;
 }
 
-export function shouldUpdateV3(pair: DeltaSwapPair, token0: Token, newTimestamp: BigInt, newLiquidity: BigInt, newSqrtPriceX96: BigInt): boolean {
+export function shouldUpdateV3(pair: DeltaSwapPair, newTimestamp: BigInt, newLiquidity: BigInt, newSqrtPriceX96: BigInt): boolean {
   const throttleThreshold = BigInt.fromString(TRACKED_THROTTLE_THRESHOLD || "0");
   const throttleSeconds = BigInt.fromString(TRACKED_THROTTLE_SECONDS || "0");
 
-  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const precision0 = BigInt.fromI32(10).pow(<u8>pair.decimals0.toI32());
 
   const x96 = BigInt.fromI32(2).pow(<u8>BigInt.fromI32(96).toI32());
   const precision0Sqrt = precision0.sqrt();
@@ -591,6 +591,11 @@ export function updatePairFromV3Swap(id: string, timestamp: BigInt, liquidity: B
     log.error("UniswapV3 Pair Unavailable: {}", [id]);
     return;
   }
+  if(shouldUpdateV3(pair, timestamp, liquidity, sqrtPriceX96)) {
+    return;
+  }
+
+  pair.timestamp = timestamp;
 
   const token0 = Token.load(pair.token0);
   const token1 = Token.load(pair.token1);
@@ -604,12 +609,6 @@ export function updatePairFromV3Swap(id: string, timestamp: BigInt, liquidity: B
     log.error("UniswapV3 Sync: Tokens Decimals are Zero for pair {}", [id]);
     return;
   }
-
-  if(shouldUpdateV3(pair, token0, timestamp, liquidity, sqrtPriceX96)) {
-    return;
-  }
-
-  pair.timestamp = timestamp;
 
   const token0Address = Address.fromString(pair.token0);
   const token0Contract = ERC20.bind(token0Address);

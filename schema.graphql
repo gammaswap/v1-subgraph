@@ -610,7 +610,8 @@ type DeltaSwapPair @entity {
   # for V3 pools
   fee: BigInt!
   sqrtPriceX96: BigInt!
-  liquidity: BigInt!
+  liquidity: BigInt! # V3 liquidity
+  decimals0: BigInt! # Token0 decimals
   # for router
   liquidityUSD: BigDecimal!
   liquidityETH: BigDecimal!
@@ -630,6 +631,8 @@ type About @entity {
   totalDSBalanceETH: BigDecimal!
   totalGSBalanceUSD: BigDecimal!
   totalGSBalanceETH: BigDecimal!
+  totalDSPairs: BigInt!
+  totalPairsTracked: BigInt!
   totalPools: BigInt!
   totalLoans: BigInt!
   totalActiveLoans: BigInt!
