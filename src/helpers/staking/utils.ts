@@ -10,7 +10,7 @@ export function updateStakedBalances(stakedBalance: StakedBalance, amount: BigIn
         let poolDepositBalance = BigInt.fromI32(0);
         let totalDepositBalance = BigInt.fromI32(0);
         for(let i = 0; i < depositTokens.length; i++) {
-            if(depositTokens[i].toHexString() == depositTokenAddress) {
+            if(depositTokens[i].toHexString().toLowerCase() == depositTokenAddress) {
                 if(isDeposit) {
                     poolDepositBalance = depositBalances[i].plus(amount);
                 } else {
