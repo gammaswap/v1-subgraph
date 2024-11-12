@@ -437,7 +437,7 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
   return protocolToken;
 }
 
-export function createPairFromRouter(id: string, token0Addr: string, token1Addr: string, protocol: string, fee: BigInt): boolean {
+export function createPairFromRouter(id: string, token0Addr: string, token1Addr: string, protocolId: string, fee: BigInt): boolean {
   let pair = DeltaSwapPair.load(id);
   if (pair == null) {
     pair = new DeltaSwapPair(id);
@@ -449,6 +449,10 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
       return false;
     }
 
+    const protocol = loadOrCreateProtocol(protocolId);
+    loadOrCreateProtocolToken(protocol.id, token0.id);
+    loadOrCreateProtocolToken(protocol.id, token1.id);
+
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
@@ -456,7 +460,7 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
     pair.startBlock = BigInt.fromI32(0);
     pair.reserve0 = BigInt.fromI32(0);
     pair.reserve1 = BigInt.fromI32(0);
-    pair.protocol = BigInt.fromString(protocol);
+    pair.protocol = BigInt.fromString(protocolId);
     pair.pool = ADDRESS_ZERO;
     // V3 pools
     pair.fee = fee;
