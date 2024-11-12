@@ -486,6 +486,13 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
     } else if(pair.protocol.equals(BigInt.fromI32(7))) { // AerodromeCL
       AeroCLPoolSource.create(Address.fromString(id));
     }
+  } else if(!pair.isTracked && pair.pool == ADDRESS_ZERO) {
+    pair.isTracked = true;
+    pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsTracked = about.totalPairsTracked.plus(BigInt.fromI32(1));
+    about.save();
   }
   return true;
 }
@@ -525,12 +532,16 @@ export function createPairFromPool(pool: GammaPool): boolean {
 
     DeltaSwapPairSource.create(Address.fromBytes(pool.cfmm));
   } else if(pair.isTracked) {
+    pair.pool = pool.id;
     pair.isTracked = false;
     pair.save();
 
     const about = loadOrCreateAbout();
-    about.totalPairsTracked = about.totalPairsTracked.minus(BigInt.fromI32(1));
+    about.totalPairsUnTracked = about.totalPairsUnTracked.plus(BigInt.fromI32(1));
     about.save();
+  } else if(pair.pool == ADDRESS_ZERO) {
+    pair.pool = pool.id;
+    pair.save();
   }
   return true;
 }
