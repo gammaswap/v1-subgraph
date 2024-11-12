@@ -27,9 +27,9 @@ export function handleTrackPair(event: TrackPair): void {
         const stableResult = pairContract.try_stable();
         if(!stableResult.reverted) {
             if(stableResult.value) {
-                protocol = "4";
-            } else {
                 protocol = "5";
+            } else {
+                protocol = "4";
             }
         }
     } else if(factory == AEROCL_FACTORY) {
