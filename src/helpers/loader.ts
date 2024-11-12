@@ -488,6 +488,7 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
     }
   } else if(!pair.isTracked && pair.pool == ADDRESS_ZERO) {
     pair.isTracked = true;
+    pair.timestamp = BigInt.fromI32(0);
     pair.save();
 
     const about = loadOrCreateAbout();
