@@ -153,6 +153,8 @@ dataSources:
       eventHandlers:
         - event: TrackPair(indexed address,address,address,uint24,address)
           handler: handleTrackPair
+        - event: UnTrackPair(indexed address,address,address,uint24,address)
+          handler: handleUnTrackPair
 templates:
   - name: GammaPool
     kind: ethereum/contract

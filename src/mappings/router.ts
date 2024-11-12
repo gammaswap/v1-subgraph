@@ -1,6 +1,6 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { TrackPair } from '../types/UniversalRouter/UniversalRouter';
-import { createPairFromRouter } from '../helpers/loader';
+import { createPairFromRouter, loadOrCreateAbout } from '../helpers/loader';
 import { log } from "@graphprotocol/graph-ts";
 import {
     AERO_FACTORY,
@@ -9,12 +9,14 @@ import {
     UNISWAPV2_FACTORY, UNISWAPV3_FACTORY
 } from "../helpers/constants";
 import { AeroPool } from "../types/templates/AeroPool/AeroPool";
+import { DeltaSwapPair } from "../types/schema";
 
 export function handleTrackPair(event: TrackPair): void {
     const pair = event.params.pair;
+    const pairId = pair.toHexString();
+    log.warning("TrackPair Event: {}", [pairId]);
     const token0 = event.params.token0.toHexString();
     const token1 = event.params.token1.toHexString();
-    const pairId = pair.toHexString();
     const factory = event.params.factory.toHexString();
     const fee = BigInt.fromI32(event.params.fee);
     let protocol = "0"
@@ -43,4 +45,21 @@ export function handleTrackPair(event: TrackPair): void {
             return;
         }
     }
+}
+
+export function handleUnTrackPair(event: TrackPair): void {
+    const id = event.params.pair.toHexString();
+    log.warning("UnTrackPair Event: {}", [id]);
+    const pair = DeltaSwapPair.load(id);
+    if (pair == null) {
+        log.error("DeltaSwap Pair Unavailable: {}", [id]);
+        return;
+    }
+
+    pair.isTracked = false;
+    pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsUnTracked = about.totalPairsUnTracked.plus(BigInt.fromI32(1));
+    about.save();
 }

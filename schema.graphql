@@ -633,6 +633,7 @@ type About @entity {
   totalGSBalanceETH: BigDecimal!
   totalDSPairs: BigInt!
   totalPairsTracked: BigInt!
+  totalPairsUnTracked: BigInt!
   totalPools: BigInt!
   totalLoans: BigInt!
   totalActiveLoans: BigInt!

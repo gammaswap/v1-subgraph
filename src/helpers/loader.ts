@@ -912,6 +912,7 @@ export function loadOrCreateAbout(): About {
     instance.totalPools = BigInt.fromI32(0);
     instance.totalDSPairs = BigInt.fromI32(0);
     instance.totalPairsTracked = BigInt.fromI32(0);
+    instance.totalPairsUnTracked = BigInt.fromI32(0);
     instance.totalLoans = BigInt.fromI32(0);
     instance.totalActiveLoans = BigInt.fromI32(0);
     instance.totalTvlETH = BigDecimal.fromString('0');
