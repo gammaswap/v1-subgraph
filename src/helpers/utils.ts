@@ -452,7 +452,11 @@ export function updatePairStats(token0: Token, token1: Token, pair: DeltaSwapPai
   }
 }
 
-export function shouldUpdate(isTracked: boolean, timestamp: BigInt, reserve0: BigInt, reserve1: BigInt, newTimestamp: BigInt, newReserve0: BigInt, newReserve1: BigInt): boolean {
+export function shouldUpdate(hasPool: boolean, isTracked: boolean, timestamp: BigInt, reserve0: BigInt, reserve1: BigInt, newTimestamp: BigInt, newReserve0: BigInt, newReserve1: BigInt): boolean {
+  if(!hasPool && !isTracked) {
+    return false;
+  }
+
   const throttleThreshold = BigInt.fromString((isTracked ? TRACKED_THROTTLE_THRESHOLD : THROTTLE_THRESHOLD) || "0");
   const throttleSeconds = BigInt.fromString((isTracked ? TRACKED_THROTTLE_SECONDS : THROTTLE_SECONDS) || "0");
 
@@ -466,10 +470,14 @@ export function shouldUpdate(isTracked: boolean, timestamp: BigInt, reserve0: Bi
   const ignoreThrottle = newReserve0.lt(lowerBound0) || newReserve1.lt(lowerBound1) ||
       newReserve0.gt(upperBound0) || newReserve1.gt(upperBound1)
 
-  return timestamp.gt(newTimestamp.minus(throttleSeconds)) && !ignoreThrottle;
+  return timestamp.le(newTimestamp.minus(throttleSeconds)) || ignoreThrottle;
 }
 
 export function shouldUpdateV3(pair: DeltaSwapPair, newTimestamp: BigInt, newLiquidity: BigInt, newSqrtPriceX96: BigInt): boolean {
+  if(!pair.isTracked) {
+    return false;
+  }
+
   const throttleThreshold = BigInt.fromString(TRACKED_THROTTLE_THRESHOLD || "0");
   const throttleSeconds = BigInt.fromString(TRACKED_THROTTLE_SECONDS || "0");
 
@@ -494,7 +502,7 @@ export function shouldUpdateV3(pair: DeltaSwapPair, newTimestamp: BigInt, newLiq
   const ignoreThrottle = newLiquidity.lt(liqLowerBound) || newLiquidity.gt(liqUpperBound) ||
       newPrice.lt(priceLowerBound) || newPrice.gt(priceUpperBound)
 
-  return pair.timestamp.gt(newTimestamp.minus(throttleSeconds)) && !ignoreThrottle;
+  return pair.timestamp.le(newTimestamp.minus(throttleSeconds)) || ignoreThrottle;
 }
 
 export function updatePairFromSync(id: string, timestamp: BigInt, blockNumber: BigInt, reserve0: BigInt, reserve1: BigInt) : void {
@@ -504,8 +512,10 @@ export function updatePairFromSync(id: string, timestamp: BigInt, blockNumber: B
     return;
   }
 
+  const hasPool = pair.pool != ADDRESS_ZERO;
+
   if(pair.protocol != BigInt.fromString('3')) {
-    if(shouldUpdate(pair.isTracked, pair.timestamp, pair.reserve0, pair.reserve1, timestamp, reserve0, reserve1)) {
+    if(!shouldUpdate(hasPool, pair.isTracked, pair.timestamp, pair.reserve0, pair.reserve1, timestamp, reserve0, reserve1)) {
       return;
     }
   }
@@ -591,7 +601,7 @@ export function updatePairFromV3Swap(id: string, timestamp: BigInt, liquidity: B
     log.error("UniswapV3 Pair Unavailable: {}", [id]);
     return;
   }
-  if(shouldUpdateV3(pair, timestamp, liquidity, sqrtPriceX96)) {
+  if(!shouldUpdateV3(pair, timestamp, liquidity, sqrtPriceX96)) {
     return;
   }
 
