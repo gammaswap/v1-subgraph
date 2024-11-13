@@ -56,10 +56,12 @@ export function handleUnTrackPair(event: TrackPair): void {
         return;
     }
 
-    pair.isTracked = false;
-    pair.save();
+    if(pair.isTracked) {
+        pair.isTracked = false;
+        pair.save();
 
-    const about = loadOrCreateAbout();
-    about.totalPairsUnTracked = about.totalPairsUnTracked.plus(BigInt.fromI32(1));
-    about.save();
+        const about = loadOrCreateAbout();
+        about.totalPairsUnTracked = about.totalPairsUnTracked.plus(BigInt.fromI32(1));
+        about.save();
+    }
 }
