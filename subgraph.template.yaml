@@ -151,9 +151,9 @@ dataSources:
         - name: ERC20b
           file: ./abis/ERC20b.json
       eventHandlers:
-        - event: TrackPair(indexed address,address,address,uint24,address)
+        - event: TrackPair(indexed address,address,address,uint24,address,uint16)
           handler: handleTrackPair
-        - event: UnTrackPair(indexed address,address,address,uint24,address)
+        - event: UnTrackPair(indexed address,address,address,uint24,address,uint16)
           handler: handleUnTrackPair
 templates:
   - name: GammaPool
@@ -294,8 +294,8 @@ templates:
       eventHandlers:
         - event: Sync(uint256,uint256)
           handler: handleAeroSync
-        #- event: Transfer(indexed address,indexed address,uint256)
-        #  handler: handleAeroTransfer
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
   - name: AeroCLPool
     kind: ethereum/contract
     network: {{network}}

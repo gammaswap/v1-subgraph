@@ -548,12 +548,14 @@ type Protocol @entity {
   id: ID!
   # pools: [GammaPool!] @derivedFrom(field: "protocol")
   tokens: [ProtocolToken!] @derivedFrom(field: "protocol")
+  pairCount: BigInt!
 }
 
 type ProtocolToken @entity {
   id: ID!
   protocol: Protocol!
   token: Token!
+  pairCount: BigInt!
 }
 
 """

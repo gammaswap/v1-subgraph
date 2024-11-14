@@ -1,6 +1,6 @@
 import { BigInt, log } from '@graphprotocol/graph-ts';
 import { TrackPair } from '../types/UniversalRouter/UniversalRouter';
-import { createPairFromRouter, loadOrCreateAbout } from '../helpers/loader';
+import { createPairFromRouter, loadOrCreateAbout, updateProtocolId } from '../helpers/loader';
 import { log } from "@graphprotocol/graph-ts";
 import {
     AERO_FACTORY,
@@ -18,7 +18,8 @@ export function handleTrackPair(event: TrackPair): void {
     const token0 = event.params.token0.toHexString();
     const token1 = event.params.token1.toHexString();
     const factory = event.params.factory.toHexString();
-    const fee = BigInt.fromI32(event.params.fee);
+    const fee = BigInt.fromString(event.params.fee.toString());
+    const protocolId = event.params.protocolId.toString();
     let protocol = "0"
     if(factory == UNISWAPV2_FACTORY) {
         protocol = "1";
@@ -38,6 +39,11 @@ export function handleTrackPair(event: TrackPair): void {
         protocol = "7";
     } else if(factory == UNISWAPV3_FACTORY) {
         protocol = "6";
+    } else {
+        const numProtocolId = BigInt.fromString(protocolId);
+        if(numProtocolId.ge(BigInt.fromI32(10))) {
+            protocol = protocolId
+        }
     }
     if(protocol != "0") {
         if(!createPairFromRouter(pairId, token0, token1, protocol, fee)) {
@@ -57,6 +63,9 @@ export function handleUnTrackPair(event: TrackPair): void {
     }
 
     if(pair.isTracked) {
+        const protocolId = event.params.protocolId.toString();
+        updateProtocolId(pair.token0, pair.token1, pair.protocol.toString(), protocolId);
+        pair.protocol = BigInt.fromString(protocolId);
         pair.isTracked = false;
         pair.save();
 

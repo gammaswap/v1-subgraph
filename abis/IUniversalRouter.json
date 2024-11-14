@@ -69,6 +69,12 @@
         "internalType": "address",
         "name": "factory",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "protocolId",
+        "type": "uint16"
       }
     ],
     "name": "TrackPair",
@@ -106,6 +112,12 @@
         "internalType": "address",
         "name": "factory",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "protocolId",
+        "type": "uint16"
       }
     ],
     "name": "UnTrackPair",
@@ -379,6 +391,13 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

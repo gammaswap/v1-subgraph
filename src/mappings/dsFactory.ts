@@ -10,8 +10,6 @@ export function handlePairCreated(event: PairCreated): void {
     log.error("Failed to create pair {}",[event.params.pair.toHexString()]);
     return;
   }
-
-  DeltaSwapPairSource.create(event.params.pair);
 }
 
 export function handleGammaPoolSet(event: GammaPoolSet): void {
