@@ -34,6 +34,20 @@ export const THROTTLE_SECONDS = '{{throttleSeconds}}';
 
 export const THROTTLE_THRESHOLD = '{{throttleThreshold}}';
 
+export const TRACKED_THROTTLE_SECONDS = '{{trackedThrottleSeconds}}';
+
+export const TRACKED_THROTTLE_THRESHOLD = '{{trackedThrottleThreshold}}';
+
 export const TRACKED_TOKENS = '{{#trackedTokens}}{{address}},{{/trackedTokens}}';
+
+export const UNISWAPV2_FACTORY = '{{uniV2Factory}}';
+
+export const SUSHISWAP_FACTORY = '{{sushiFactory}}';
+
+export const UNISWAPV3_FACTORY = '{{uniV3Factory}}';
+
+export const AERO_FACTORY = '{{aeroFactory}}';
+
+export const AEROCL_FACTORY = '{{aeroCLFactory}}';
 
 export const VERSION = 'VERSION_PLACEHOLDER';

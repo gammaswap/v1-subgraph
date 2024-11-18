@@ -548,12 +548,14 @@ type Protocol @entity {
   id: ID!
   # pools: [GammaPool!] @derivedFrom(field: "protocol")
   tokens: [ProtocolToken!] @derivedFrom(field: "protocol")
+  pairCount: BigInt!
 }
 
 type ProtocolToken @entity {
   id: ID!
   protocol: Protocol!
   token: Token!
+  pairCount: BigInt!
 }
 
 """
@@ -604,9 +606,18 @@ type DeltaSwapPair @entity {
   reserve1: BigInt!
   protocol: BigInt!
   totalSupply: BigInt!
-  pool: GammaPool!
+  pool: GammaPool! # if no GammaPool, it's tracked
   timestamp: BigInt!
   startBlock: BigInt!
+  # for V3 pools
+  fee: BigInt!
+  sqrtPriceX96: BigInt!
+  liquidity: BigInt! # V3 liquidity
+  decimals0: BigInt! # Token0 decimals
+  # for router
+  liquidityUSD: BigDecimal!
+  liquidityETH: BigDecimal!
+  isTracked: Boolean!
 }
 
 """
@@ -622,6 +633,9 @@ type About @entity {
   totalDSBalanceETH: BigDecimal!
   totalGSBalanceUSD: BigDecimal!
   totalGSBalanceETH: BigDecimal!
+  totalDSPairs: BigInt!
+  totalPairsTracked: BigInt!
+  totalPairsUnTracked: BigInt!
   totalPools: BigInt!
   totalLoans: BigInt!
   totalActiveLoans: BigInt!

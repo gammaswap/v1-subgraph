@@ -4,6 +4,10 @@
   "dsStartBlock": "173455645",
   "throttleSeconds": "300",
   "throttleThreshold": "5",
+  "universalRouter": "0x4689903fbbd2b49b872cf1f315bf60d2eb831698",
+  "routerStartBlock": "274460369",
+  "trackedThrottleSeconds": "3600",
+  "trackedThrottleThreshold": "10",
   "factory": "0xfd513630f697a9c1731f196185fb9eba6eaac20b",
   "dsFactory": "0xcb85e1222f715a81b8edaeb73b28182fa37cffa8",
   "positionManager": "0x3b72616376652cc82f17dd7a9b58f71cdb3b98b0",
@@ -14,7 +18,12 @@
   "usdc": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
   "usdt": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
   "stakingRouter": "0x9b91328f04ed1183548bd6bdad24da40311e077c",
-  "GS": "0x0000000000000000000000000000000000000000",
-  "esGS": "0x0000000000000000000000000000000000000000",
-  "bnGS": "0x0000000000000000000000000000000000000000"
+  "GS": "0xb08d8becab1bf76a9ce3d2d5fa946f65ec1d3e83",
+  "esGS": "0x92c5a56f1233f951f7381e085ad6a00bc01b67ea",
+  "bnGS": "0x911de9bace0a8057957e9371eefa11c741791f9d",
+  "uniV2Factory": "0xf1d7cc64fb4452f05c498126312ebe29f30fbcf9",
+  "sushiFactory": "0xc35dadb65012ec5796536bd9864ed8773abc74c4",
+  "uniV3Factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
+  "aeroFactory": "0x0000000000000000000000000000000000000000",
+  "aeroCLFactory": "0x0000000000000000000000000000000000000000"
 }

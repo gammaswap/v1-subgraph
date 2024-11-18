@@ -1,6 +1,6 @@
 {
   "name": "gammaswap-subgraph",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "deploy:sepolia": "yarn deploy gammaswap/gammaswap-v1-sepolia sepolia",
     "deploy:sepolia-dev": "yarn deploy gammaswap/gammaswap-v1-sepolia-dev sepolia",
     "deploy:dev": "yarn deploy gammaswap/gammaswap-dev arbitrum-sepolia",
+    "studio:arbitrum": "yarn studio gammaswap-v1-arbitrum arbitrum",
     "studio:base-dev": "yarn studio gammaswap-v1-base-dev base",
     "studio:basesepolia": "yarn studio gammaswap-v1-basesepolia base-sepolia",
     "goldsky:arbitrum": "yarn goldsky gammaswap-v1-arbitrum arbitrum",

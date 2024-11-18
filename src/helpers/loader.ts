@@ -1,11 +1,16 @@
-import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts';
+import { Address, BigDecimal, BigInt, log, store } from '@graphprotocol/graph-ts';
 import { PoolCreated } from '../types/GammaFactory/Factory';
 import { PairCreated } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { LoanCreated, LoanUpdated, Liquidation as LiquidationEvent, PoolUpdated } from '../types/templates/GammaPool/Pool';
 import { PoolViewer__getLatestPoolDataResultDataStruct as LatestPoolData } from '../types/templates/GammaPool/PoolViewer';
 import { ERC20 } from '../types/templates/DeltaSwapPair/ERC20';
 import { ERC20b } from '../types/templates/DeltaSwapPair/ERC20b';
-import { DeltaSwapPair as DeltaSwapPairSource } from "../types/templates";
+import {
+  DeltaSwapPair as DeltaSwapPairSource,
+  AeroPool as AeroPoolSource,
+  AeroCLPool as AeroCLPoolSource,
+  UniswapV3Pool as UniswapV3PoolSource
+} from "../types/templates";
 import {
   GammaPool,
   GammaPoolTracer,
@@ -30,13 +35,10 @@ import { getEthUsdValue, isTokenValid } from './utils';
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
 export function createPool(id: string, event: PoolCreated): boolean {
-  const protocol = loadOrCreateProtocol(event.params.protocolId.toString());
-
   const pool = new GammaPool(id);
   pool.address = Address.fromHexString(id);
   pool.cfmm = event.params.cfmm;
-  // pool.protocol = protocol.id;
-  pool.protocolId = BigInt.fromI32(event.params.protocolId);
+  pool.protocolId = BigInt.fromString(event.params.protocolId.toString());
 
   const token0 = loadOrCreateToken(event.params.tokens[0].toHexString());
   const token1 = loadOrCreateToken(event.params.tokens[1].toHexString());
@@ -48,9 +50,6 @@ export function createPool(id: string, event: PoolCreated): boolean {
 
   pool.token0 = token0.id;
   pool.token1 = token1.id;
-
-  loadOrCreateProtocolToken(protocol.id, token0.id);
-  loadOrCreateProtocolToken(protocol.id, token1.id);
 
   pool.shortStrategy = Address.fromHexString(ADDRESS_ZERO);
   pool.borrowStrategy = Address.fromHexString(ADDRESS_ZERO);
@@ -413,6 +412,7 @@ export function loadOrCreateProtocol(id: string): Protocol {
   let protocol = Protocol.load(id);
   if (protocol == null) {
     protocol = new Protocol(id);
+    protocol.pairCount = BigInt.fromI32(0);
     protocol.save();
   }
 
@@ -426,10 +426,150 @@ export function loadOrCreateProtocolToken(protocolId: string, token: string): Pr
     protocolToken = new ProtocolToken(id);
     protocolToken.protocol = protocolId;
     protocolToken.token = token;
+    protocolToken.pairCount = BigInt.fromI32(0);
     protocolToken.save();
   }
+  return protocolToken;
+}
+
+export function incOrCreateProtocol(id: string): Protocol {
+  let protocol = Protocol.load(id);
+
+  if (protocol == null) {
+    protocol = new Protocol(id);
+    protocol.pairCount = BigInt.fromI32(1);
+  } else {
+    protocol.pairCount = protocol.pairCount.plus(BigInt.fromI32(1));
+  }
+
+  protocol.save();
+
+  return protocol;
+}
+
+export function incOrCreateProtocolToken(protocolId: string, token: string): ProtocolToken {
+  const id = protocolId + '-' + token;
+  let protocolToken = ProtocolToken.load(id);
+
+  if (protocolToken == null) {
+    protocolToken = new ProtocolToken(id);
+    protocolToken.protocol = protocolId;
+    protocolToken.token = token;
+    protocolToken.pairCount = BigInt.fromI32(1);
+  } else {
+    protocolToken.pairCount = protocolToken.pairCount.plus(BigInt.fromI32(1));
+  }
+
+  protocolToken.save();
 
   return protocolToken;
+}
+
+export function decOrRemoveProtocol(id: string): void {
+  let protocol = Protocol.load(id);
+  if (protocol != null) {
+    protocol.pairCount = protocol.pairCount.gt(BigInt.fromI32(1))
+        ? protocol.pairCount.minus(BigInt.fromI32(1))
+        : BigInt.fromI32(0);
+    if(protocol.pairCount.equals(BigInt.fromI32(0))) {
+      store.remove("Protocol", id);
+    } else {
+      protocol.save();
+    }
+  }
+}
+
+export function decOrRemoveProtocolToken(protocolId: string, token: string): void {
+  const id = protocolId + '-' + token;
+  let protocolToken = ProtocolToken.load(id);
+  if (protocolToken != null) {
+    protocolToken.pairCount = protocolToken.pairCount.gt(BigInt.fromI32(1))
+        ? protocolToken.pairCount.minus(BigInt.fromI32(1))
+        : BigInt.fromI32(0);
+    if(protocolToken.pairCount.equals(BigInt.fromI32(0))) {
+      store.remove("ProtocolToken", id);
+    } else {
+      protocolToken.save();
+    }
+  }
+}
+
+export function updateProtocolId(token0Addr: string, token1Addr: string, oldProtocolId: string, newProtocolId: string) : void {
+  if(oldProtocolId != newProtocolId) {
+    decOrRemoveProtocol(oldProtocolId);
+    decOrRemoveProtocolToken(oldProtocolId, token0Addr);
+    decOrRemoveProtocolToken(oldProtocolId, token1Addr);
+
+    incOrCreateProtocol(newProtocolId);
+    incOrCreateProtocolToken(newProtocolId, token0Addr);
+    incOrCreateProtocolToken(newProtocolId, token1Addr);
+  }
+}
+
+export function createPairFromRouter(id: string, token0Addr: string, token1Addr: string, protocolId: string, fee: BigInt): boolean {
+  let pair = DeltaSwapPair.load(id);
+  if (pair == null) {
+    pair = new DeltaSwapPair(id);
+    const token0 = loadOrCreateToken(token0Addr);
+    const token1 = loadOrCreateToken(token1Addr);
+
+    if(token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) {
+      log.error("Invalid Tokens: Failed to create Pair {} from router", [id]);
+      return false;
+    }
+
+    incOrCreateProtocol(protocolId);
+    incOrCreateProtocolToken(protocolId, token0.id);
+    incOrCreateProtocolToken(protocolId, token1.id);
+
+    pair.totalSupply = BigInt.fromI32(0);
+    pair.token0 = token0.id;
+    pair.token1 = token1.id;
+    pair.timestamp = BigInt.fromI32(0);
+    pair.startBlock = BigInt.fromI32(0);
+    pair.reserve0 = BigInt.fromI32(0);
+    pair.reserve1 = BigInt.fromI32(0);
+    pair.protocol = BigInt.fromString(protocolId);
+    pair.pool = ADDRESS_ZERO;
+    // V3 pools
+    pair.fee = fee;
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = true;
+    pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsTracked = about.totalPairsTracked.plus(BigInt.fromI32(1));
+    about.save();
+
+    if((pair.protocol.ge(BigInt.fromI32(1)) && pair.protocol.lt(BigInt.fromI32(3))) ||
+        (pair.protocol.ge(BigInt.fromI32(10)) && pair.protocol.le(BigInt.fromI32(19)))) { // UniV2 type of ERC20 transfers & sync(112,112): [1-3) && [10-19]
+      DeltaSwapPairSource.create(Address.fromString(id));
+    } else if((pair.protocol.ge(BigInt.fromI32(4)) && pair.protocol.le(BigInt.fromI32(5))) ||
+        (pair.protocol.ge(BigInt.fromI32(20)) && pair.protocol.le(BigInt.fromI32(29)))){ // Aerodrome Stable & ERC20 transfers & sync(256,256) : [4-5] && [20-29]
+      AeroPoolSource.create(Address.fromString(id));
+    } else if(pair.protocol.equals(BigInt.fromI32(6)) ||
+        (pair.protocol.ge(BigInt.fromI32(30)) && pair.protocol.le(BigInt.fromI32(39)))) { // UniswapV3: 6, [30-39]
+      UniswapV3PoolSource.create(Address.fromString(id));
+    } else if(pair.protocol.equals(BigInt.fromI32(7))) { // AerodromeCL
+      AeroCLPoolSource.create(Address.fromString(id));
+    }
+  } else if(!pair.isTracked && pair.pool == ADDRESS_ZERO) {
+    updateProtocolId(pair.token0, pair.token1, pair.protocol.toString(), protocolId);
+    pair.protocol = BigInt.fromString(protocolId);
+    pair.isTracked = true;
+    pair.timestamp = BigInt.fromI32(0);
+    pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsTracked = about.totalPairsTracked.plus(BigInt.fromI32(1));
+    about.save();
+  }
+  return true;
 }
 
 export function createPairFromPool(pool: GammaPool): boolean {
@@ -445,6 +585,11 @@ export function createPairFromPool(pool: GammaPool): boolean {
       return false;
     }
 
+    const protocolId = pool.protocolId.toString();
+    incOrCreateProtocol(protocolId);
+    incOrCreateProtocolToken(protocolId, token0.id);
+    incOrCreateProtocolToken(protocolId, token1.id);
+
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
@@ -454,14 +599,39 @@ export function createPairFromPool(pool: GammaPool): boolean {
     pair.reserve1 = BigInt.fromI32(0);
     pair.protocol = pool.protocolId;
     pair.pool = pool.id;
+    // V3 pools
+    pair.fee = BigInt.fromI32(0);
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = false;
     pair.save();
 
     DeltaSwapPairSource.create(Address.fromBytes(pool.cfmm));
+  } else if(pair.isTracked) {
+    updateProtocolId(pair.token0, pair.token1, pair.protocol.toString(), pool.protocolId.toString());
+    pair.pool = pool.id;
+    pair.protocol = pool.protocolId;
+    pair.isTracked = false;
+    pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalPairsUnTracked = about.totalPairsUnTracked.plus(BigInt.fromI32(1));
+    about.save();
+  } else if(pair.pool == ADDRESS_ZERO) {
+    updateProtocolId(pair.token0, pair.token1, pair.protocol.toString(), pool.protocolId.toString());
+    pair.pool = pool.id;
+    pair.protocol = pool.protocolId;
+    pair.isTracked = false;
+    pair.save();
   }
   return true;
 }
 
-export function createPair(event: PairCreated, protocol: string): boolean {
+export function createPair(event: PairCreated, protocolId: string): boolean {
   const id = event.params.pair.toHexString();
   let pair = DeltaSwapPair.load(id);
   if (pair == null) {
@@ -474,6 +644,10 @@ export function createPair(event: PairCreated, protocol: string): boolean {
       return false;
     }
 
+    const protocol = incOrCreateProtocol(protocolId);
+    incOrCreateProtocolToken(protocol.id, token0.id);
+    incOrCreateProtocolToken(protocol.id, token1.id);
+
     pair.totalSupply = BigInt.fromI32(0);
     pair.token0 = token0.id;
     pair.token1 = token1.id;
@@ -481,9 +655,24 @@ export function createPair(event: PairCreated, protocol: string): boolean {
     pair.startBlock = BigInt.fromI32(0);
     pair.reserve0 = BigInt.fromI32(0);
     pair.reserve1 = BigInt.fromI32(0);
-    pair.protocol = BigInt.fromString(protocol);
+    pair.protocol = BigInt.fromString(protocolId);
     pair.pool = ADDRESS_ZERO;
+    // V3 pools
+    pair.fee = BigInt.fromI32(0);
+    pair.sqrtPriceX96 = BigInt.fromI32(0);
+    pair.liquidity = BigInt.fromI32(0);
+    pair.decimals0 = token0.decimals;
+    // router
+    pair.liquidityETH = BigDecimal.zero();
+    pair.liquidityUSD = BigDecimal.zero();
+    pair.isTracked = false;
     pair.save();
+
+    const about = loadOrCreateAbout();
+    about.totalDSPairs = about.totalDSPairs.plus(BigInt.fromI32(1));
+    about.save();
+
+    DeltaSwapPairSource.create(event.params.pair);
   }
   return true;
 }
@@ -823,6 +1012,9 @@ export function loadOrCreateAbout(): About {
     instance.version = VERSION;
     instance.network = NETWORK;
     instance.totalPools = BigInt.fromI32(0);
+    instance.totalDSPairs = BigInt.fromI32(0);
+    instance.totalPairsTracked = BigInt.fromI32(0);
+    instance.totalPairsUnTracked = BigInt.fromI32(0);
     instance.totalLoans = BigInt.fromI32(0);
     instance.totalActiveLoans = BigInt.fromI32(0);
     instance.totalTvlETH = BigDecimal.fromString('0');

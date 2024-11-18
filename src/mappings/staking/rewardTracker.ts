@@ -19,7 +19,7 @@ export function handleStake(event: Stake): void {
     let stakedBalance = loadStakedBalance(account.id, rewardTrackerId);
     if(stakedBalance != null) {
         const amount = event.params._amount;
-        const depositTokenAddress = event.params._depositToken.toHexString();
+        const depositTokenAddress = event.params._depositToken.toHexString().toLowerCase();
         if(stakedBalance.initialBlock == BigInt.zero()) {
             stakedBalance.initialBlock = event.block.number;
             stakedBalance.initialTimestamp = event.block.timestamp;
@@ -54,7 +54,7 @@ export function handleUnstake(event: Unstake): void {
     let stakedBalance = loadStakedBalance(account.id, rewardTrackerId);
     if(stakedBalance != null) {
         const amount = event.params._amount;
-        const depositTokenAddress = event.params._depositToken.toHexString();
+        const depositTokenAddress = event.params._depositToken.toHexString().toLowerCase();
         stakedBalance.balance = stakedBalance.balance.minus(amount);
         updateStakedBalances(stakedBalance, amount, depositTokenAddress, false);
         stakedBalance.save();
