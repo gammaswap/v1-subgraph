@@ -105,8 +105,10 @@ export function handlePoolUpdate(event: PoolUpdated): void {
       pool.lpReserve1 = poolReserve1;
     }
 
-    const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-    let poolPrice = pool.lastPrice.divDecimal(precision);
+    const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
+    const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+    const reserve1Balance = pool.reserve1Balance.toBigDecimal().div(precision1);
+    const poolPrice = reserve1Balance.times(precision0).div(pool.reserve0Balance.toBigDecimal());
 
     updateTokenPrices(token0, token1, poolPrice);
 
