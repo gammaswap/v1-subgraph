@@ -175,19 +175,17 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   totalCollateralToken0.save();
   totalCollateralToken1.save();
 
-  const newInitLiquidity = event.params.initLiquidity;
-  loan.liquidity = event.params.liquidity;
   loan.rateIndex = event.params.rateIndex;
+  loan.initLiquidity = event.params.initLiquidity;
+  loan.liquidity = event.params.liquidity;
   loan.lpTokens = event.params.lpTokens;
   loan.collateral0 = event.params.tokensHeld[0];
   loan.collateral1 = event.params.tokensHeld[1];
   
   if (event.params.txType == 7) { // 7 -> BORROW_LIQUIDITY
-    if(newInitLiquidity.gt(BigInt.zero()) && newInitLiquidity.gt(loan.initLiquidity)) {
-      const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
-      const lastPrice = pair.reserve1.times(precision0).div(pair.reserve0);
-      loan.entryPrice = calcLoanPrice(newInitLiquidity, lastPrice, loan.initLiquidity, loan.entryPrice)
-    }
+    const poolContract = Pool.bind(event.address);
+    const loanData = poolContract.loan(event.params.tokenId);
+    loan.entryPrice = loanData.px;
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTxhash = event.transaction.hash.toHexString();
@@ -212,8 +210,6 @@ export function handleLoanUpdate(event: LoanUpdated): void {
       about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
     }
   }
-
-  loan.initLiquidity = newInitLiquidity;
 
   about.save();
 
