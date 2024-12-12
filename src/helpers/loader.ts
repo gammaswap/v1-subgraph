@@ -758,7 +758,7 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     const lastFlashData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
     if (lastFlashData) {
       const timeDiff = tickStartTimestamp - lastFlashData.timestamp.toI32();
-      const missingItemsCnt = timeDiff / 300 - 1;
+      const missingItemsCnt = timeDiff / 300;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastFlashData.timestamp.toI32() / 300 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
@@ -874,7 +874,7 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
     if (lastHourlyData) {
       const timeDiff = tickStartTimestamp - lastHourlyData.timestamp.toI32();
-      const missingItemsCnt = timeDiff / 3600 - 1;
+      const missingItemsCnt = timeDiff / 3600;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastHourlyData.timestamp.toI32() / 3600 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
@@ -990,7 +990,7 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
     if (lastDailyData) {
       const timeDiff = tickStartTimestamp - lastDailyData.timestamp.toI32();
-      const missingItemsCnt = timeDiff / 86400 - 1;
+      const missingItemsCnt = timeDiff / 86400;
       for (let i = 1; i <= missingItemsCnt; i ++) {
         const missingTickId = lastDailyData.timestamp.toI32() / 86400 + i;
         const missingId = poolId.concat('-').concat(missingTickId.toString());
