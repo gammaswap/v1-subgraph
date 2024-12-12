@@ -30,7 +30,7 @@ import {
   TotalCollateralTokenBalance
 } from '../types/schema';
 import { NETWORK, ARBITRUM_BRIDGE_USDC_TOKEN, ADDRESS_ZERO, VERSION } from './constants';
-import { getEthUsdValue, isTokenValid } from './utils';
+import { convertInvariantToToken, isTokenValid } from './utils';
 
 const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 
@@ -709,11 +709,18 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.utilizationRate = poolData.utilizationRate;
     flashData.borrowRate = poolData.borrowRate;
     flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
-    flashData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, true);
-    flashData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, false);
+
+    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
+    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
+    flashData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
+    flashData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
     flashData.totalLiquidity = totalLiquidity;
-    flashData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, true);
-    flashData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, false);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
+    flashData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
+    flashData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+
     // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     flashData.accFeeIndex = poolData.accFeeIndex;
     flashData.totalSupply = poolData.totalSupply;
@@ -818,11 +825,18 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.utilizationRate = poolData.utilizationRate;
     hourlyData.borrowRate = poolData.borrowRate;
     hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
-    hourlyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, true);
-    hourlyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, false);
+
+    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
+    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
+    hourlyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
+    hourlyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
     hourlyData.totalLiquidity = totalLiquidity;
-    hourlyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, true);
-    hourlyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, false);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
+    hourlyData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
+    hourlyData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+
     // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     hourlyData.accFeeIndex = poolData.accFeeIndex;
     hourlyData.totalSupply = poolData.totalSupply;
@@ -927,11 +941,18 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.utilizationRate = poolData.utilizationRate;
     dailyData.borrowRate = poolData.borrowRate;
     dailyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
-    dailyData.borrowedLiquidityETH = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, true);
-    dailyData.borrowedLiquidityUSD = getEthUsdValue(token0, token1, poolData.BORROWED_INVARIANT, poolData.CFMM_RESERVES, false);
+
+    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
+    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
+    dailyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
+    dailyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
     dailyData.totalLiquidity = totalLiquidity;
-    dailyData.totalLiquidityETH = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, true);
-    dailyData.totalLiquidityUSD = getEthUsdValue(token0, token1, totalLiquidity, poolData.CFMM_RESERVES, false);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
+    dailyData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
+    dailyData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+
     // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
     dailyData.totalSupply = poolData.totalSupply;

@@ -150,8 +150,15 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 
   const about = loadOrCreateAbout();
 
-  const poolContract = Pool.bind(event.address);
-  const loanData = poolContract.getLoanData(event.params.tokenId);
+  const pool = GammaPool.load(loan.pool);
+  if (pool == null) return;
+
+  const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
+  if (pair == null || pair.totalSupply.equals(BigInt.zero())) return;
+
+  const token0 = Token.load(pool.token0);
+  const token1 = Token.load(pool.token1);
+  if (token1 == null || token0 == null) return;
 
   const collateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
   const collateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
@@ -159,26 +166,28 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   const totalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
 
   // This might be a problem when it's a loan with a positive balance transferred to a new collateralToken
-  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
-  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
-  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
-  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(event.params.tokensHeld[0]);
+  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(event.params.tokensHeld[1]);
+  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(event.params.tokensHeld[0]);
+  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(event.params.tokensHeld[1]);
   collateralToken0.save();
   collateralToken1.save();
   totalCollateralToken0.save();
   totalCollateralToken1.save();
 
-  loan.rateIndex = loanData.rateIndex;
-  loan.initLiquidity = loanData.initLiquidity;
-  loan.liquidity = loanData.liquidity;
-  loan.lpTokens = loanData.lpTokens;
-  loan.collateral0 = loanData.tokensHeld[0];
-  loan.collateral1 = loanData.tokensHeld[1];
-  if (loan.entryPrice == BigInt.fromI32(0)) {
-    loan.entryPrice = loanData.px;
-  }
+  const newInitLiquidity = event.params.initLiquidity;
+  loan.liquidity = event.params.liquidity;
+  loan.rateIndex = event.params.rateIndex;
+  loan.lpTokens = event.params.lpTokens;
+  loan.collateral0 = event.params.tokensHeld[0];
+  loan.collateral1 = event.params.tokensHeld[1];
   
   if (event.params.txType == 7) { // 7 -> BORROW_LIQUIDITY
+    if(newInitLiquidity.gt(BigInt.zero()) && newInitLiquidity.gt(loan.initLiquidity)) {
+      const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+      const lastPrice = pair.reserve1.times(precision0).div(pair.reserve0);
+      loan.entryPrice = calcLoanPrice(newInitLiquidity, lastPrice, loan.initLiquidity, loan.entryPrice)
+    }
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTxhash = event.transaction.hash.toHexString();
@@ -204,13 +213,21 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     }
   }
 
-  loan.save();
+  loan.initLiquidity = newInitLiquidity;
 
   about.save();
 
-  updateLoanStats(loan);
+  updateLoanStats(loan, pair, token1);
+
+  loan.save();
 
   createLoanSnapshot(loan, event);
+}
+
+function calcLoanPrice(newLiquidity: BigInt, currPrice: BigInt, liquidity: BigInt, lastPx: BigInt): BigInt {
+  const addedLiquidity = newLiquidity.minus(liquidity);
+  const totalLiquidityPx = addedLiquidity.times(currPrice).plus(liquidity.times(lastPx));
+  return totalLiquidityPx.div(newLiquidity);
 }
 
 export function handleLiquidation(event: Liquidation): void {
