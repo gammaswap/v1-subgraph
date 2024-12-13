@@ -220,12 +220,6 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   createLoanSnapshot(loan, event);
 }
 
-function calcLoanPrice(newLiquidity: BigInt, currPrice: BigInt, liquidity: BigInt, lastPx: BigInt): BigInt {
-  const addedLiquidity = newLiquidity.minus(liquidity);
-  const totalLiquidityPx = addedLiquidity.times(currPrice).plus(liquidity.times(lastPx));
-  return totalLiquidityPx.div(newLiquidity);
-}
-
 export function handleLiquidation(event: Liquidation): void {
   if (event.params.tokenId.gt(BigInt.fromI32(0))) { // For single liquidation
     const loanId = event.params.tokenId.toString();
