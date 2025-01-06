@@ -14,7 +14,13 @@ import {
   loadOrCreateTotalCollateralToken
 } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updateTokenPrices, isTokenValid } from '../helpers/utils';
+import {
+  updatePoolStats,
+  updateLoanStats,
+  updateTokenPrices,
+  isTokenValid,
+  getPriceFromReserves
+} from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -105,11 +111,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
       pool.lpReserve1 = poolReserve1;
     }
 
-    const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
-    const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-    const reserve1Balance = pool.reserve1Balance.toBigDecimal().div(precision1);
-    const poolPrice = reserve1Balance.times(precision0).div(pool.reserve0Balance.toBigDecimal());
-
+    const poolPrice = getPriceFromReserves(token0, token1, pool.reserve0Balance, pool.reserve1Balance);
     updateTokenPrices(token0, token1, poolPrice);
 
     if(pair != null && pair.totalSupply.gt(BigInt.zero())) {
@@ -246,6 +248,14 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   const id1 = pool.id + '-' + fromAccount.id;
   const id2 = pool.id + '-' + toAccount.id;
 
+  const ONE = BigInt.fromI32(10).pow(18).toBigDecimal();
+  const lpBalanceETHBN = BigInt.fromString(pool.lpBalanceETH.times(ONE).truncate(0).toString());
+  const lpBorrowedBalanceETHBN = BigInt.fromString(pool.lpBalanceETH.times(ONE).truncate(0).toString());
+  const lpBalanceUSDBN = BigInt.fromString(pool.lpBalanceUSD.times(ONE).truncate(0).toString());
+  const lpBorrowedBalanceUSDBN = BigInt.fromString(pool.lpBalanceUSD.times(ONE).truncate(0).toString());
+  const totalLpBalanceETHBN = lpBalanceETHBN.plus(lpBorrowedBalanceETHBN);
+  const totalLpBalanceUSDBN = lpBalanceUSDBN.plus(lpBorrowedBalanceUSDBN);
+
   if (fromAccount.id != ADDRESS_ZERO) {
     let poolBalanceFrom = PoolBalance.load(id1);
     if (poolBalanceFrom) {
@@ -254,8 +264,11 @@ export function handleVaultTokenTransfer(event: Transfer): void {
         poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
         poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
       } else {
-        poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-        poolBalanceFrom.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+        const balanceETHBN = totalLpBalanceETHBN.times(poolBalanceFrom.balance).div(pool.totalSupply);
+        const balanceUSDBN = totalLpBalanceUSDBN.times(poolBalanceFrom.balance).div(pool.totalSupply);
+
+        poolBalanceFrom.balanceETH = balanceETHBN.divDecimal(ONE);
+        poolBalanceFrom.balanceUSD = balanceUSDBN.divDecimal(ONE);
       }
       poolBalanceFrom.save();
     }
@@ -286,8 +299,11 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.balanceETH = BigDecimal.fromString('0');
       poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
     } else {
-      poolBalanceTo.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceTo.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      const balanceETHBN = totalLpBalanceETHBN.times(poolBalanceTo.balance).div(pool.totalSupply);
+      const balanceUSDBN = totalLpBalanceUSDBN.times(poolBalanceTo.balance).div(pool.totalSupply);
+
+      poolBalanceTo.balanceETH = balanceETHBN.divDecimal(ONE);
+      poolBalanceTo.balanceUSD = balanceUSDBN.divDecimal(ONE);
     }
     poolBalanceTo.save();
 

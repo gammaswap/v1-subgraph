@@ -536,6 +536,7 @@ export function createPairFromRouter(id: string, token0Addr: string, token1Addr:
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
     pair.decimals0 = token0.decimals;
+    pair.decimals1 = token1.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
@@ -604,6 +605,7 @@ export function createPairFromPool(pool: GammaPool): boolean {
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
     pair.decimals0 = token0.decimals;
+    pair.decimals1 = token1.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
@@ -662,6 +664,7 @@ export function createPair(event: PairCreated, protocolId: string): boolean {
     pair.sqrtPriceX96 = BigInt.fromI32(0);
     pair.liquidity = BigInt.fromI32(0);
     pair.decimals0 = token0.decimals;
+    pair.decimals1 = token1.decimals;
     // router
     pair.liquidityETH = BigDecimal.zero();
     pair.liquidityUSD = BigDecimal.zero();
@@ -689,7 +692,6 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
   const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
-  const ratePrecision = BigInt.fromI32(10).pow(18);
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
 
   let flashData = FiveMinPoolSnapshot.load(id);
@@ -710,16 +712,21 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.borrowRate = poolData.borrowRate;
     flashData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
 
-    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
-    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+    const lastCfmmInvariant = poolData.lastCFMMInvariant;
+    const reserve1 = poolData.CFMM_RESERVES[1];
 
-    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
-    flashData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
-    flashData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const ONE_BN = BigInt.fromI32(10).pow(18);
+    const ONE = ONE_BN.toBigDecimal();
+    const priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+    const priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT, reserve1, lastCfmmInvariant);
+    flashData.borrowedLiquidityETH = borrowedLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    flashData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
     flashData.totalLiquidity = totalLiquidity;
-    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
-    flashData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
-    flashData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity, reserve1, lastCfmmInvariant);
+    flashData.totalLiquidityETH = totalLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    flashData.totalLiquidityUSD = totalLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
 
     // flashData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     flashData.accFeeIndex = poolData.accFeeIndex;
@@ -727,20 +734,24 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
     flashData.supplyAPY = BigDecimal.fromString('0');
     flashData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastFiveMinData != null) {
-      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ONE_BN).div(prevAccFeeIndex).minus(ONE_BN);
       const lastFiveMinData = FiveMinPoolSnapshot.load(poolTracer.lastFiveMinData!);
       if (lastFiveMinData) {
         // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
-        flashData.supplyAPY = totalLiquidity.divDecimal(lastFiveMinData.totalLiquidity.toBigDecimal())
-          .div(flashData.totalSupply.divDecimal(lastFiveMinData.totalSupply.toBigDecimal()))
-          .minus(BigDecimal.fromString('1'))
-          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
-          .div(flashData.timestamp.minus(lastFiveMinData.timestamp).toBigDecimal());
+        const numerator = totalLiquidity.times(lastFiveMinData.totalSupply);
+        const denominator = flashData.totalSupply.times(lastFiveMinData.totalLiquidity);
+        const adjInvariantGrowthPlusOne = numerator.times(ONE_BN).div(denominator);
+        const timeDiff = flashData.timestamp.minus(lastFiveMinData.timestamp);
+        const isNotNegative = adjInvariantGrowthPlusOne.ge(ONE_BN)
+        const adjInvariantGrowth = isNotNegative ? adjInvariantGrowthPlusOne.minus(ONE_BN) : ONE_BN.minus(adjInvariantGrowthPlusOne);
+        flashData.supplyAPY = adjInvariantGrowth.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(timeDiff).divDecimal(ONE);
+        if(!isNotNegative) {
+          flashData.supplyAPY = flashData.supplyAPY.times(BigDecimal.fromString("-1"));
+        }
 
         // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
         flashData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
-          .div(flashData.timestamp.minus(lastFiveMinData.timestamp))
-          .divDecimal(ratePrecision.toBigDecimal());
+          .div(timeDiff).divDecimal(ONE);
       }
     }
     flashData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -805,7 +816,6 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
   const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
-  const ratePrecision = BigInt.fromI32(10).pow(18);
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
 
   let hourlyData = HourlyPoolSnapshot.load(id);
@@ -826,16 +836,21 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.borrowRate = poolData.borrowRate;
     hourlyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
 
-    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
-    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+    const lastCfmmInvariant = poolData.lastCFMMInvariant;
+    const reserve1 = poolData.CFMM_RESERVES[1];
 
-    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
-    hourlyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
-    hourlyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const ONE_BN = BigInt.fromI32(10).pow(18);
+    const ONE = ONE_BN.toBigDecimal();
+    const priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+    const priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT, reserve1, lastCfmmInvariant);
+    hourlyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    hourlyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
     hourlyData.totalLiquidity = totalLiquidity;
-    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
-    hourlyData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
-    hourlyData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity, reserve1, lastCfmmInvariant);
+    hourlyData.totalLiquidityETH = totalLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    hourlyData.totalLiquidityUSD = totalLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
 
     // hourlyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     hourlyData.accFeeIndex = poolData.accFeeIndex;
@@ -843,20 +858,24 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
     hourlyData.supplyAPY = BigDecimal.fromString('0');
     hourlyData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastHourlyData != null) {
-      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ONE_BN).div(prevAccFeeIndex).minus(ONE_BN);
       const lastHourlyData = HourlyPoolSnapshot.load(poolTracer.lastHourlyData!);
       if (lastHourlyData) {
         // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
-        hourlyData.supplyAPY = totalLiquidity.divDecimal(lastHourlyData.totalLiquidity.toBigDecimal())
-          .div(hourlyData.totalSupply.divDecimal(lastHourlyData.totalSupply.toBigDecimal()))
-          .minus(BigDecimal.fromString('1'))
-          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
-          .div(hourlyData.timestamp.minus(lastHourlyData.timestamp).toBigDecimal());
+        const timeDiff = hourlyData.timestamp.minus(lastHourlyData.timestamp);
+        const numerator = totalLiquidity.times(lastHourlyData.totalSupply);
+        const denominator = hourlyData.totalSupply.times(lastHourlyData.totalLiquidity);
+        const adjInvariantGrowthPlusOne = numerator.times(ONE_BN).div(denominator);
+        const isNotNegative = adjInvariantGrowthPlusOne.ge(ONE_BN)
+        const adjInvariantGrowth = isNotNegative ? adjInvariantGrowthPlusOne.minus(ONE_BN) : ONE_BN.minus(adjInvariantGrowthPlusOne);
+        hourlyData.supplyAPY = adjInvariantGrowth.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(timeDiff).divDecimal(ONE);
+        if(!isNotNegative) {
+          hourlyData.supplyAPY = hourlyData.supplyAPY.times(BigDecimal.fromString("-1"));
+        }
 
         // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
         hourlyData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
-          .div(hourlyData.timestamp.minus(lastHourlyData.timestamp))
-          .divDecimal(ratePrecision.toBigDecimal());
+          .div(timeDiff).divDecimal(ONE);
       }
     }
     hourlyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);
@@ -921,7 +940,6 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
   const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
-  const ratePrecision = BigInt.fromI32(10).pow(18);
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
 
   let dailyData = DailyPoolSnapshot.load(id);
@@ -942,16 +960,21 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.borrowRate = poolData.borrowRate;
     dailyData.borrowedLiquidity = poolData.BORROWED_INVARIANT;
 
-    const lastCfmmInvariant = poolData.lastCFMMInvariant.toBigDecimal();
-    const reserve1 = poolData.CFMM_RESERVES[1].toBigDecimal().div(precision1.toBigDecimal());
+    const lastCfmmInvariant = poolData.lastCFMMInvariant;
+    const reserve1 = poolData.CFMM_RESERVES[1];
 
-    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT.toBigDecimal(), reserve1, lastCfmmInvariant);
-    dailyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(token1.priceETH);
-    dailyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const ONE_BN = BigInt.fromI32(10).pow(18);
+    const ONE = ONE_BN.toBigDecimal();
+    const priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+    const priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
+
+    const borrowedLiquidityToken1 = convertInvariantToToken(poolData.BORROWED_INVARIANT, reserve1, lastCfmmInvariant);
+    dailyData.borrowedLiquidityETH = borrowedLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    dailyData.borrowedLiquidityUSD = borrowedLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
     dailyData.totalLiquidity = totalLiquidity;
-    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity.toBigDecimal(), reserve1, lastCfmmInvariant);
-    dailyData.totalLiquidityETH = totalLiquidityToken1.times(token1.priceETH);
-    dailyData.totalLiquidityUSD = totalLiquidityToken1.times(token1.priceUSD).truncate(2);
+    const totalLiquidityToken1 = convertInvariantToToken(totalLiquidity, reserve1, lastCfmmInvariant);
+    dailyData.totalLiquidityETH = totalLiquidityToken1.times(priceETHBN1).div(precision1).divDecimal(ONE).truncate(18);
+    dailyData.totalLiquidityUSD = totalLiquidityToken1.times(priceUSDBN1).div(precision1).divDecimal(ONE).truncate(2);
 
     // dailyData.utilizationRate = poolData.BORROWED_INVARIANT.times(ratePrecision).div(totalLiquidity);
     dailyData.accFeeIndex = poolData.accFeeIndex;
@@ -959,20 +982,24 @@ export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPool
     dailyData.supplyAPY = BigDecimal.fromString('0');
     dailyData.borrowAPR = BigDecimal.fromString('0');
     if (poolTracer != null && poolTracer.lastDailyData != null) {
-      const accFeeGrowthDiff = poolData.accFeeIndex.times(ratePrecision).div(prevAccFeeIndex).minus(ratePrecision);
+      const accFeeGrowthDiff = poolData.accFeeIndex.times(ONE_BN).div(prevAccFeeIndex).minus(ONE_BN);
       const lastDailyData = DailyPoolSnapshot.load(poolTracer.lastDailyData!);
       if (lastDailyData) {
         // APY = Annaulized of ((totalLiquidity1 / totalLiquidity0) / (totalSupply1 / totalSupply0)) - 1
-        dailyData.supplyAPY = totalLiquidity.divDecimal(lastDailyData.totalLiquidity.toBigDecimal())
-          .div(dailyData.totalSupply.divDecimal(lastDailyData.totalSupply.toBigDecimal()))
-          .minus(BigDecimal.fromString('1'))
-          .times(BigInt.fromI32(YEAR_IN_SECONDS).toBigDecimal())
-          .div(dailyData.timestamp.minus(lastDailyData.timestamp).toBigDecimal());
+        const timeDiff = dailyData.timestamp.minus(lastDailyData.timestamp);
+        const numerator = totalLiquidity.times(lastDailyData.totalSupply);
+        const denominator = dailyData.totalSupply.times(lastDailyData.totalLiquidity);
+        const adjInvariantGrowthPlusOne = numerator.times(ONE_BN).div(denominator);
+        const isNotNegative = adjInvariantGrowthPlusOne.ge(ONE_BN)
+        const adjInvariantGrowth = isNotNegative ? adjInvariantGrowthPlusOne.minus(ONE_BN) : ONE_BN.minus(adjInvariantGrowthPlusOne);
+        dailyData.supplyAPY = adjInvariantGrowth.times(BigInt.fromI32(YEAR_IN_SECONDS)).div(timeDiff).divDecimal(ONE);
+        if(!isNotNegative) {
+          dailyData.supplyAPY = dailyData.supplyAPY.times(BigDecimal.fromString("-1"));
+        }
 
         // APR = Annualized of (accFeeIndex1 / accFeeIndex0) - 1
         dailyData.borrowAPR = accFeeGrowthDiff.times(BigInt.fromI32(YEAR_IN_SECONDS))
-          .div(dailyData.timestamp.minus(lastDailyData.timestamp))
-          .divDecimal(ratePrecision.toBigDecimal());
+          .div(timeDiff).divDecimal(ONE);
       }
     }
     dailyData.price0 = poolData.CFMM_RESERVES[0].times(precision1).div(poolData.CFMM_RESERVES[1]);

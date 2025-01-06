@@ -614,6 +614,7 @@ type DeltaSwapPair @entity {
   sqrtPriceX96: BigInt!
   liquidity: BigInt! # V3 liquidity
   decimals0: BigInt! # Token0 decimals
+  decimals1: BigInt! # Token1 decimals
   # for router
   liquidityUSD: BigDecimal!
   liquidityETH: BigDecimal!

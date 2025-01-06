@@ -31,13 +31,14 @@ export function isTokenValid(token: Token): boolean {
       && token.decimals.mod(BigInt.fromString("2")).equals(BigInt.zero());
 }
 
-export function oneEthInUsd(): BigDecimal {
+export function oneEthInUsd(): BigInt {
   let token0Address = ADDRESS_ZERO;
   let token1Address = ADDRESS_ZERO;
   let reserve0 = BigInt.fromI32(0);
   let reserve1 = BigInt.fromI32(0);
   let tryUniPair = true;
 
+  const zero = BigInt.zero();
   const pair = DeltaSwapPair.load(WETH_USDC_PAIR);
   if(pair != null) {
     reserve0 = pair.reserve0;
@@ -52,38 +53,46 @@ export function oneEthInUsd(): BigDecimal {
     reserve0 = reserves.getReserve0();
     reserve1 = reserves.getReserve1();
 
-    if (reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return BigDecimal.fromString('0');
+    if (reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return zero;
 
     token0Address = pairContract.token0().toHexString();
     token1Address = pairContract.token1().toHexString();
   }
 
-  if(token0Address == ADDRESS_ZERO || token1Address == ADDRESS_ZERO || reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return BigDecimal.fromString('0');
+  if(token0Address == ADDRESS_ZERO || token1Address == ADDRESS_ZERO || reserve0 == BigInt.zero() || reserve1 == BigInt.zero()) return zero;
 
   const token0 = tryUniPair ? loadOrCreateToken(token0Address) : Token.load(token0Address);
   const token1 = tryUniPair ? loadOrCreateToken(token1Address) : Token.load(token1Address);
 
-  if (token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) return BigDecimal.fromString('0');
+  if (token0 == null || token1 == null || !isTokenValid(token0) || !isTokenValid(token1)) return zero;
 
   let price = getPriceFromReserves(token0, token1, reserve0, reserve1);
 
-  if(token0.symbol.indexOf('USD') >= 0 && price.gt(BigDecimal.zero())) {
-    price = BigDecimal.fromString("1").div(price); // ensure price is always in terms of USD
+  if(token0.symbol.indexOf('USD') >= 0 && price.gt(zero)) {
+    const one = BigInt.fromI32(10).pow(18);
+    price = one.times(one).div(price); // ensure price is always in terms of USD
   }
 
   return price;
 }
 
-export function getPriceFromReserves(token0: Token, token1: Token, reserve0:BigInt, reserve1: BigInt) : BigDecimal {
-  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
-  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+export function adjustBigInt(amount: BigInt, decimals: number) : BigInt {
+  if(decimals < 18) {
+    const adjDecimals = 18 - decimals;
+    const factor = BigInt.fromI32(10).pow(<u8>adjDecimals);
+    return amount.times(factor);
+  }
+  return amount;
+}
 
-  const _reserve0 = reserve0.toBigDecimal().div(precision0);
-  const _reserve1 = reserve1.toBigDecimal().div(precision1);
+export function getPriceFromReserves(token0: Token, token1: Token, reserve0:BigInt, reserve1: BigInt) : BigInt {
+  const _reserve0 = adjustBigInt(reserve0, token0.decimals.toI32());
+  const _reserve1 = adjustBigInt(reserve1, token1.decimals.toI32());
 
-  let price = BigDecimal.fromString('0');
-  if (_reserve0.gt(BigDecimal.zero())) {
-    price = _reserve1.div(_reserve0);
+  let price = BigInt.zero();
+  if (_reserve0.gt(price)) {
+    const factor = BigInt.fromI32(10).pow(18);
+    price = _reserve1.times(factor).div(_reserve0);
   }
 
   return price;
@@ -169,7 +178,7 @@ export function isStableToken(token: Token): boolean {
   return tokenAddress == USDC || tokenAddress == USDT;
 }
 
-export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDecimal): void {
+export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigInt): void {
   log.warning("Update token prices from deltaswap: {}, {}, {}", [token0.id, token1.id, pairPrice.toString()]);
 
   const about = loadOrCreateAbout();
@@ -181,172 +190,230 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
   token0.balanceBN = token0.gsBalanceBN.plus(token0.lpBalanceBN);
   token1.balanceBN = token1.gsBalanceBN.plus(token1.lpBalanceBN);
 
-  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
-  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  const precision0BN = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const precision1BN = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
+
+  const precision0 = precision0BN.toBigDecimal();
+  const precision1 = precision1BN.toBigDecimal();
+
+  const ONE_BN = BigInt.fromI32(10).pow(18);
+  const ONE = ONE_BN.toBigDecimal();
 
   // There needs to be a market against WETH or a USD token to get the value of a token
   if (token0.id.toLowerCase() == WETH) {
     token0.priceETH = BigDecimal.fromString('1');
-    token0.priceUSD = ethToUsd.truncate(10);
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token1.priceETH = BigDecimal.fromString('1').div(pairPrice).truncate(18);
-      token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(10);
+    const priceUSDBN0 = ethToUsd;
+    token0.priceUSD = priceUSDBN0.divDecimal(ONE).truncate(6);
+    let priceETHBN1 = BigInt.zero();
+    let priceUSDBN1 = BigInt.zero();
+    if(pairPrice.gt(BigInt.zero())) {
+      priceETHBN1 = ONE_BN.times(ONE_BN).div(pairPrice);
+      token1.priceETH = priceETHBN1.divDecimal(ONE).truncate(18);
+      priceUSDBN1 = priceETHBN1.times(ethToUsd).div(ONE_BN);
+      token1.priceUSD = priceUSDBN1.divDecimal(ONE).truncate(6);
+    } else {
+      priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+      priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
     }
-    token0.balanceETH = token0.balanceBN.toBigDecimal().div(precision0).truncate(18);
-    token0.balanceUSD = token0.balanceETH.times(token0.priceUSD).truncate(6);
-    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.balanceUSD = token1.balanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
-    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().div(precision0.truncate(18));
-    token0.dsBalanceUSD = token0.dsBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token0.balanceETH = token0.balanceBN.divDecimal(precision0).truncate(18);
+    token0.balanceUSD = token0.balanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token1.balanceETH = token1.balanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.balanceUSD = token1.balanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().div(precision0.truncate(18));
-    token0.lpBalanceUSD = token0.lpBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.divDecimal(precision0).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.divDecimal(precision0).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().div(precision0).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalanceETH.times(token0.priceUSD).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.divDecimal(precision0).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.divDecimal(precision0).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
   } else if (token1.id.toLowerCase() == WETH) {
     token1.priceETH = BigDecimal.fromString('1');
-    token1.priceUSD = ethToUsd.truncate(10);
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token0.priceETH = pairPrice.truncate(18);
-      token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(10);
+    const priceUSDBN1 = ethToUsd;
+    token1.priceUSD = priceUSDBN1.divDecimal(ONE).truncate(6);
+    let priceETHBN0 = BigInt.zero();
+    let priceUSDBN0 = BigInt.zero();
+    if(pairPrice.gt(BigInt.zero())) {
+      priceETHBN0 = pairPrice;
+      token0.priceETH = priceETHBN0.divDecimal(ONE).truncate(18);
+      priceUSDBN0 = priceETHBN0.times(priceUSDBN1).div(ONE_BN);
+      token0.priceUSD = priceUSDBN0.divDecimal(ONE).truncate(6);
+    } else {
+      priceETHBN0 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString());
+      priceUSDBN0 = BigInt.fromString(token0.priceUSD.times(ONE).truncate(0).toString());
     }
-    token1.balanceETH = token1.balanceBN.toBigDecimal().div(precision1).truncate(18);
-    token1.balanceUSD = token1.balanceETH.times(token1.priceUSD).truncate(6);
-    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.balanceUSD = token0.balanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
-    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().div(precision1).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token1.balanceETH = token1.balanceBN.divDecimal(precision1).truncate(18);
+    token1.balanceUSD = token1.balanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token0.balanceETH = token0.balanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.balanceUSD = token0.balanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().div(precision1).truncate(18);
-    token1.lpBalanceUSD = token1.lpBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.divDecimal(precision1).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.divDecimal(precision1).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().div(precision1).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalanceETH.times(token1.priceUSD).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.divDecimal(precision1).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.divDecimal(precision1).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
   } else if(isStableToken(token0)) {
     token0.priceUSD = BigDecimal.fromString('1');
-    token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token1.priceUSD = BigDecimal.fromString('1').div(pairPrice).truncate(10);
-      token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
+    let priceUSDBN1 = BigInt.zero();
+    let priceETHBN1 = BigInt.zero();
+    const priceETHBN0 = ONE_BN.times(ONE_BN).div(ethToUsd);
+    token0.priceETH = priceETHBN0.divDecimal(ONE).truncate(18);
+    if(pairPrice.gt(BigInt.zero())) {
+      priceUSDBN1 = ONE_BN.times(ONE_BN).div(pairPrice);
+      token1.priceUSD = priceUSDBN1.divDecimal(ONE).truncate(6);
+      priceETHBN1 = priceUSDBN1.times(ONE_BN).div(ethToUsd);
+      token1.priceETH = priceETHBN1.divDecimal(ONE).truncate(18);
+    } else {
+      priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
+      priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
     }
-    token0.balanceUSD = token0.balanceBN.toBigDecimal().div(precision0).truncate(6);
-    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.balanceUSD = token1.balanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
 
-    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().div(precision0).truncate(6);
-    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.balanceUSD = token0.balanceBN.divDecimal(precision0).truncate(6);
+    token0.balanceETH = token0.balanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token1.balanceUSD = token1.balanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token1.balanceETH = token1.balanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
 
-    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().div(precision0).truncate(6);
-    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.divDecimal(precision0).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
 
-    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().div(precision0).truncate(6);
-    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.divDecimal(precision0).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
 
-    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().div(precision0).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.divDecimal(precision0).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.divDecimal(precision0).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
   } else if(isStableToken(token1)) {
     token1.priceUSD = BigDecimal.fromString('1');
-    token1.priceETH = token1.priceUSD.div(ethToUsd).truncate(18);
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token0.priceUSD = pairPrice.truncate(10);
-      token0.priceETH = token0.priceUSD.div(ethToUsd).truncate(18);
+    let priceUSDBN0 = BigInt.zero();
+    let priceETHBN0 = BigInt.zero();
+    const priceETHBN1 = ONE_BN.times(ONE_BN).div(ethToUsd);
+    token1.priceETH = priceETHBN1.divDecimal(ONE).truncate(18);
+    if(pairPrice.gt(BigInt.zero())) {
+      priceUSDBN0 = pairPrice;
+      token0.priceUSD = priceUSDBN0.divDecimal(ONE).truncate(6);
+      priceETHBN0 = priceUSDBN0.times(ONE_BN).div(ethToUsd);
+      token0.priceETH = priceETHBN0.divDecimal(ONE).truncate(18);
+    } else {
+      priceETHBN0 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString());
+      priceUSDBN0 = BigInt.fromString(token0.priceUSD.times(ONE).truncate(0).toString());
     }
-    token1.balanceUSD = token1.balanceBN.toBigDecimal().div(precision1).truncate(6);
-    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.balanceUSD = token0.balanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
 
-    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().div(precision1).truncate(6);
-    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.balanceUSD = token1.balanceBN.divDecimal(precision1).truncate(6);
+    token1.balanceETH = token1.balanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token0.balanceUSD = token0.balanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token0.balanceETH = token0.balanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
 
-    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().div(precision1).truncate(6);
-    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.divDecimal(precision1).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
 
-    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().div(precision1).truncate(6);
-    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.divDecimal(precision1).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
 
-    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().div(precision1).truncate(6);
-    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
-    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.divDecimal(precision1).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.divDecimal(precision1).truncate(6);
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
   } else if (token0.id.toLowerCase() == WEETH) {
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token1.priceETH = token0.priceETH.div(pairPrice).truncate(18);
-      token1.priceUSD = token1.priceETH.times(ethToUsd).truncate(10);
+    let priceUSDBN1 = BigInt.zero();
+    let priceETHBN1 = BigInt.zero();
+    if(pairPrice.gt(BigInt.zero())) {
+      priceETHBN1 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString()).times(ONE_BN).div(pairPrice);
+      token1.priceETH = priceETHBN1.divDecimal(ONE).truncate(18);
+      priceUSDBN1 = priceETHBN1.times(ethToUsd).div(ONE_BN);
+      token1.priceUSD = priceUSDBN1.divDecimal(ONE).truncate(6);
+    } else {
+      priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+      priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
     }
-    token1.balanceETH = token1.balanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.balanceUSD = token1.balanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
 
-    token1.dsBalanceETH = token1.dsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.dsBalanceUSD = token1.dsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.balanceETH = token1.balanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.balanceUSD = token1.balanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token1.lpBalanceETH = token1.lpBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.lpBalanceUSD = token1.lpBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.dsBalanceETH = token1.dsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.dsBalanceUSD = token1.dsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token1.gsBalanceETH = token1.gsBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.gsBalanceUSD = token1.gsBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.lpBalanceETH = token1.lpBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.lpBalanceUSD = token1.lpBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-    token1.borrowedBalanceETH = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceETH).div(precision1).truncate(18);
-    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.toBigDecimal().times(token1.priceUSD).div(precision1).truncate(6);
+    token1.gsBalanceETH = token1.gsBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.gsBalanceUSD = token1.gsBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
+
+    token1.borrowedBalanceETH = token1.borrowedBalanceBN.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+    token1.borrowedBalanceUSD = token1.borrowedBalanceBN.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
   } else if (token1.id.toLowerCase() == WEETH) {
-    if(pairPrice.gt(BigDecimal.zero())) {
-      token0.priceETH = pairPrice.times(token1.priceETH).truncate(18);
-      token0.priceUSD = token0.priceETH.times(ethToUsd).truncate(10);
+    let priceUSDBN0 = BigInt.zero();
+    let priceETHBN0 = BigInt.zero();
+    if(pairPrice.gt(BigInt.zero())) {
+      priceETHBN0 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString()).times(pairPrice).div(ONE_BN);
+      token0.priceETH = priceETHBN0.divDecimal(ONE).truncate(18);
+      priceUSDBN0 = priceETHBN0.times(ethToUsd).div(ONE_BN);
+      token0.priceUSD = priceUSDBN0.divDecimal(ONE).truncate(6);
+    } else {
+      priceETHBN0 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString());
+      priceUSDBN0 = BigInt.fromString(token0.priceUSD.times(ONE).truncate(0).toString());
     }
-    token0.balanceETH = token0.balanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.balanceUSD = token0.balanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
 
-    token0.dsBalanceETH = token0.dsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.dsBalanceUSD = token0.dsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.balanceETH = token0.balanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.balanceUSD = token0.balanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token0.lpBalanceETH = token0.lpBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.lpBalanceUSD = token0.lpBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.dsBalanceETH = token0.dsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.dsBalanceUSD = token0.dsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token0.gsBalanceETH = token0.gsBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.gsBalanceUSD = token0.gsBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.lpBalanceETH = token0.lpBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.lpBalanceUSD = token0.lpBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
-    token0.borrowedBalanceETH = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceETH).div(precision0).truncate(18);
-    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.toBigDecimal().times(token0.priceUSD).div(precision0).truncate(6);
+    token0.gsBalanceETH = token0.gsBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.gsBalanceUSD = token0.gsBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+
+    token0.borrowedBalanceETH = token0.borrowedBalanceBN.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+    token0.borrowedBalanceUSD = token0.borrowedBalanceBN.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
   }
 
   increaseAboutTotals(about, token0, token1);
@@ -357,81 +424,118 @@ export function updateTokenPrices(token0: Token, token1: Token, pairPrice: BigDe
 export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool, pair: DeltaSwapPair): void {
   const decimals0 = token0.decimals.toI32();
   const decimals1 = token1.decimals.toI32();
-  const precision0 = BigInt.fromI32(10).pow(<u8>decimals0);
-  const precision1 = BigInt.fromI32(10).pow(<u8>decimals1);
-  const reserve0 = pair.reserve0.toBigDecimal().div(precision0.toBigDecimal());
-  const reserve1 = pair.reserve1.toBigDecimal().div(precision1.toBigDecimal());
-  const lastCfmmInvariant = pair.reserve1.times(pair.reserve0).sqrt().toBigDecimal();
-  const lastCfmmTotalSupply = pair.totalSupply.toBigDecimal();
+  const precision0BN = BigInt.fromI32(10).pow(<u8>decimals0);
+  const precision1BN = BigInt.fromI32(10).pow(<u8>decimals1);
+  const precision0 = precision0BN.toBigDecimal();
+  const precision1 = precision1BN.toBigDecimal();
+  const reserve0BN = pair.reserve0;
+  const reserve1BN = pair.reserve1;
 
-  pool.lpBalanceInToken1 = BigDecimal.fromString('2').times(pool.lpBalance.toBigDecimal().times(reserve1)).div(lastCfmmTotalSupply).truncate(decimals1);
-  pool.lpBalanceInToken0 = pool.lpBalanceInToken1.times(reserve0).div(reserve1).truncate(decimals0);
-  pool.lpBalanceETH = pool.lpBalanceInToken0.times(token0.priceETH);
-  pool.lpBalanceUSD = pool.lpBalanceInToken0.times(token0.priceUSD).truncate(2);
+  const lastCfmmInvariantBN = reserve0BN.times(reserve1BN).sqrt();
+  const lastCfmmTotalSupplyBN = pair.totalSupply;
 
-  pool.lpBorrowedBalanceInToken1 = BigDecimal.fromString('2').times(pool.lpBorrowedBalance.toBigDecimal().times(reserve1)).div(lastCfmmTotalSupply).truncate(decimals1);
-  pool.lpBorrowedBalanceInToken0 = pool.lpBorrowedBalanceInToken1.times(reserve0).div(reserve1).truncate(decimals0);
-  pool.lpBorrowedBalanceETH = pool.lpBorrowedBalanceInToken0.times(token0.priceETH);
-  pool.lpBorrowedBalanceUSD = pool.lpBorrowedBalanceInToken0.times(token0.priceUSD).truncate(2);
+  const lpBalanceInToken1BN = pool.lpBalance.times(BigInt.fromI32(2)).times(reserve1BN).div(lastCfmmTotalSupplyBN);
+  const lpBalanceInToken0BN = lpBalanceInToken1BN.times(reserve0BN).div(reserve1BN);
 
-  pool.lpBorrowedBalancePlusInterestInToken1 = BigDecimal.fromString('2').times(pool.lpBorrowedInvariant.toBigDecimal().times(reserve1)).div(lastCfmmInvariant).truncate(decimals1);
-  pool.lpBorrowedBalancePlusInterestInToken0 = pool.lpBorrowedBalancePlusInterestInToken1.times(reserve0).div(reserve1).truncate(decimals0);
-  pool.lpBorrowedBalancePlusInterestETH = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceETH);
-  pool.lpBorrowedBalancePlusInterestUSD = pool.lpBorrowedBalancePlusInterestInToken0.times(token0.priceUSD).truncate(2);
+  pool.lpBalanceInToken1 = lpBalanceInToken1BN.divDecimal(precision1).truncate(decimals1);
+  pool.lpBalanceInToken0 = lpBalanceInToken0BN.divDecimal(precision0).truncate(decimals0);
 
-  const token0Balance = pool.token0Balance.toBigDecimal().div(precision0.toBigDecimal());
-  const token1Balance = pool.token1Balance.toBigDecimal().div(precision1.toBigDecimal());
-  const allTokensInToken1 = token1Balance.plus(token0Balance.times(reserve1).div(reserve0));
-  const tokensInETH = allTokensInToken1.times(token1.priceETH);
-  const tokensInUSD = allTokensInToken1.times(token1.priceUSD).truncate(2);
+  const ONE_BN = BigInt.fromI32(10).pow(18);
+  const ONE = ONE_BN.toBigDecimal();
+
+  const priceETHBN0 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString());
+  const priceUSDBN0 = BigInt.fromString(token0.priceUSD.times(ONE).truncate(0).toString());
+
+  const lpBalanceETH = lpBalanceInToken0BN.times(priceETHBN0).div(precision0BN);
+  const lpBalanceUSD = lpBalanceInToken0BN.times(priceUSDBN0).div(precision0BN);
+  pool.lpBalanceETH = lpBalanceETH.divDecimal(ONE).truncate(18);
+  pool.lpBalanceUSD = lpBalanceUSD.divDecimal(ONE).truncate(6);
+
+  const lastCfmmInToken0 = BigInt.fromI32(2).times(reserve0BN);
+  const lastCfmmInToken1 = BigInt.fromI32(2).times(reserve1BN);
+  const lpBorrowedBalanceInToken1BN = pool.lpBorrowedBalance.times(lastCfmmInToken1).div(lastCfmmTotalSupplyBN);
+  const lpBorrowedBalanceInToken0BN = lpBorrowedBalanceInToken1BN.times(reserve0BN).div(reserve1BN);
+  pool.lpBorrowedBalanceInToken1 = lpBorrowedBalanceInToken1BN.divDecimal(precision1).truncate(decimals1);
+  pool.lpBorrowedBalanceInToken0 = lpBorrowedBalanceInToken0BN.divDecimal(precision0).truncate(decimals0);
+
+  const lpBorrowedBalanceETH = lpBorrowedBalanceInToken0BN.times(priceETHBN0).div(precision0BN);
+  const lpBorrowedBalanceUSD = lpBorrowedBalanceInToken0BN.times(priceUSDBN0).div(precision0BN);
+  pool.lpBorrowedBalanceETH = lpBorrowedBalanceETH.divDecimal(ONE).truncate(18);
+  pool.lpBorrowedBalanceUSD = lpBorrowedBalanceUSD.divDecimal(ONE).truncate(6);
+
+  const lpBorrowedBalancePlusInterestInToken1BN = pool.lpBorrowedInvariant.times(lastCfmmInToken1).div(lastCfmmInvariantBN);
+  const lpBorrowedBalancePlusInterestInToken0BN = lpBorrowedBalancePlusInterestInToken1BN.times(reserve0BN).div(reserve1BN);
+  pool.lpBorrowedBalancePlusInterestInToken1 = lpBorrowedBalancePlusInterestInToken1BN.divDecimal(precision1).truncate(decimals1);
+  pool.lpBorrowedBalancePlusInterestInToken0 = lpBorrowedBalancePlusInterestInToken0BN.divDecimal(precision0).truncate(decimals0);
+
+  const lpBorrowedBalancePlusInterestETH = lpBorrowedBalancePlusInterestInToken0BN.times(priceETHBN0).div(precision0BN);
+  const lpBorrowedBalancePlusInterestUSD = lpBorrowedBalancePlusInterestInToken0BN.times(priceUSDBN0).div(precision0BN);
+  pool.lpBorrowedBalancePlusInterestETH = lpBorrowedBalancePlusInterestETH.divDecimal(ONE).truncate(18);
+  pool.lpBorrowedBalancePlusInterestUSD = lpBorrowedBalancePlusInterestUSD.divDecimal(ONE).truncate(6);
+
+  const token0Balance = pool.token0Balance;
+  const token1Balance = pool.token1Balance;
+  const allTokensInToken0 = token0Balance.plus(token1Balance.times(reserve0BN).div(reserve1BN));
+  const tokensInETH = allTokensInToken0.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+  const tokensInUSD = allTokensInToken0.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 
   pool.tvlETH = pool.lpBalanceETH.plus(tokensInETH);
   pool.tvlUSD = pool.lpBalanceUSD.plus(tokensInUSD);
 
-  pool.lastCfmmInToken1 = BigDecimal.fromString('2').times(reserve1).truncate(decimals1);
-  pool.lastCfmmInToken0 = BigDecimal.fromString('2').times(reserve0).truncate(decimals0);
-  pool.lastCfmmETH = pool.lastCfmmInToken0.times(token0.priceETH);
-  pool.lastCfmmUSD = pool.lastCfmmInToken0.times(token0.priceUSD).truncate(2)
+  pool.lastCfmmInToken0 = lastCfmmInToken0.divDecimal(precision0).truncate(decimals0);
+  pool.lastCfmmInToken1 = lastCfmmInToken1.divDecimal(precision1).truncate(decimals1);
+
+  pool.lastCfmmETH = lastCfmmInToken0.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
+  pool.lastCfmmUSD = lastCfmmInToken0.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
 }
 
 export function updateLoanStats(loan: Loan, pair: DeltaSwapPair, token1: Token): void {
-  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  const reserve1BalanceBN = pair.reserve1;
+  const lastCfmmInvariantBN = pair.reserve1.times(pair.reserve0).sqrt();
+  const precision1BN = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
 
-  const reserve1Balance = pair.reserve1.toBigDecimal().div(precision1);
-  const lastCfmmInvariant = pair.reserve1.times(pair.reserve0).sqrt().toBigDecimal();
+  const ONE = BigInt.fromI32(10).pow(18).toBigDecimal(); // 10^18
+  const priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+  const priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
 
-  const initLiquidityInToken1 = BigDecimal.fromString('2').times(loan.initLiquidity.toBigDecimal()).times(reserve1Balance).div(lastCfmmInvariant);
-  loan.initLiquidityETH = initLiquidityInToken1.times(token1.priceETH).truncate(18);
-  loan.initLiquidityUSD = initLiquidityInToken1.times(token1.priceUSD).truncate(6);
+  const initLiquidityInToken1 = BigInt.fromI32(2).times(loan.initLiquidity).times(reserve1BalanceBN).div(lastCfmmInvariantBN);
+  loan.initLiquidityETH = initLiquidityInToken1.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+  loan.initLiquidityUSD = initLiquidityInToken1.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 
-  const liquidityInToken1 = BigDecimal.fromString('2').times(loan.liquidity.toBigDecimal()).times(reserve1Balance).div(lastCfmmInvariant);
-  loan.liquidityETH = liquidityInToken1.times(token1.priceETH).truncate(18);
-  loan.liquidityUSD = liquidityInToken1.times(token1.priceUSD).truncate(6);
+  const liquidityInToken1 = BigInt.fromI32(2).times(loan.liquidity).times(reserve1BalanceBN).div(lastCfmmInvariantBN);
+  loan.liquidityETH = liquidityInToken1.times(priceETHBN1).div(precision1BN).divDecimal(ONE).truncate(18);
+  loan.liquidityUSD = liquidityInToken1.times(priceUSDBN1).div(precision1BN).divDecimal(ONE).truncate(6);
 }
 
-export function convertInvariantToToken(invariant: BigDecimal, reserve: BigDecimal, lastCfmmInvariant: BigDecimal): BigDecimal {
-  return invariant.times(reserve).div(lastCfmmInvariant);
+export function convertInvariantToToken(invariant: BigInt, reserve: BigInt, lastCfmmInvariant: BigInt): BigInt {
+  return invariant.times(reserve.times(BigInt.fromI32(2))).div(lastCfmmInvariant);
 }
 
 export function updatePairStats(token0: Token, token1: Token, pair: DeltaSwapPair): void {
-  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32()).toBigDecimal();
-  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
+  const precision0BN = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
+  const precision1BN = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
 
-  const reserve0Decimal = pair.reserve0.toBigDecimal().div(precision0);
-  const reserve1Decimal = pair.reserve1.toBigDecimal().div(precision1);
+  const ONE = BigInt.fromI32(10).pow(18).toBigDecimal(); // 10^18
+  const priceETHBN0 = BigInt.fromString(token0.priceETH.times(ONE).truncate(0).toString());
+  const priceUSDBN0 = BigInt.fromString(token0.priceUSD.times(ONE).truncate(0).toString());
+  const priceETHBN1 = BigInt.fromString(token1.priceETH.times(ONE).truncate(0).toString());
+  const priceUSDBN1 = BigInt.fromString(token1.priceUSD.times(ONE).truncate(0).toString());
 
-  const zero = BigDecimal.zero();
+  const reserve0 = pair.reserve0;
+  const reserve1 = pair.reserve1;
 
-  if(token0.priceUSD.gt(zero) && token1.priceUSD.gt(zero)) {
-    const reserve0USD = reserve0Decimal.times(token0.priceUSD).truncate(6);
-    const reserve1USD = reserve1Decimal.times(token1.priceUSD).truncate(6);
-    pair.liquidityUSD = reserve0USD.plus(reserve1USD);
+  const zero = BigInt.zero();
+
+  if(priceUSDBN0.gt(zero) && priceUSDBN1.gt(zero)) {
+    const reserve0USD = reserve0.times(priceUSDBN0).div(precision0BN);
+    const reserve1USD = reserve1.times(priceUSDBN1).div(precision1BN);
+    pair.liquidityUSD = reserve0USD.plus(reserve1USD).divDecimal(ONE).truncate(6);
   }
 
-  if(token0.priceETH.gt(zero) && token1.priceETH.gt(zero)) {
-    const reserve0ETH = reserve0Decimal.times(token0.priceETH).truncate(18);
-    const reserve1ETH = reserve1Decimal.times(token1.priceETH).truncate(18);
-    pair.liquidityETH = reserve0ETH.plus(reserve1ETH);
+  if(priceETHBN0.gt(zero) && priceETHBN1.gt(zero)) {
+    const reserve0ETH = reserve0.times(priceETHBN0).div(precision0BN);
+    const reserve1ETH = reserve1.times(priceETHBN1).div(precision1BN);
+    pair.liquidityETH = reserve0ETH.plus(reserve1ETH).divDecimal(ONE).truncate(18);
   }
 }
 
@@ -461,29 +565,20 @@ export function shouldUpdateV3(pair: DeltaSwapPair, newTimestamp: BigInt, newLiq
     return false;
   }
 
-  const throttleThreshold = BigDecimal.fromString(TRACKED_THROTTLE_THRESHOLD || "0");
+  const throttleThreshold = BigInt.fromString(TRACKED_THROTTLE_THRESHOLD || "0");
   const throttleSeconds = BigInt.fromString(TRACKED_THROTTLE_SECONDS || "0");
 
-  const precision0 = BigInt.fromI32(10).pow(<u8>pair.decimals0.toI32());
+  const price = decodePriceBN(pair.sqrtPriceX96, pair.decimals0, pair.decimals1);
+  const newPrice = decodePriceBN(newSqrtPriceX96, pair.decimals0, pair.decimals1);
 
-  const x96 = BigInt.fromI32(2).pow(<u8>BigInt.fromI32(96).toI32()).toBigDecimal();
-  const precision0Sqrt = precision0.sqrt().toBigDecimal();
-
-  const sqrtPrice = pair.sqrtPriceX96.toBigDecimal().times(precision0Sqrt).div(x96);
-  const price = sqrtPrice.times(sqrtPrice);
-
-  const newSqrtPrice = newSqrtPriceX96.toBigDecimal().times(precision0Sqrt).div(x96);
-  const newPrice = newSqrtPrice.times(newSqrtPrice);
-
-  const _newLiquidity = newLiquidity.toBigDecimal();
-  const _100 = BigInt.fromString("100").toBigDecimal();
+  const _100 = BigInt.fromString("100");
   const hiNum = _100.plus(throttleThreshold);
-  const loNum = throttleThreshold.gt(_100) ? BigDecimal.zero() : _100.minus(throttleThreshold);
-  const liqUpperBound = pair.liquidity.toBigDecimal().times(hiNum).div(_100);
-  const liqLowerBound = pair.liquidity.toBigDecimal().times(loNum).div(_100);
+  const loNum = throttleThreshold.gt(_100) ? BigInt.zero() : _100.minus(throttleThreshold);
+  const liqUpperBound = pair.liquidity.times(hiNum).div(_100);
+  const liqLowerBound = pair.liquidity.times(loNum).div(_100);
   const priceUpperBound = price.times(hiNum).div(_100);
   const priceLowerBound = price.times(loNum).div(_100);
-  const ignoreThrottle = _newLiquidity.lt(liqLowerBound) || _newLiquidity.gt(liqUpperBound) ||
+  const ignoreThrottle = newLiquidity.lt(liqLowerBound) || newLiquidity.gt(liqUpperBound) ||
       newPrice.lt(priceLowerBound) || newPrice.gt(priceUpperBound)
 
   return pair.timestamp.le(newTimestamp.minus(throttleSeconds)) || ignoreThrottle;
@@ -566,7 +661,7 @@ export function updatePairFromSync(id: string, timestamp: BigInt, blockNumber: B
 
   pair.save();
 
-  const hasPrice = price.gt(BigDecimal.zero());
+  const hasPrice = price.gt(BigInt.zero());
   if(pool != null && hasPrice && hasFloat) {
     updatePoolStats(token0, token1, pool, pair);
   }
@@ -632,13 +727,14 @@ export function updateTokenAndPairReserves(pair: DeltaSwapPair, token0: Token, t
   pair.reserve0 = newReserves0;
   pair.reserve1 = newReserves1;
 
-  let price = BigDecimal.zero();
+  const zero = BigInt.zero();
+  let price = zero;
 
-  if(sqrtPriceX96.gt(BigInt.zero())) {
+  if(sqrtPriceX96.gt(zero)) {
     price = decodePrice(sqrtPriceX96, token0, token1);
   }
 
-  if(price.equals(BigDecimal.zero())) {
+  if(price.equals(zero)) {
     price = getPriceFromReserves(token0, token1, pair.reserve0, pair.reserve1);
   }
 
@@ -650,10 +746,37 @@ export function updateTokenAndPairReserves(pair: DeltaSwapPair, token0: Token, t
   token1.save();
 }
 
-export function decodePrice(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal {
-  const x96 = BigInt.fromI32(2).pow(96).toBigDecimal();
-  const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
-  const sqrtPrice = sqrtPriceX96.toBigDecimal().times(precision0.sqrt().toBigDecimal()).div(x96);
-  const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-  return sqrtPrice.times(sqrtPrice).div(precision1);
+export function decodePrice(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigInt {
+  const decimals0 = token0.decimals;
+  const decimals1 = token1.decimals;
+
+  return decodePriceBN(sqrtPriceX96, decimals0, decimals1);
+}
+
+export function decodePriceBN(sqrtPriceX96: BigInt, decimals0: BigInt, decimals1: BigInt): BigInt {
+  const decimals0Num = decimals0.toI32();
+  const decimals1Num = decimals1.toI32();
+  const ONE = BigInt.fromI32(10).pow(18);
+
+  if(decimals0Num > decimals1Num) {
+    const decimalsDiff = decimals0Num - decimals1Num;
+    const precisionDiffSqrt = BigInt.fromI32(10).pow(<u8>decimalsDiff).sqrt();
+    sqrtPriceX96 = sqrtPriceX96.div(precisionDiffSqrt);
+  } else if(decimals1Num > decimals0Num) {
+    const decimalsDiff = decimals1Num - decimals0Num;
+    const precisionDiffSqrt = BigInt.fromI32(10).pow(<u8>decimalsDiff).sqrt();
+    sqrtPriceX96 = sqrtPriceX96.times(precisionDiffSqrt);
+  }
+
+  return _decodePriceBN(sqrtPriceX96, ONE);
+}
+
+function _decodePriceBN(sqrtPriceX96: BigInt, decimals: BigInt): BigInt {
+  const sqrtPrice = _decodeSqrtPrice(sqrtPriceX96, decimals);
+  return sqrtPrice.times(sqrtPrice);
+}
+
+function _decodeSqrtPrice(sqrtPriceX96: BigInt, decimals: BigInt): BigInt {
+  const x96 = BigInt.fromI32(2).pow(<u8>BigInt.fromI32(96).toI32());
+  return sqrtPriceX96.times(decimals.sqrt()).div(x96);
 }
