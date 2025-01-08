@@ -188,11 +188,13 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     const poolContract = Pool.bind(event.address);
     const loanData = poolContract.loan(event.params.tokenId);
     loan.entryPrice = loanData.px;
+    if(loan.status != 'OPEN') {
+      about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
+    }
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTxhash = event.transaction.hash.toHexString();
     loan.openedAtTimestamp = event.block.timestamp;
-    about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
   } else if ([8, 9, 10].includes(event.params.txType)) { // 8 -> REPAY_LIQUIDITY, 9 -> REPAY_LIQUIDITY_SET_RATIO, 10 -> REPAY_LIQUIDITY_WITH_LP
     if (loan.initLiquidity == BigInt.zero()) {
       loan.status = 'CLOSED';
@@ -203,7 +205,7 @@ export function handleLoanUpdate(event: LoanUpdated): void {
         about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
       }
     }
-  } else if ([11, 12, 13].includes(event.params.txType)) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
+  } else if ([11, 12, 13].includes(event.params.txType)) { // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();
