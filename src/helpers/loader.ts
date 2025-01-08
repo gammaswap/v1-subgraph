@@ -680,16 +680,13 @@ export function createPair(event: PairCreated, protocolId: string): boolean {
   return true;
 }
 
-export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): FiveMinPoolSnapshot {
+export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData, token0: Token, token1: Token): FiveMinPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 300;   // 5min segment
   const tickStartTimestamp = tickId * 300;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
 
-  const pool = GammaPool.load(poolId)!;
   const poolTracer = GammaPoolTracer.load(poolId);
-  const token0 = loadOrCreateToken(pool.token0);
-  const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
@@ -804,16 +801,13 @@ export function createFiveMinPoolSnapshot(event: PoolUpdated, poolData: LatestPo
   return flashData;
 }
 
-export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): HourlyPoolSnapshot {
+export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData, token0: Token, token1: Token): HourlyPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 3600;   // 1hr segment
   const tickStartTimestamp = tickId * 3600;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
 
-  const pool = GammaPool.load(poolId)!;
   const poolTracer = GammaPoolTracer.load(poolId);
-  const token0 = loadOrCreateToken(pool.token0);
-  const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);
@@ -928,16 +922,13 @@ export function createHourlyPoolSnapshot(event: PoolUpdated, poolData: LatestPoo
   return hourlyData;
 }
 
-export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData): DailyPoolSnapshot {
+export function createDailyPoolSnapshot(event: PoolUpdated, poolData: LatestPoolData, token0: Token, token1: Token): DailyPoolSnapshot {
   const poolId = event.address.toHexString();
   const tickId = event.block.timestamp.toI32() / 86400;   // 24hr segment
   const tickStartTimestamp = tickId * 86400;
   const id = poolId.concat('-').concat(BigInt.fromI32(tickId).toString());
 
-  const pool = GammaPool.load(poolId)!;
   const poolTracer = GammaPoolTracer.load(poolId);
-  const token0 = loadOrCreateToken(pool.token0);
-  const token1 = loadOrCreateToken(pool.token1);
   const precision0 = BigInt.fromI32(10).pow(<u8>token0.decimals.toI32());
   const precision1 = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32());
   const totalLiquidity = poolData.BORROWED_INVARIANT.plus(poolData.LP_INVARIANT);

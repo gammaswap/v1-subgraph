@@ -476,11 +476,13 @@ export function updatePoolStats(token0: Token, token1: Token, pool: GammaPool, p
   const token0Balance = pool.token0Balance;
   const token1Balance = pool.token1Balance;
   const allTokensInToken0 = token0Balance.plus(token1Balance.times(reserve0BN).div(reserve1BN));
-  const tokensInETH = allTokensInToken0.times(priceETHBN0).div(precision0BN).divDecimal(ONE).truncate(18);
-  const tokensInUSD = allTokensInToken0.times(priceUSDBN0).div(precision0BN).divDecimal(ONE).truncate(6);
+  const tokensInETH = allTokensInToken0.times(priceETHBN0).div(precision0BN);
+  const tokensInUSD = allTokensInToken0.times(priceUSDBN0).div(precision0BN);
 
-  pool.tvlETH = pool.lpBalanceETH.plus(tokensInETH);
-  pool.tvlUSD = pool.lpBalanceUSD.plus(tokensInUSD);
+  const tvlETH = lpBalanceETH.plus(tokensInETH);
+  const tvlUSD = lpBalanceUSD.plus(tokensInUSD);
+  pool.tvlETH = tvlETH.divDecimal(ONE).truncate(18);
+  pool.tvlUSD = tvlUSD.divDecimal(ONE).truncate(6);
 
   pool.lastCfmmInToken0 = lastCfmmInToken0.divDecimal(precision0).truncate(decimals0);
   pool.lastCfmmInToken1 = lastCfmmInToken1.divDecimal(precision1).truncate(decimals1);
