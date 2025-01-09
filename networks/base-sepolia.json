@@ -5,7 +5,7 @@
   "throttleSeconds": "300",
   "throttleThreshold": "5",
   "universalRouter": "0xba7f5c6da0d0af891dac7b22f1b6c173c3b97dad",
-  "routerStartBlock": "17839009",
+  "routerStartBlock": "20341404",
   "trackedThrottleSeconds": "3600",
   "trackedThrottleThreshold": "10",
   "factory": "0x3af4224c0a53bed3334b67dcacb727703e17ee03",

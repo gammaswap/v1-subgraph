@@ -763,11 +763,11 @@ export function decodePriceBN(sqrtPriceX96: BigInt, decimals0: BigInt, decimals1
   if(decimals0Num > decimals1Num) {
     const decimalsDiff = decimals0Num - decimals1Num;
     const precisionDiffSqrt = BigInt.fromI32(10).pow(<u8>decimalsDiff).sqrt();
-    sqrtPriceX96 = sqrtPriceX96.div(precisionDiffSqrt);
+    sqrtPriceX96 = sqrtPriceX96.times(precisionDiffSqrt);
   } else if(decimals1Num > decimals0Num) {
     const decimalsDiff = decimals1Num - decimals0Num;
     const precisionDiffSqrt = BigInt.fromI32(10).pow(<u8>decimalsDiff).sqrt();
-    sqrtPriceX96 = sqrtPriceX96.times(precisionDiffSqrt);
+    sqrtPriceX96 = sqrtPriceX96.div(precisionDiffSqrt);
   }
 
   return _decodePriceBN(sqrtPriceX96, ONE);
