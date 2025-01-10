@@ -177,6 +177,7 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   totalCollateralToken0.save();
   totalCollateralToken1.save();
 
+  const prevInitLiquidity = loan.initLiquidity;
   loan.rateIndex = event.params.rateIndex;
   loan.initLiquidity = event.params.initLiquidity;
   loan.liquidity = event.params.liquidity;
@@ -188,7 +189,7 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     const poolContract = Pool.bind(event.address);
     const loanData = poolContract.loan(event.params.tokenId);
     loan.entryPrice = loanData.px;
-    if(loan.status != 'OPEN') {
+    if(prevInitLiquidity == BigInt.zero()) {
       about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
     }
     loan.status = 'OPEN';
