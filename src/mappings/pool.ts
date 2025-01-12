@@ -14,7 +14,13 @@ import {
   loadOrCreateTotalCollateralToken
 } from '../helpers/loader';
 import { ADDRESS_ZERO } from '../helpers/constants';
-import { updatePoolStats, updateLoanStats, updateTokenPrices, isTokenValid } from '../helpers/utils';
+import {
+  updatePoolStats,
+  updateLoanStats,
+  updateTokenPrices,
+  isTokenValid,
+  getPriceFromReserves
+} from '../helpers/utils';
 import { PoolViewer } from "../types/templates/GammaPool/PoolViewer";
 
 export function handlePoolUpdate(event: PoolUpdated): void {
@@ -105,9 +111,7 @@ export function handlePoolUpdate(event: PoolUpdated): void {
       pool.lpReserve1 = poolReserve1;
     }
 
-    const precision = BigInt.fromI32(10).pow(<u8>token1.decimals.toI32()).toBigDecimal();
-    let poolPrice = pool.lastPrice.divDecimal(precision);
-
+    const poolPrice = getPriceFromReserves(token0, token1, pool.reserve0Balance, pool.reserve1Balance);
     updateTokenPrices(token0, token1, poolPrice);
 
     if(pair != null && pair.totalSupply.gt(BigInt.zero())) {
@@ -119,9 +123,9 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     token1.save();
 
     // Historical data
-    createFiveMinPoolSnapshot(event, poolData);
-    createHourlyPoolSnapshot(event, poolData);
-    createDailyPoolSnapshot(event, poolData);
+    createFiveMinPoolSnapshot(event, poolData, token0, token1);
+    createHourlyPoolSnapshot(event, poolData, token0, token1);
+    createDailyPoolSnapshot(event, poolData, token0, token1);
 
   } else {
     log.error("Failed to get Latest Pool Data for pool {}", [poolAddress.toHexString()]);
@@ -148,8 +152,15 @@ export function handleLoanUpdate(event: LoanUpdated): void {
 
   const about = loadOrCreateAbout();
 
-  const poolContract = Pool.bind(event.address);
-  const loanData = poolContract.getLoanData(event.params.tokenId);
+  const pool = GammaPool.load(loan.pool);
+  if (pool == null) return;
+
+  const pair = DeltaSwapPair.load(pool.cfmm.toHexString());
+  if (pair == null || pair.totalSupply.equals(BigInt.zero())) return;
+
+  const token0 = Token.load(pool.token0);
+  const token1 = Token.load(pool.token1);
+  if (token1 == null || token0 == null) return;
 
   const collateralToken0 = loadOrCreateCollateralToken(loan.pool, loan.token0, loan.account);
   const collateralToken1 = loadOrCreateCollateralToken(loan.pool, loan.token1, loan.account);
@@ -157,31 +168,34 @@ export function handleLoanUpdate(event: LoanUpdated): void {
   const totalCollateralToken1 = loadOrCreateTotalCollateralToken(loan.token1, loan.account);
 
   // This might be a problem when it's a loan with a positive balance transferred to a new collateralToken
-  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
-  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
-  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(loanData.tokensHeld[0]);
-  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(loanData.tokensHeld[1]);
+  collateralToken0.balance = collateralToken0.balance.minus(loan.collateral0).plus(event.params.tokensHeld[0]);
+  collateralToken1.balance = collateralToken1.balance.minus(loan.collateral1).plus(event.params.tokensHeld[1]);
+  totalCollateralToken0.balance = totalCollateralToken0.balance.minus(loan.collateral0).plus(event.params.tokensHeld[0]);
+  totalCollateralToken1.balance = totalCollateralToken1.balance.minus(loan.collateral1).plus(event.params.tokensHeld[1]);
   collateralToken0.save();
   collateralToken1.save();
   totalCollateralToken0.save();
   totalCollateralToken1.save();
 
-  loan.rateIndex = loanData.rateIndex;
-  loan.initLiquidity = loanData.initLiquidity;
-  loan.liquidity = loanData.liquidity;
-  loan.lpTokens = loanData.lpTokens;
-  loan.collateral0 = loanData.tokensHeld[0];
-  loan.collateral1 = loanData.tokensHeld[1];
-  if (loan.entryPrice == BigInt.fromI32(0)) {
-    loan.entryPrice = loanData.px;
-  }
+  const prevInitLiquidity = loan.initLiquidity;
+  loan.rateIndex = event.params.rateIndex;
+  loan.initLiquidity = event.params.initLiquidity;
+  loan.liquidity = event.params.liquidity;
+  loan.lpTokens = event.params.lpTokens;
+  loan.collateral0 = event.params.tokensHeld[0];
+  loan.collateral1 = event.params.tokensHeld[1];
   
   if (event.params.txType == 7) { // 7 -> BORROW_LIQUIDITY
+    const poolContract = Pool.bind(event.address);
+    const loanData = poolContract.loan(event.params.tokenId);
+    loan.entryPrice = loanData.px;
+    if(prevInitLiquidity == BigInt.zero()) {
+      about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
+    }
     loan.status = 'OPEN';
     loan.openedAtBlock = event.block.number;
     loan.openedAtTxhash = event.transaction.hash.toHexString();
     loan.openedAtTimestamp = event.block.timestamp;
-    about.totalActiveLoans = about.totalActiveLoans.plus(BigInt.fromI32(1));
   } else if ([8, 9, 10].includes(event.params.txType)) { // 8 -> REPAY_LIQUIDITY, 9 -> REPAY_LIQUIDITY_SET_RATIO, 10 -> REPAY_LIQUIDITY_WITH_LP
     if (loan.initLiquidity == BigInt.zero()) {
       loan.status = 'CLOSED';
@@ -192,7 +206,7 @@ export function handleLoanUpdate(event: LoanUpdated): void {
         about.totalActiveLoans = about.totalActiveLoans.minus(BigInt.fromI32(1));
       }
     }
-  } else if ([11, 12, 13].includes(event.params.txType)) {  // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
+  } else if ([11, 12, 13].includes(event.params.txType)) { // 11 -> LIQUIDATE, 12 -> LIQUIDATE_WITH_LP, 13 -> BATCH_LIQUIDATION
     loan.status = 'LIQUIDATED';
     loan.closedAtBlock = event.block.number;
     loan.closedAtTxhash = event.transaction.hash.toHexString();
@@ -202,11 +216,11 @@ export function handleLoanUpdate(event: LoanUpdated): void {
     }
   }
 
-  loan.save();
-
   about.save();
 
-  updateLoanStats(loan);
+  updateLoanStats(loan, pair, token1);
+
+  loan.save();
 
   createLoanSnapshot(loan, event);
 }
@@ -237,6 +251,14 @@ export function handleVaultTokenTransfer(event: Transfer): void {
   const id1 = pool.id + '-' + fromAccount.id;
   const id2 = pool.id + '-' + toAccount.id;
 
+  const ONE = BigInt.fromI32(10).pow(18).toBigDecimal();
+  const lpBalanceETHBN = BigInt.fromString(pool.lpBalanceETH.times(ONE).truncate(0).toString());
+  const lpBorrowedBalanceETHBN = BigInt.fromString(pool.lpBalanceETH.times(ONE).truncate(0).toString());
+  const lpBalanceUSDBN = BigInt.fromString(pool.lpBalanceUSD.times(ONE).truncate(0).toString());
+  const lpBorrowedBalanceUSDBN = BigInt.fromString(pool.lpBalanceUSD.times(ONE).truncate(0).toString());
+  const totalLpBalanceETHBN = lpBalanceETHBN.plus(lpBorrowedBalanceETHBN);
+  const totalLpBalanceUSDBN = lpBalanceUSDBN.plus(lpBorrowedBalanceUSDBN);
+
   if (fromAccount.id != ADDRESS_ZERO) {
     let poolBalanceFrom = PoolBalance.load(id1);
     if (poolBalanceFrom) {
@@ -245,8 +267,11 @@ export function handleVaultTokenTransfer(event: Transfer): void {
         poolBalanceFrom.balanceETH = BigDecimal.fromString('0');
         poolBalanceFrom.balanceUSD = BigDecimal.fromString('0');
       } else {
-        poolBalanceFrom.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-        poolBalanceFrom.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceFrom.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+        const balanceETHBN = totalLpBalanceETHBN.times(poolBalanceFrom.balance).div(pool.totalSupply);
+        const balanceUSDBN = totalLpBalanceUSDBN.times(poolBalanceFrom.balance).div(pool.totalSupply);
+
+        poolBalanceFrom.balanceETH = balanceETHBN.divDecimal(ONE);
+        poolBalanceFrom.balanceUSD = balanceUSDBN.divDecimal(ONE);
       }
       poolBalanceFrom.save();
     }
@@ -277,8 +302,11 @@ export function handleVaultTokenTransfer(event: Transfer): void {
       poolBalanceTo.balanceETH = BigDecimal.fromString('0');
       poolBalanceTo.balanceUSD = BigDecimal.fromString('0');
     } else {
-      poolBalanceTo.balanceETH = pool.lpBalanceETH.plus(pool.lpBorrowedBalanceETH).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
-      poolBalanceTo.balanceUSD = pool.lpBalanceUSD.plus(pool.lpBorrowedBalanceUSD).times(poolBalanceTo.balance.toBigDecimal()).div(pool.totalSupply.toBigDecimal());
+      const balanceETHBN = totalLpBalanceETHBN.times(poolBalanceTo.balance).div(pool.totalSupply);
+      const balanceUSDBN = totalLpBalanceUSDBN.times(poolBalanceTo.balance).div(pool.totalSupply);
+
+      poolBalanceTo.balanceETH = balanceETHBN.divDecimal(ONE);
+      poolBalanceTo.balanceUSD = balanceUSDBN.divDecimal(ONE);
     }
     poolBalanceTo.save();
 

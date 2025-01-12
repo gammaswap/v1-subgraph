@@ -1,4 +1,3 @@
-import { DeltaSwapPair as DeltaSwapPairSource } from '../types/templates';
 import { PairCreated, GammaPoolSet } from '../types/DeltaswapFactory/DeltaSwapFactory';
 import { createPair } from '../helpers/loader';
 import { DeltaSwapPair } from "../types/schema";
