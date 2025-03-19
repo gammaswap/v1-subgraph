@@ -32,12 +32,16 @@
     "goldsky:basesepolia": "yarn goldsky gammaswap-v1-basesepolia base-sepolia",
     "goldsky:mainnet": "yarn goldsky gammaswap-v1-mainnet mainnet",
     "goldsky:sepolia": "yarn goldsky gammaswap-v1-sepolia sepolia",
+    "goldsky:sonic": "yarn goldsky gammaswap-v1-sonic sonic",
+    "goldsky:sonictestnet": "yarn goldsky gammaswap-v1-sonictestnet sonic-blaze-testnet",
     "goldtag:arbitrum": "yarn goldtag gammaswap-v1-arbitrum prod",
     "goldtag:arbsepolia": "yarn goldtag gammaswap-v1-arbsepolia prod",
     "goldtag:base": "yarn goldtag gammaswap-v1-base prod",
     "goldtag:basesepolia": "yarn goldtag gammaswap-v1-basesepolia prod",
     "goldtag:mainnet": "yarn goldtag gammaswap-v1-mainnet prod",
-    "goldtag:sepolia": "yarn goldtag gammaswap-v1-sepolia prod"
+    "goldtag:sepolia": "yarn goldtag gammaswap-v1-sepolia prod",
+    "goldtag:sonic": "yarn goldtag gammaswap-v1-sonic prod",
+    "goldtag:sonictestnet": "yarn goldtag gammaswap-v1-sonictestnet prod"
   },
   "keywords": [],
   "author": "Simon Mall",
