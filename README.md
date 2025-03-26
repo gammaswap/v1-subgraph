@@ -6,14 +6,15 @@
 1. Run "yarn prepare arbitrum"
 2. Run "yarn codegen arbitrum"
 3. Run "yarn build arbitrum" (optional, only to see if there are any compilation errors)
-4. Run "graph auth --product hosted-service 'ACCESS_TOKEN'" (get ACCESS_TOKEN from https://thegraph.com)
-5. Run "yarn deploy:arbitrum"
+*4. Run "graph auth --product hosted-service 'ACCESS_TOKEN'" (get ACCESS_TOKEN from https://thegraph.com)
++5. Run "yarn goldsky:arbitrum"
+6. Run "yarn goldtag:arbitrum" (only if step 5 suceeded, this is to update the goldsky subgraph url pointer to prod)
 
 *If authenticating to studio run the following
 
 graph auth --studio 'ACCESS_TOKEN'
 
-*The deployment script for base mainnet uses launch instead of the deploy command to deploy to graph studio
++The deployment script for base mainnet uses launch instead of the deploy command to deploy to graph studio
 
 ### Process for updating Arbitrum Subgraph
 
