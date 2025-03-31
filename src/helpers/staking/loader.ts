@@ -1,6 +1,7 @@
 import { Address, BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts';
 import { RewardTracker, RewardDistributor, StakedBalance, EscrowToken } from '../../types/schema';
 import { ERC20 } from "../../types/StakingRouter/ERC20";
+import { loadOrCreateToken } from '../loader';
 
 export function createRewardTracker(gsPool: string, tracker: Address, distributor: Address, depositTokens: string[], isFeeTracker: boolean): RewardTracker {
   const rewardTracker = new RewardTracker(tracker.toHexString());
@@ -42,7 +43,7 @@ export function createEscrowToken(poolAddress: string, escrowTokenAddress: strin
     const escrowToken = new EscrowToken(id);
     escrowToken.pool = poolAddress;
     escrowToken.address = Address.fromString(escrowTokenAddress);
-    escrowToken.claimableToken = claimableTokenAddress;
+    escrowToken.claimableToken = loadOrCreateToken(claimableTokenAddress).id;
 
     const esTokenContract = ERC20.bind(Address.fromString(escrowTokenAddress));
 
