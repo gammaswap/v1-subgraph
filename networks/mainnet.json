@@ -25,5 +25,14 @@
   "sushiFactory": "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac",
   "uniV3Factory": "0x1f98431c8ad98523631ae4a59f267346ea31f984",
   "aeroFactory": "0x0000000000000000000000000000000000000000",
-  "aeroCLFactory": "0x0000000000000000000000000000000000000000"
+  "aeroCLFactory": "0x0000000000000000000000000000000000000000",
+  "trackedTokens": [
+    { "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+    { "address": "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee" },
+    { "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
+    { "address": "0xdac17f958d2ee523a2206206994597c13d831ec7" },
+    { "address": "0x6b175474e89094c44da98b954eedeac495271d0f" },
+    { "address": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9" },
+    { "address": "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" }
+  ]
 }
