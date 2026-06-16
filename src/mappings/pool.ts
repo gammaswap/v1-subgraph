@@ -123,8 +123,8 @@ export function handlePoolUpdate(event: PoolUpdated): void {
     token1.save();
 
     // Historical data
-    createFiveMinPoolSnapshot(event, poolData, token0, token1);
-    createHourlyPoolSnapshot(event, poolData, token0, token1);
+    //createFiveMinPoolSnapshot(event, poolData, token0, token1);
+    //createHourlyPoolSnapshot(event, poolData, token0, token1);
     createDailyPoolSnapshot(event, poolData, token0, token1);
 
   } else {
